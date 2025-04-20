@@ -2,6 +2,7 @@ import { RouteConfig } from './types';
 import LoginPage from '@/pages/login';
 import RegisterPage from '@/pages/register';
 import ForgotPasswordPage from '@/pages/forgot-password';
+import ProfilePage from '@/pages/profile';
 
 const authRoutes: RouteConfig[] = [
   {
@@ -23,6 +24,12 @@ const authRoutes: RouteConfig[] = [
     path: '/forgot-password',
     component: ForgotPasswordPage,
     title: 'Forgot Password - Friday',
+  },
+  {
+    path: '/profile',
+    component: ProfilePage,
+    title: 'Profile - Friday',
+    auth: true, // Requires authentication
   }
 ];
 

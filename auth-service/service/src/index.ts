@@ -52,7 +52,7 @@ class AuthServer {
 
   public async start(): Promise<void> {
     try {
-      await connectDB();
+      // await connectDB();
       
       this.app.listen(this.port, () => {
         logger.info(`Server running in ${config.nodeEnv} mode on port ${this.port}`);

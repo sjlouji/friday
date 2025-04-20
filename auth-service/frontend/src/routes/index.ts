@@ -1,5 +1,6 @@
 import authRoutes from './auth-routes';
 import NotFoundPage from '@/pages/not-found';
+import ProfilePage from '@/pages/profile';
 import { RouteConfig, RouteCategory } from './types';
 export * from './types';
 
@@ -16,6 +17,12 @@ export const routeCategories: RouteCategory[] = [
     name: 'Account',
     description: 'Manage your account settings',
     routes: [
+      {
+        path: '/profile',
+        component: ProfilePage,
+        title: 'Profile - Friday',
+        auth: true
+      },
       {
         path: '/user/sessions',
         component: () => null,

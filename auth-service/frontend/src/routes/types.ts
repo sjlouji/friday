@@ -3,6 +3,7 @@ export interface RouteConfig {
   component: React.ComponentType;
   title?: string;
   admin?: boolean;
+  auth?: boolean;
 }
 
 export type RouteCategory = {

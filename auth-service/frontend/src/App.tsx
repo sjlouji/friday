@@ -1,5 +1,6 @@
 import AppRouter from '@/routes/Router'
-import { ThemeProvider, Header, Footer, Toaster } from '@friday/components'
+import { ThemeProvider, Footer, Toaster } from '@friday/components'
+import { Header } from '@/components/layout/Header'
 
 function App() {
   return (
