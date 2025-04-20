@@ -32,7 +32,6 @@ install:
 install-deps:
 	@echo "📦 Installing dependencies..."
 	yarn install
-	$(LERNA) bootstrap --hoist
 	@echo "✅ Dependencies installed"
 
 # Clean all build artifacts and dependencies
@@ -41,7 +40,6 @@ install-deps:
 .PHONY: clean
 clean:
 	@echo "🧹 Cleaning build artifacts..."
-	$(LERNA) clean -y --yes
 	$(LERNA) run clean
 	@echo "🧹 Cleaning root level..."
 	rm -rf node_modules

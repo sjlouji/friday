@@ -1,11 +1,10 @@
 {
-  "name": "friday",
+  "name": "@friday/friday",
   "version": "1.0.0",
   "private": true,
   "workspaces": [
     "packages/*",
-    "auth-service/service/*",
-    "auth-service/frontend/*"
+    "auth-service/service"
   ],
   "scripts": {
     "bootstrap": "lerna bootstrap",
@@ -13,5 +12,11 @@
     "test": "lerna run test",
     "dev": "lerna run dev --parallel",
     "clean": "lerna clean"
+  },
+  "engines": {
+    "node": "18.x"
+  },
+  "devDependencies": {
+    "lerna": "8.2.2"
   }
 }

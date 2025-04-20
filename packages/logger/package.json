@@ -4,6 +4,15 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "dependencies": {
+    "typescript": "^5.0.4",
     "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "ts-node": "^10.9.1"
+  },
+  "scripts": {
+    "dev": "ts-node src/index.ts",
+    "build": "tsc"
   }
 }
