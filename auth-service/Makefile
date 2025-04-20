@@ -18,6 +18,16 @@ build-service:
 build: build-service build-frontend
 	@echo "✅ $(SERVICE_NAME) built completely"
 
+.PHONY: dev-frontend
+dev-frontend:
+	@echo "🚀 Starting $(SERVICE_NAME) frontend in development mode..."
+	cd $(FRONTEND_DIR) && yarn dev
+
+.PHONY: dev-service
+dev-service:
+	@echo "🚀 Starting $(SERVICE_NAME) service in development mode..."
+	cd $(SERVICE_DIR) && yarn dev
+
 .PHONY: test-service
 test-service:
 	@echo "🧪 Testing service..."
@@ -32,4 +42,8 @@ help:
 	@echo "  make build           - Build both service and frontend"
 	@echo "  make build-service   - Build only service"
 	@echo "  make build-frontend  - Build only frontend"
-	@echo "  make test-service   - Test only service"
+	@echo "  # Development commands"
+	@echo "  make dev-service     - Start the backend service in dev mode"
+	@echo "  make dev-frontend    - Start the frontend in dev mode"
+	@echo "  # Test commands"
+	@echo "  make test-service    - Test only service"
