@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { HealthController } from '@/controllers/life-line.controller';
+import { AuthController } from '@/controllers/auth.controller';
 
 const router = Router();
 
@@ -7,17 +8,9 @@ const router = Router();
 router.get('/health', HealthController.getHealth);
 router.get('/health/live', HealthController.getlifeLine);
 
-// Auth routes (placeholder - to be implemented)
-router.post('/auth/register', (req, res) => {
-  res.status(501).json({ message: 'Not implemented yet' });
-});
-
-router.post('/auth/login', (req, res) => {
-  res.status(501).json({ message: 'Not implemented yet' });
-});
-
-router.post('/auth/logout', (req, res) => {
-  res.status(501).json({ message: 'Not implemented yet' });
-});
+// Auth routes
+router.post('/auth/register', AuthController.register);
+router.post('/auth/login', AuthController.login);
+router.post('/auth/logout', AuthController.logout);
 
 export default router;

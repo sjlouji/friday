@@ -28,6 +28,22 @@ dev-service:
 	@echo "🚀 Starting $(SERVICE_NAME) service in development mode..."
 	cd $(SERVICE_DIR) && yarn dev
 
+.PHONY: clean-frontend
+clean-frontend:
+	@echo "🧹 Cleaning frontend build artifacts..."
+	cd $(FRONTEND_DIR) && yarn clean
+	@echo "✅ Frontend cleaned"
+
+.PHONY: clean-service
+clean-service:
+	@echo "🧹 Cleaning service build artifacts..."
+	cd $(SERVICE_DIR) && rm -rf dist node_modules
+	@echo "✅ Service cleaned"
+
+.PHONY: clean
+clean: clean-frontend clean-service
+	@echo "✅ All build artifacts cleaned"
+
 .PHONY: test-service
 test-service:
 	@echo "🧪 Testing service..."
@@ -45,5 +61,9 @@ help:
 	@echo "  # Development commands"
 	@echo "  make dev-service     - Start the backend service in dev mode"
 	@echo "  make dev-frontend    - Start the frontend in dev mode"
+	@echo "  # Clean commands"
+	@echo "  make clean           - Clean all build artifacts"
+	@echo "  make clean-frontend  - Clean frontend build artifacts"
+	@echo "  make clean-service   - Clean service build artifacts"
 	@echo "  # Test commands"
 	@echo "  make test-service    - Test only service"

@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node dist/index.js",
     "dev": "nodemon --config nodemon.json",
-    "build": "tsc"
+    "build": "tsc",
+    "clean": "rm -rf dist node_modules",
+    "test": "jest"
   },
   "dependencies": {
     "@friday/logger": "*",

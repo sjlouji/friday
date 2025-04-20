@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { routeCategories } from '@/routes';
 import { Button } from '@/components/ui/button';
-import { useTheme } from '@/components/theme-provider';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -13,15 +12,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { theme, setTheme } = useTheme();
   
   const handleLogout = () => {
     logout();
     navigate('/login');
-  };
-  
-  const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
   };
   
   // Filter categories based on user role
@@ -82,10 +76,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
             </div>
           </div>
-          <div className="flex space-x-2 mt-2">
-            <Button variant="outline" size="sm" className="w-full" onClick={toggleTheme}>
-              {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-            </Button>
+          <div className="mt-2">
             <Button variant="destructive" size="sm" className="w-full" onClick={handleLogout}>
               Logout
             </Button>

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 
 interface User {
   id: string;
@@ -22,7 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
-  const router = useRouter();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Check if user is already logged in
@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const userData = await response.json();
       setUser(userData);
-      router.push("/dashboard");
+      navigate("/dashboard");
     } catch (error) {
       if (error instanceof Error) {
         throw error;
@@ -95,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const userData = await response.json();
       setUser(userData);
-      router.push("/dashboard");
+      navigate("/dashboard");
     } catch (error) {
       if (error instanceof Error) {
         throw error;
@@ -120,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       setUser(null);
-      router.push("/login");
+      navigate("/login");
     } catch (error) {
       console.error("Logout failed:", error);
     } finally {

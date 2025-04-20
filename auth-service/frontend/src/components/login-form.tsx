@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "./auth-provider";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
@@ -61,7 +61,7 @@ export function LoginForm() {
         </div>
         
         <div className="flex items-center justify-between">
-          <Link href="/forgot-password" className="text-sm text-blue-600 hover:text-blue-500">
+          <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-500">
             Forgot your password?
           </Link>
         </div>
@@ -79,7 +79,7 @@ export function LoginForm() {
         <div className="text-center mt-4">
           <p className="text-sm text-gray-600">
             Don't have an account?{" "}
-            <Link href="/signup" className="text-blue-600 hover:text-blue-500">
+            <Link to="/signup" className="text-blue-600 hover:text-blue-500">
               Sign up
             </Link>
           </p>
