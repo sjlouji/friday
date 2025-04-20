@@ -43,11 +43,20 @@ clean:
 	@echo "🧹 Cleaning build artifacts..."
 	$(LERNA) clean -y --yes
 	$(LERNA) run clean
+	@echo "🧹 Cleaning root level..."
 	rm -rf node_modules
 	rm -f yarn.lock
 	rm -f package-lock.json
 	rm -f pnpm-lock.yaml
-	find . -name "*.lock" -type f -delete
+	@echo "🧹 Cleaning all services and packages..."
+	find . -type d -name "node_modules" -exec rm -rf {} +
+	find . -type d -name "dist" -exec rm -rf {} +
+	find . -type d -name "build" -exec rm -rf {} +
+	find . -type d -name ".next" -exec rm -rf {} +
+	find . -type f -name "yarn.lock" -delete
+	find . -type f -name "package-lock.json" -delete
+	find . -type f -name "pnpm-lock.yaml" -delete
+	find . -type f -name "*.lock" -delete
 	@echo "✅ All builds and lock files cleaned"
 
 # Build all services
