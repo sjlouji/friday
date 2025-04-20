@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
         <div className="flex flex-col space-y-2 text-center">
           <h1 className="text-2xl font-semibold tracking-tight">Forgot your password?</h1>
           <p className="text-sm text-muted-foreground">
-            Enter your email address and we'll send you a link to reset your password
+            admin@friday.com address and we'll send you a link to reset your password
           </p>
         </div>
 
@@ -61,7 +61,7 @@ export default function ForgotPasswordPage() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="name@example.com"
+                    placeholder="admin@friday.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required

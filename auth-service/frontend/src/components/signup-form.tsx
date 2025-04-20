@@ -71,7 +71,7 @@ export function SignupForm() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
+                placeholder="admin@friday.com"
               />
             </div>
             

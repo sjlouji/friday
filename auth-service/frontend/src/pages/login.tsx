@@ -70,7 +70,7 @@ export default function LoginPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="name@example.com"
+                  placeholder="admin@friday.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -92,6 +92,7 @@ export default function LoginPage() {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   value={password}
+                  placeholder=""
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
