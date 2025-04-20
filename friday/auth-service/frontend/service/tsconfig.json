@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+      "target": "es2020",
+      "module": "commonjs",
+      "outDir": "../../service/dist",
+      "rootDir": "../../service/src",
+      "strict": true,
+      "esModuleInterop": true,
+      "skipLibCheck": true,
+      "forceConsistentCasingInFileNames": true
+    },
+    "include": ["../../service/src/**/*"],
+    "exclude": ["../../service/node_modules", "../../service/**/*.test.ts"]
+  }
