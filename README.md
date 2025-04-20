@@ -131,4 +131,26 @@ Please make sure your code follows the existing style and includes appropriate t
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## 🌟 Support the Project
+
+If you find Friday useful, consider supporting the project in these ways:
+
+### Contribute
+- **Code Contributions**: Submit PRs for bug fixes or new features
+- **Documentation**: Help improve or translate the documentation
+- **Testing**: Report bugs or test new features
+- **Design**: Contribute UI/UX improvements or illustrations
+
+### Share
+- Star ⭐ the repository on GitHub
+- Share the project on social media
+- Write about your experience using Friday
+- Provide testimonials or case studies
+
+### Feedback
+- Submit feature requests or ideas through GitHub issues
+- Participate in discussions
+
+Your support, in any form, is greatly appreciated and helps make Friday better for everyone!
+
 Built with ❤️ by Joan Louji
