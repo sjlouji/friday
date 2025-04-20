@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Link } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@friday/components";
-import { Button } from "@friday/components";
-import { Input } from "@friday/components";
-import { Label } from "@friday/components";
+import { 
+  Button, Input, Label, Card,
+  CardContent, CardDescription, CardFooter,
+   CardHeader, CardTitle,
+  } from "@friday/components";
+
 
 export function SignupForm() {
   const [email, setEmail] = useState("");

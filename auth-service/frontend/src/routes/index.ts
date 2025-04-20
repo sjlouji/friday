@@ -1,9 +1,8 @@
-import authRoutes from './authRoutes';
+import authRoutes from './auth-routes';
 import NotFoundPage from '@/pages/not-found';
 import { RouteConfig, RouteCategory } from './types';
 export * from './types';
 
-// Create a not found route
 const notFoundRoute: RouteConfig[] = [
   {
     path: '*',
@@ -12,7 +11,6 @@ const notFoundRoute: RouteConfig[] = [
   }
 ];
 
-// Define route categories for dashboard navigation
 export const routeCategories: RouteCategory[] = [
   {
     name: 'Account',
@@ -68,7 +66,6 @@ export const routeCategories: RouteCategory[] = [
   }
 ];
 
-// Combine all routes for the router
 const routes = [
   ...authRoutes,
   ...notFoundRoute
