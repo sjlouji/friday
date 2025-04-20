@@ -1,8 +1,10 @@
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { DashboardLayout } from '@friday/components';
+import { useAuth } from '@/context/AuthContext';
+import { routeCategories } from '@/routes';
 
 export default function AuditLogsPage() {
   return (
-    <DashboardLayout>
+    <DashboardLayout useAuth={useAuth} routeCategories={routeCategories}>
       <div className="space-y-4">
         <h2 className="text-2xl font-bold">Audit Logs</h2>
         <p className="text-muted-foreground">Review system audit logs and events.</p>

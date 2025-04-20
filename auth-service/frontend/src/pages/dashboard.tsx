@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button'
+import { Button } from '@friday/components'
 import { useNavigate } from 'react-router-dom'
 
 export default function DashboardPage() {

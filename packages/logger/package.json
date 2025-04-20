@@ -13,6 +13,7 @@
   },
   "scripts": {
     "dev": "ts-node src/index.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "clean": "rm -rf dist node_modules"
   }
 }

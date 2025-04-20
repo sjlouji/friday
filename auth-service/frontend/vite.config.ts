@@ -14,6 +14,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@friday/components': path.resolve(__dirname, '../../packages/components/src'),
     },
   },
   server: {

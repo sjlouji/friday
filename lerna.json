@@ -3,6 +3,7 @@
   "npmClient": "yarn",
   "packages": [
     "packages/*",
+    "packages/components",
     "auth-service/service",
     "auth-service/frontend"
   ],

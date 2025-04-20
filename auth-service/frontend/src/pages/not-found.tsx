@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
+import { Button } from '@friday/components'
 
 export default function NotFoundPage() {
   return (

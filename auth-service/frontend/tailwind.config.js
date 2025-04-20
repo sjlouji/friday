@@ -8,6 +8,7 @@ export default {
     './components/**/*.{ts,tsx}',
     './app/**/*.{ts,tsx}',
     './src/**/*.{ts,tsx}',
+    '../../packages/components/src/**/*.{ts,tsx}'
   ],
   prefix: "",
   theme: {
@@ -92,5 +93,5 @@ export default {
   		}
   	}
   },
-  plugins: [tailwindcssAnimate, require("tailwindcss-animate")],
+  plugins: [tailwindcssAnimate],
 } 

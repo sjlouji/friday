@@ -1,0 +1,41 @@
+{
+  "name": "@friday/components",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "style": "dist/styles.css",
+  "files": [
+    "dist"
+  ],
+  "author": "sjlouji10@gmail.com",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc && tailwindcss -i ./src/assets/index.css -o ./dist/styles.css",
+    "clean": "rm -rf dist node_modules",
+    "dev": "tsc --watch && tailwindcss -i ./src/assets/index.css -o ./dist/styles.css --watch",
+    "lint": "eslint src"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-router-dom": "^6.0.0"
+  },
+  "dependencies": {
+    "@radix-ui/react-checkbox": "^1.0.4",
+    "@radix-ui/react-label": "^2.0.2",
+    "@radix-ui/react-slot": "^1.0.2",
+    "@radix-ui/react-toast": "^1.1.5",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.0.0",
+    "tailwind-merge": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "autoprefixer": "^10.4.17",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.0.0"
+  }
+}

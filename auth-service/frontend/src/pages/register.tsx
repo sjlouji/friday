@@ -1,12 +1,12 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@friday/components'
+import { Input } from '@friday/components'
+import { Label } from '@friday/components'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@friday/components'
 import { useAuth } from '@/context/AuthContext'
-import { useToast } from '@/hooks/use-toast'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { useToast } from '@friday/components'
+import { Alert, AlertDescription, AlertTitle } from '@friday/components'
 
 export default function RegisterPage() {
   const [name, setName] = useState('')

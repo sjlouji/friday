@@ -27,7 +27,11 @@
       "@assets/*": ["./src/assets/*"],
       "@pages/*": ["./src/pages/*"],
       "@features/*": ["./src/features/*"],
-      "@utils/*": ["./src/utils/*"]
+      "@utils/*": ["./src/utils/*"],
+      "@friday/components": ["../../packages/components/src"],
+      "@friday/components/*": ["../../packages/components/src/*"],
+      "@friday/components/dist": ["../../packages/components/dist"],
+      "@friday/components/dist/*": ["../../packages/components/dist/*"]
     }
   },
   "include": ["src"],

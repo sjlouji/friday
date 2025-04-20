@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "jsx": "react-jsx",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@friday/ui": ["packages/ui/src"],
+      "@friday/ui/*": ["packages/ui/src/*"],
+      "@friday/layout": ["packages/layout/src"],
+      "@friday/layout/*": ["packages/layout/src/*"],
+      "@friday/theme-provider": ["packages/theme-provider/src"],
+      "@friday/theme-provider/*": ["packages/theme-provider/src/*"],
+      "@friday/components": ["packages/components/src"],
+      "@friday/components/*": ["packages/components/src/*"]
+    }
+  },
+  "include": ["packages/**/*", "auth-service/**/*"]
+} 
