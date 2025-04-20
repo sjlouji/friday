@@ -12,22 +12,22 @@ Friday is an intelligent personal assistant designed to simplify the management 
 
 ## 🚀 Development Roadmap
 
-Friday is being developed in five distinct phases:
+Friday is being developed in phases:
 
-### 🔍 Current Phase: Finance Management (Phase 1)
-- Building core finance tracking features
-- Setting up monorepo architecture
-- Establishing foundational UI components
+### 🔍 Current Phase: Finance & Authentication (Phases 1 & 2)
+- **Finance Management:** Complete income/expense tracking and budgeting system
+- **Authentication System:** Secure login with passkeys and email verification
+- **Setting up monorepo architecture**
+- **Establishing foundational UI components**
 
-### 📋 Upcoming Phases:
-- **Phase 2:** Authentication System (Passkey and Email)
+### 📋 Future Roadmap:
 - **Phase 3:** Workout and Health Routines
 - **Phase 4:** Calendar Management and Subscription Tracking
 - **Phase 5:** Event Planning and Todo Management
 
 ## ✨ Features
 
-### Finance Management (Phase 1)
+### Current Features (Finance & Authentication)
 - **Income Tracking:** Monitor multiple income streams with detailed categorization
 - **Expense Tracking:** Track and categorize all expenses with receipt scanning
 - **Budgeting:** Create customizable budgets with real-time monitoring
@@ -36,9 +36,9 @@ Friday is being developed in five distinct phases:
 - **Financial Analytics:** Get AI-powered insights on spending habits and opportunities
 - **Asset Tracking:** Monitor investments, property, and other assets
 - **Liability Tracking:** Track loans, mortgages, and other debts
-
-### Future Features (Phases 2-5)
 - **Secure Authentication:** Passwordless login with passkeys and email verification
+
+### Future Features (Phases 3-5)
 - **Workout Tracking:** Create, monitor, and optimize exercise routines
 - **Calendar Integration:** Sync events across multiple calendars
 - **Subscription Management:** Track recurring payments and renewal dates
@@ -86,7 +86,7 @@ Friday is being developed in five distinct phases:
 
 2. **Install dependencies**
    ```bash
-   make bootstrap
+   make install
    ```
 
 3. **Start the development environment**
