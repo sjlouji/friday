@@ -17,7 +17,7 @@ Friday is an AI-powered personal finance management system designed to provide a
 
 - **Backend**: FastAPI
 - **Database**: PostgreSQL
-- **AI/ML Tools**: LangChain, OpenAI, Transformers, scikit-learn
+- **AI/ML Tools**: LangChain, Mistral, OpenAI, Transformers, scikit-learn
 - **Vector Database**: Pinecone
 - **Authentication**: JWT (python-jose, passlib)
 - **Testing**: pytest
