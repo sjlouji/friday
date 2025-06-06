@@ -1,22 +1,74 @@
 # Friday: AI-First Chat-Based Personal Finance App
 
+## Overview
+
+Friday is an AI-powered personal finance management system designed to provide a chat-driven interface for managing your finances. It leverages double-entry accounting (Beancount) and AI capabilities to offer insights, categorization, and automation for your financial data.
+
 ## Features
 
-- Chat-driven interface
-- Double-entry accounting (Beancount)
-- AI-powered insights, categorization, and automation
-- Multi-currency, budgeting, investments, tax, and more
+- **Chat-Driven Interface**: Interact with your finances through a conversational interface.
+- **Double-Entry Accounting**: Utilizes Beancount for accurate financial tracking.
+- **AI-Powered Insights**: Get intelligent insights and automated categorization of your transactions.
+- **Multi-Currency Support**: Manage finances across different currencies.
+- **Budgeting and Investments**: Track budgets and manage investments seamlessly.
+- **Tax Management**: Simplify tax-related financial management.
+
+## Tech Stack
+
+- **Backend**: FastAPI
+- **Database**: PostgreSQL
+- **AI/ML Tools**: LangChain, OpenAI, Transformers, scikit-learn
+- **Vector Database**: Pinecone
+- **Authentication**: JWT (python-jose, passlib)
+- **Testing**: pytest
+- **Code Quality**: black, isort, mypy
+- **Database Migrations**: Alembic
+- **Logging**: loguru, asgi-correlation-id
 
 ## Setup
 
-```bash
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
+1. **Clone the Repository**:
 
-## Run
+   ```bash
+   git clone <repository-url>
+   cd friday
+   ```
 
-```bash
-uvicorn app.main:app --reload
-```
+2. **Create a Virtual Environment**:
+
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+   ```
+
+3. **Install Dependencies**:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Environment Configuration**:
+
+   - Create a `.env` file in the project root with the following variables:
+     ```
+     ENVIRONMENT=development
+     PORT=8000
+     ```
+
+5. **Run the Application**:
+   ```bash
+   python app/main.py
+   ```
+
+## Usage
+
+- Access the API at `http://127.0.0.1:8000/api/v1`.
+- Use the chat endpoint to interact with the system: `POST /api/v1/chat`.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
