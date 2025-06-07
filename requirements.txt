@@ -20,3 +20,5 @@ alembic
 loguru
 asgi-correlation-id
 pydantic-settings
+mistralai
+langchain-community

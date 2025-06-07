@@ -2,7 +2,7 @@
 
 ## Overview
 
-Friday is an AI-powered personal finance management system designed to provide a chat-driven interface for managing your finances. It leverages double-entry accounting (Beancount) and AI capabilities to offer insights, categorization, and automation for your financial data.
+Friday is an AI-powered personal finance management system designed to provide a chat-driven interface for managing your finances. It leverages double-entry accounting (Beancount) and AI capabilities to offer insights, categorization, and automation for your financial data. We are planning to create an agentic AI to use Beancount as a chat API, enhancing the interaction and automation of financial management.
 
 ## Features
 

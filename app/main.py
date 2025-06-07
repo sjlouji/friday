@@ -1,6 +1,9 @@
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from asgi_correlation_id import CorrelationIdMiddleware
+import signal
+import sys
+import asyncio
 
 from app.chat import router as chat_router
 from app.core.config import settings
@@ -44,6 +47,24 @@ class FridayApp:
         ensure_unique_route_names(self.app)
         simplify_operation_ids(self.app)
 
+async def shutdown():
+    print('Shutting down gracefully...')
+    # Add any cleanup code here
+    tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
+    [task.cancel() for task in tasks]
+    try:
+        await asyncio.gather(*tasks, return_exceptions=True)
+    except asyncio.CancelledError:
+        pass
+    finally:
+        asyncio.get_event_loop().stop()
+
+def signal_handler(sig, frame):
+    print('You pressed Ctrl+C!')
+    loop = asyncio.get_event_loop()
+    loop.create_task(shutdown())
+
+signal.signal(signal.SIGINT, signal_handler)
 
 app = FridayApp().app
 

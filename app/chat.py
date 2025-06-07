@@ -1,8 +1,16 @@
 from fastapi import APIRouter, Depends
-from app.core.config import get_settings
+from app.service.services import FinancialAgent, TransactionAgent
 
 router = APIRouter()
 
+financial_agent = FinancialAgent()
+transaction_agent = TransactionAgent()
+
 @router.post("/chat")
-def chat_endpoint(settings=Depends(get_settings)):
-    return {"msg": "Chat endpoint placeholder", "version": settings.FASTAPI_VERSION} 
+async def chat_endpoint(query: str):
+    # Determine which agent to use based on the query
+    if "transaction" in query.lower():
+        response = transaction_agent.process_query(query)
+    else:
+        response = financial_agent.process_query(query)
+    return {"response": response} 
