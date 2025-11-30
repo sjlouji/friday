@@ -1,0 +1,22 @@
+2024-01-01 open Assets:Checking
+2024-01-01 open Assets:Savings
+2024-01-01 open Expenses:Food
+2024-01-01 open Expenses:Transport
+2024-01-01 open Income:Salary
+2024-01-01 open Equity:Opening-Balances
+
+2024-01-01 balance Assets:Checking 5000.00 USD
+2024-01-01 balance Assets:Savings 10000.00 USD
+
+2024-01-15 * "Employer" "Monthly Salary"
+  Income:Salary  -5000.00 USD
+  Assets:Checking   5000.00 USD
+
+2024-01-20 * "Grocery Store" "Weekly groceries"
+  Expenses:Food  150.00 USD
+  Assets:Checking  -150.00 USD
+
+2024-01-25 * "Gas Station" "Fuel"
+  Expenses:Transport  50.00 USD
+  Assets:Checking    -50.00 USD
+
