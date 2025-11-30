@@ -46,7 +46,15 @@ export default function Transactions() {
   const [propertyFilteringQuery, setPropertyFilteringQuery] = useState({ tokens: [], operation: 'and' as const, freeTextTokens: [] });
 
   useEffect(() => {
-    fetchTransactions();
+    const loadData = async () => {
+      try {
+        await fetchTransactions();
+      } catch (error: any) {
+        console.error("Error loading transactions:", error);
+        alert(`Failed to load transactions: ${error.message}\n\nPlease check that the Beancount file path is set correctly in Settings.`);
+      }
+    };
+    loadData();
   }, []);
 
   const handleEdit = (transaction: Transaction) => {

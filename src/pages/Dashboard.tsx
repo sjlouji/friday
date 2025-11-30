@@ -15,8 +15,17 @@ export default function Dashboard() {
   const [dashboardData, setDashboardData] = useState<any>(null);
 
   useEffect(() => {
-    loadAll();
-    fetchDashboard().then(setDashboardData);
+    const loadData = async () => {
+      try {
+        await loadAll();
+        const data = await fetchDashboard();
+        setDashboardData(data);
+      } catch (error: any) {
+        console.error("Error loading dashboard data:", error);
+        // Error is already set in the store
+      }
+    };
+    loadData();
   }, []);
 
   const netWorth = dashboardData?.netWorth || 0;

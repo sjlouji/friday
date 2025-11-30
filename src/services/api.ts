@@ -1,4 +1,5 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const BEANCOUNT_FILE_KEY = 'beancount_file_path';
 
 export interface ApiResponse<T> {
   data?: T;
@@ -6,8 +7,25 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
+function getFilePath(): string {
+  const path = localStorage.getItem(BEANCOUNT_FILE_KEY);
+  if (!path) {
+    throw new Error('Beancount file path not set. Please configure it in Settings.');
+  }
+  // Validate that it's a full path, not just a filename
+  if (!path.includes("/") && !path.includes("\\")) {
+    throw new Error('Please provide the full path to the file (e.g., /Users/username/Documents/ledger.beancount), not just the filename. You can set this in Settings.');
+  }
+  return path;
+}
+
 async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const filePath = getFilePath();
+  // Handle endpoints that may already have query parameters
+  const separator = endpoint.includes('?') ? '&' : '?';
+  const url = `${API_BASE_URL}${endpoint}${separator}file_path=${encodeURIComponent(filePath)}`;
+
+  const response = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -67,9 +85,11 @@ export const api = {
 
   import: {
     upload: async (file: File) => {
+      const filePath = getFilePath();
       const formData = new FormData();
       formData.append('file', file);
-      const response = await fetch(`${API_BASE_URL}/import`, {
+      formData.append('file_path', filePath);
+      const response = await fetch(`${API_BASE_URL}/import?file_path=${encodeURIComponent(filePath)}`, {
         method: 'POST',
         body: formData,
       });
@@ -82,7 +102,59 @@ export const api = {
 
   export: {
     download: () => {
-      window.open(`${API_BASE_URL}/export`, '_blank');
+      const filePath = getFilePath();
+      window.open(`${API_BASE_URL}/export?file_path=${encodeURIComponent(filePath)}`, '_blank');
+    },
+  },
+
+  files: {
+    create: async (filePath: string) => {
+      const response = await fetch(`${API_BASE_URL}/files/create?file_path=${encodeURIComponent(filePath)}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ detail: response.statusText }));
+        throw new Error(error.detail || 'Failed to create file');
+      }
+      return response.json();
+    },
+    browse: async (path: string = '') => {
+      // Build URL with optional path parameter
+      let url = `${API_BASE_URL}/files/browse`;
+      if (path && path.trim()) {
+        url += `?path=${encodeURIComponent(path)}`;
+      }
+      
+      console.log('Browsing files at URL:', url);
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        let error;
+        try {
+          error = JSON.parse(errorText);
+        } catch {
+          error = { detail: errorText || response.statusText };
+        }
+        console.error('Browse error:', error);
+        throw new Error(error.detail || `Failed to browse directory: ${response.status} ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      console.log('Browse result:', result);
+      return result;
+    },
+    getCommonPaths: async () => {
+      const response = await fetch(`${API_BASE_URL}/files/common-paths`);
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ detail: response.statusText }));
+        throw new Error(error.detail || 'Failed to get common paths');
+      }
+      return response.json();
     },
   },
 };

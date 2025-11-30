@@ -1,1 +1,14 @@
 @import "@cloudscape-design/global-styles/index.css";
+
+/* Theme support - Cloudscape uses data-mode attribute */
+html[data-mode="dark"],
+html.awsui-dark-mode,
+body.awsui-dark-mode {
+  color-scheme: dark;
+}
+
+html[data-mode="light"],
+html.awsui-light-mode,
+body.awsui-light-mode {
+  color-scheme: light;
+}

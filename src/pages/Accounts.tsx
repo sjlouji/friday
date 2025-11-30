@@ -25,7 +25,15 @@ export default function Accounts() {
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
 
   useEffect(() => {
-    fetchAccounts();
+    const loadData = async () => {
+      try {
+        await fetchAccounts();
+      } catch (error: any) {
+        console.error("Error loading accounts:", error);
+        alert(`Failed to load accounts: ${error.message}\n\nPlease check that the Beancount file path is set correctly in Settings.`);
+      }
+    };
+    loadData();
   }, []);
 
   const accountsByType = accounts.reduce((acc, account) => {

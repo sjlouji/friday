@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -19,7 +19,13 @@ app = FastAPI(title="Beancount API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://localhost:3000",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -168,42 +174,200 @@ def load_beancount_file(filepath: str = BEANCOUNT_FILE):
 async def root():
     return {"message": "Beancount API", "version": "1.0.0"}
 
+@app.get("/api/files/browse")
+async def browse_files(path: Optional[str] = Query(default=None, description="Directory path to browse")):
+    """Browse files and directories in the file system"""
+    try:
+        import pathlib
+        
+        # Default to home directory if no path provided
+        if path is None or not path or path.strip() == "":
+            home_path = pathlib.Path.home()
+            if not home_path.exists():
+                raise HTTPException(status_code=404, detail="Home directory does not exist")
+            requested_path = home_path
+        else:
+            # Security: Only allow browsing within user's home directory or common safe paths
+            home_path = pathlib.Path.home()
+            requested_path = pathlib.Path(path)
+            
+            # Resolve the path (handles relative paths and symlinks)
+            try:
+                requested_path = requested_path.resolve()
+            except (OSError, ValueError) as e:
+                raise HTTPException(status_code=400, detail=f"Invalid path: {str(e)}")
+            
+            # Check if path is within home directory or is a common safe path
+            safe_paths = [
+                home_path,
+                pathlib.Path("/tmp"),
+                pathlib.Path("/var/tmp"),
+            ]
+            
+            is_safe = any(
+                str(requested_path).startswith(str(safe_path)) for safe_path in safe_paths
+            ) or str(requested_path).startswith(str(home_path))
+            
+            if not is_safe:
+                raise HTTPException(status_code=403, detail="Access denied to this path")
+        
+        if not requested_path.exists():
+            raise HTTPException(status_code=404, detail=f"Path does not exist: {requested_path}")
+        
+        if not requested_path.is_dir():
+            raise HTTPException(status_code=400, detail=f"Path is not a directory: {requested_path}")
+        
+        items = []
+        try:
+            for item in requested_path.iterdir():
+                try:
+                    item_info = {
+                        "name": item.name,
+                        "path": str(item),
+                        "is_directory": item.is_dir(),
+                        "is_file": item.is_file(),
+                    }
+                    
+                    # Only include .beancount files or directories
+                    if item.is_dir() or (item.is_file() and (item.suffix == ".beancount" or item.suffix == ".bean")):
+                        items.append(item_info)
+                except (PermissionError, OSError) as e:
+                    # Skip items we can't access
+                    continue
+        except PermissionError as e:
+            raise HTTPException(status_code=403, detail=f"Permission denied: {str(e)}")
+        
+        # Sort: directories first, then files, both alphabetically
+        items.sort(key=lambda x: (not x["is_directory"], x["name"].lower()))
+        
+        # Determine parent path
+        parent_path = None
+        if requested_path.parent != requested_path:
+            parent_path = str(requested_path.parent)
+        
+        return {
+            "path": str(requested_path),
+            "parent": parent_path,
+            "items": items
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        error_detail = f"Failed to browse directory: {str(e)}\n{traceback.format_exc()}"
+        raise HTTPException(status_code=500, detail=error_detail)
+
+@app.get("/api/files/common-paths")
+async def get_common_paths():
+    """Get common file system paths"""
+    import pathlib
+    home = pathlib.Path.home()
+    
+    common_paths = [
+        {"name": "Home", "path": str(home)},
+        {"name": "Documents", "path": str(home / "Documents")},
+        {"name": "Desktop", "path": str(home / "Desktop")},
+        {"name": "Downloads", "path": str(home / "Downloads")},
+    ]
+    
+    # Filter to only include paths that exist
+    existing_paths = [p for p in common_paths if pathlib.Path(p["path"]).exists()]
+    
+    return {"paths": existing_paths}
+
+@app.post("/api/files/create")
+async def create_beancount_file(file_path: str = Query(..., description="Path where to create the Beancount file")):
+    """Create a new Beancount file at the specified path"""
+    try:
+        # Check if file already exists
+        if os.path.exists(file_path):
+            raise HTTPException(status_code=400, detail=f"File already exists at {file_path}")
+        
+        # Create directory if it doesn't exist
+        directory = os.path.dirname(file_path)
+        if directory and not os.path.exists(directory):
+            os.makedirs(directory, exist_ok=True)
+        
+        # Create a basic Beancount file with default structure
+        today = date.today().isoformat()
+        
+        default_content = f"""option "title" "Beancount Ledger"
+option "operating_currency" "USD"
+
+; Accounts
+{today} open Assets:Checking
+{today} open Assets:Savings
+{today} open Assets:Cash
+{today} open Liabilities:CreditCard
+{today} open Income:Salary
+{today} open Income:Other
+{today} open Expenses:Food
+{today} open Expenses:Transport
+{today} open Expenses:Utilities
+{today} open Expenses:Entertainment
+{today} open Equity:Opening-Balances
+
+; Opening balance example (uncomment and adjust as needed)
+; {today} * "Opening Balance"
+;   Assets:Checking    1000.00 USD
+;   Equity:Opening-Balances
+
+"""
+        
+        # Write the file
+        with open(file_path, "w") as f:
+            f.write(default_content)
+        
+        # Validate the created file
+        entries, errors, options_map = loader.load_file(file_path)
+        
+        return {
+            "success": True,
+            "file_path": file_path,
+            "message": f"Beancount file created successfully at {file_path}",
+            "errors": errors if errors else []
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create file: {str(e)}")
+
 @app.get("/api/transactions")
-async def get_transactions():
+async def get_transactions(file_path: str = Query(..., description="Path to Beancount file")):
     """Get all transactions"""
-    transactions, _, _, _, errors = load_beancount_file()
+    transactions, _, _, _, errors = load_beancount_file(file_path)
     if errors:
         return {"transactions": transactions, "errors": errors}
     return {"transactions": transactions}
 
 @app.get("/api/accounts")
-async def get_accounts():
+async def get_accounts(file_path: str = Query(..., description="Path to Beancount file")):
     """Get all accounts"""
-    _, accounts, _, _, errors = load_beancount_file()
+    _, accounts, _, _, errors = load_beancount_file(file_path)
     if errors:
         return {"accounts": accounts, "errors": errors}
     return {"accounts": accounts}
 
 @app.get("/api/balances")
-async def get_balances():
+async def get_balances(file_path: str = Query(..., description="Path to Beancount file")):
     """Get all balances"""
-    _, _, balances, _, errors = load_beancount_file()
+    _, _, balances, _, errors = load_beancount_file(file_path)
     if errors:
         return {"balances": balances, "errors": errors}
     return {"balances": balances}
 
 @app.get("/api/prices")
-async def get_prices():
+async def get_prices(file_path: str = Query(..., description="Path to Beancount file")):
     """Get all prices"""
-    _, _, _, prices, errors = load_beancount_file()
+    _, _, _, prices, errors = load_beancount_file(file_path)
     if errors:
         return {"prices": prices, "errors": errors}
     return {"prices": prices}
 
 @app.get("/api/dashboard")
-async def get_dashboard():
+async def get_dashboard(file_path: str = Query(..., description="Path to Beancount file")):
     """Get dashboard data"""
-    transactions, accounts, balances, prices, errors = load_beancount_file()
+    transactions, accounts, balances, prices, errors = load_beancount_file(file_path)
     
     total_assets = sum(
         float(b["amount"]["number"])
@@ -229,7 +393,7 @@ async def get_dashboard():
     }
 
 @app.post("/api/transactions")
-async def create_transaction(transaction: TransactionModel):
+async def create_transaction(transaction: TransactionModel, file_path: str = Query(..., description="Path to Beancount file")):
     """Create a new transaction"""
     try:
         # Generate beancount transaction string
@@ -245,15 +409,15 @@ async def create_transaction(transaction: TransactionModel):
         new_transaction = f"{transaction.date} {transaction.flag}{payee_str}{narration_str}\n{postings_str}\n\n"
         
         # Append to file
-        if not os.path.exists(BEANCOUNT_FILE):
-            with open(BEANCOUNT_FILE, "w") as f:
+        if not os.path.exists(file_path):
+            with open(file_path, "w") as f:
                 f.write("")
         
-        with open(BEANCOUNT_FILE, "a") as f:
+        with open(file_path, "a") as f:
             f.write(new_transaction)
         
         # Reload and return
-        transactions, _, _, _, errors = load_beancount_file()
+        transactions, _, _, _, errors = load_beancount_file(file_path)
         new_txn = transactions[-1] if transactions else None
         
         return {"transaction": new_txn, "errors": errors}
@@ -261,25 +425,62 @@ async def create_transaction(transaction: TransactionModel):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.put("/api/transactions/{transaction_id}")
-async def update_transaction(transaction_id: str, transaction: TransactionModel):
+async def update_transaction(transaction_id: str, transaction: TransactionModel, file_path: str = Query(..., description="Path to Beancount file")):
     """Update a transaction"""
     try:
-        # This is simplified - in production, you'd want to properly update the file
-        # For now, we'll delete and recreate
-        await delete_transaction(transaction_id)
-        return await create_transaction(transaction)
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        # Read and parse file
+        entries, errors, options_map = loader.load_file(file_path)
+        
+        # Find and filter out the transaction to delete
+        filtered_entries = []
+        for entry in entries:
+            if isinstance(entry, Transaction):
+                entry_id = entry.meta.get("id")
+                if not entry_id:
+                    entry_id = f"{entry.date.isoformat()}-{hash((entry.payee or '') + entry.narration + str(entry.postings))}"
+                if str(entry_id) != transaction_id:
+                    filtered_entries.append(entry)
+            else:
+                filtered_entries.append(entry)
+        
+        # Generate beancount transaction string for new transaction
+        postings_str = "\n".join([
+            f"  {p.account}  {p.amount['number']} {p.amount['currency']}" if p.amount and p.amount.get('number')
+            else f"  {p.account}"
+            for p in transaction.postings
+        ])
+        
+        payee_str = f' "{transaction.payee}"' if transaction.payee else ""
+        narration_str = f' "{transaction.narration}"' if transaction.narration else ""
+        
+        new_transaction = f"{transaction.date} {transaction.flag}{payee_str}{narration_str}\n{postings_str}\n\n"
+        
+        # Write back to file with updated transaction
+        with open(file_path, "w") as f:
+            for entry in filtered_entries:
+                f.write(printer.print_entry(entry) + "\n")
+            f.write(new_transaction)
+        
+        # Reload and return
+        transactions, _, _, _, reload_errors = load_beancount_file(file_path)
+        new_txn = transactions[-1] if transactions else None
+        
+        return {"transaction": new_txn, "errors": errors + reload_errors if reload_errors else errors}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.delete("/api/transactions/{transaction_id}")
-async def delete_transaction(transaction_id: str):
+async def delete_transaction(transaction_id: str, file_path: str = Query(..., description="Path to Beancount file")):
     """Delete a transaction"""
     try:
-        if not os.path.exists(BEANCOUNT_FILE):
+        if not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail="File not found")
         
         # Read and parse file
-        entries, errors, options_map = loader.load_file(BEANCOUNT_FILE)
+        entries, errors, options_map = loader.load_file(file_path)
         
         # Find and filter out the transaction
         filtered_entries = []
@@ -294,7 +495,7 @@ async def delete_transaction(transaction_id: str):
                 filtered_entries.append(entry)
         
         # Write back to file
-        with open(BEANCOUNT_FILE, "w") as f:
+        with open(file_path, "w") as f:
             for entry in filtered_entries:
                 f.write(printer.print_entry(entry) + "\n")
         
@@ -303,34 +504,34 @@ async def delete_transaction(transaction_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/accounts")
-async def create_account(account: AccountModel):
+async def create_account(account: AccountModel, file_path: str = Query(..., description="Path to Beancount file")):
     """Create a new account"""
     try:
-        if os.path.exists(BEANCOUNT_FILE):
-            with open(BEANCOUNT_FILE, "a") as f:
+        if os.path.exists(file_path):
+            with open(file_path, "a") as f:
                 f.write(f"{account.openDate} open {account.name}\n")
         else:
-            with open(BEANCOUNT_FILE, "w") as f:
+            with open(file_path, "w") as f:
                 f.write(f"{account.openDate} open {account.name}\n")
         
-        _, accounts, _, _, errors = load_beancount_file()
+        _, accounts, _, _, errors = load_beancount_file(file_path)
         return {"accounts": accounts, "errors": errors}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/import")
-async def import_file(file: UploadFile = File(...)):
+async def import_file(file: UploadFile = File(...), file_path: str = Query(..., description="Path to Beancount file")):
     """Import beancount file"""
     try:
         content = await file.read()
         content_str = content.decode("utf-8")
         
         # Save to file
-        with open(BEANCOUNT_FILE, "w") as f:
+        with open(file_path, "w") as f:
             f.write(content_str)
         
         # Validate
-        entries, errors, options_map = loader.load_file(BEANCOUNT_FILE)
+        entries, errors, options_map = loader.load_file(file_path)
         
         return {
             "success": True,
@@ -341,21 +542,21 @@ async def import_file(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/export")
-async def export_file():
+async def export_file(file_path: str = Query(..., description="Path to Beancount file")):
     """Export beancount file"""
-    if not os.path.exists(BEANCOUNT_FILE):
+    if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="No file to export")
     
     return FileResponse(
-        BEANCOUNT_FILE,
+        file_path,
         media_type="text/plain",
-        filename="ledger.beancount"
+        filename=os.path.basename(file_path)
     )
 
 @app.get("/api/reports/balance-sheet")
-async def get_balance_sheet():
+async def get_balance_sheet(file_path: str = Query(..., description="Path to Beancount file")):
     """Get balance sheet report"""
-    transactions, accounts, balances, prices, errors = load_beancount_file()
+    transactions, accounts, balances, prices, errors = load_beancount_file(file_path)
     
     assets = []
     liabilities = []
@@ -385,9 +586,9 @@ async def get_balance_sheet():
     }
 
 @app.get("/api/reports/income-statement")
-async def get_income_statement(start_date: str, end_date: str):
+async def get_income_statement(start_date: str, end_date: str, file_path: str = Query(..., description="Path to Beancount file")):
     """Get income statement"""
-    transactions, accounts, balances, prices, errors = load_beancount_file()
+    transactions, accounts, balances, prices, errors = load_beancount_file(file_path)
     
     start = datetime.fromisoformat(start_date).date()
     end = datetime.fromisoformat(end_date).date()
