@@ -82,7 +82,7 @@ def beancount_to_dict(entry, index=None):
                     "price": {
                         "number": str(posting.price.number),
                         "currency": str(posting.price.currency),
-                        "date": posting.price.date.isoformat() if posting.price and posting.price.date else None,
+                        "date": None,  # Amount objects don't have dates
                     } if posting.price else None,
                 }
                 for posting in entry.postings
@@ -332,21 +332,156 @@ option "operating_currency" "USD"
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to create file: {str(e)}")
 
+def apply_filters(transactions: list, filters: dict) -> list:
+    """Apply filters to transactions"""
+    filtered = transactions
+    
+    # Apply free text filter
+    free_text = filters.get("freeText", "").strip().lower()
+    if free_text:
+        filtered = [
+            t for t in filtered
+            if (t.get("payee", "") or "").lower().find(free_text) != -1
+            or (t.get("narration", "") or "").lower().find(free_text) != -1
+            or any(
+                p.get("account", "").lower().find(free_text) != -1
+                for p in t.get("postings", [])
+            )
+        ]
+    
+    # Apply property filters
+    tokens = filters.get("tokens", [])
+    operation = filters.get("operation", "and")
+    
+    if tokens:
+        def matches_token(transaction: dict, token: dict) -> bool:
+            property_key = token.get("propertyKey")
+            operator = token.get("operator")
+            value = token.get("value", "").lower()
+            
+            if property_key == "payee":
+                transaction_value = (transaction.get("payee") or "").lower()
+            elif property_key == "narration":
+                transaction_value = (transaction.get("narration") or "").lower()
+            elif property_key in ["account", "accounts"]:
+                transaction_value = " ".join(
+                    p.get("account", "") for p in transaction.get("postings", [])
+                ).lower()
+            elif property_key == "type":
+                postings = transaction.get("postings", [])
+                is_income = any(p.get("account", "").startswith("Income") for p in postings)
+                is_expense = any(p.get("account", "").startswith("Expenses") for p in postings)
+                transaction_value = "income" if is_income else ("expense" if is_expense else "other")
+            else:
+                return True
+            
+            if operator == ":":
+                return value in transaction_value
+            elif operator == "!:":
+                return value not in transaction_value
+            elif operator == "=":
+                return transaction_value == value
+            elif operator == "!=":
+                return transaction_value != value
+            return True
+        
+        if operation == "or":
+            filtered = [t for t in filtered if any(matches_token(t, token) for token in tokens)]
+        else:  # and
+            filtered = [t for t in filtered if all(matches_token(t, token) for token in tokens)]
+    
+    return filtered
+
 @app.get("/api/transactions")
-async def get_transactions(file_path: str = Query(..., description="Path to Beancount file")):
-    """Get all transactions"""
+async def get_transactions(
+    file_path: str = Query(..., description="Path to Beancount file"),
+    page: int = Query(1, ge=1, description="Page number (1-indexed)"),
+    page_size: int = Query(25, ge=1, le=100, description="Number of items per page"),
+    free_text: Optional[str] = Query(None, description="Free text search"),
+    filter_tokens: Optional[str] = Query(None, description="JSON string of filter tokens"),
+    filter_operation: Optional[str] = Query("and", description="Filter operation: and or or"),
+    sort_field: Optional[str] = Query(None, description="Field to sort by"),
+    sort_descending: Optional[bool] = Query(False, description="Sort in descending order")
+):
+    """Get transactions with pagination and filtering"""
     transactions, _, _, _, errors = load_beancount_file(file_path)
+    
+    # Apply filters
+    filters = {}
+    if free_text:
+        filters["freeText"] = free_text
+    if filter_tokens:
+        try:
+            import json
+            filters["tokens"] = json.loads(filter_tokens)
+        except:
+            filters["tokens"] = []
+    filters["operation"] = filter_operation or "and"
+    
+    if filters.get("freeText") or filters.get("tokens"):
+        transactions = apply_filters(transactions, filters)
+    
+    # Apply sorting
+    if sort_field:
+        reverse = sort_descending if sort_descending else False
+        
+        def get_sort_value(transaction: dict):
+            field = sort_field.lower()
+            if field == "date":
+                return transaction.get("date", "")
+            elif field == "payee":
+                return (transaction.get("payee") or "").lower()
+            elif field == "narration":
+                return (transaction.get("narration") or "").lower()
+            elif field == "accounts":
+                return " ".join(
+                    p.get("account", "") for p in transaction.get("postings", [])
+                ).lower()
+            else:
+                return ""
+        
+        transactions = sorted(transactions, key=get_sort_value, reverse=reverse)
+    
+    # Calculate pagination
+    total_count = len(transactions)
+    total_pages = (total_count + page_size - 1) // page_size if total_count > 0 else 1
+    start_index = (page - 1) * page_size
+    end_index = start_index + page_size
+    paginated_transactions = transactions[start_index:end_index]
+    
     if errors:
-        return {"transactions": transactions, "errors": errors}
-    return {"transactions": transactions}
+        return {
+            "transactions": paginated_transactions,
+            "pagination": {
+                "currentPage": page,
+                "pageSize": page_size,
+                "totalPages": total_pages,
+                "totalCount": total_count,
+            },
+            "errors": errors
+        }
+    return {
+        "transactions": paginated_transactions,
+        "pagination": {
+            "currentPage": page,
+            "pageSize": page_size,
+            "totalPages": total_pages,
+            "totalCount": total_count,
+        }
+    }
 
 @app.get("/api/accounts")
 async def get_accounts(file_path: str = Query(..., description="Path to Beancount file")):
     """Get all accounts"""
-    _, accounts, _, _, errors = load_beancount_file(file_path)
-    if errors:
-        return {"accounts": accounts, "errors": errors}
-    return {"accounts": accounts}
+    try:
+        _, accounts, _, _, errors = load_beancount_file(file_path)
+        if errors:
+            return {"accounts": accounts, "errors": errors}
+        return {"accounts": accounts}
+    except Exception as e:
+        import traceback
+        error_detail = f"Failed to load accounts: {str(e)}\n{traceback.format_exc()}"
+        raise HTTPException(status_code=500, detail=error_detail)
 
 @app.get("/api/balances")
 async def get_balances(file_path: str = Query(..., description="Path to Beancount file")):

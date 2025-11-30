@@ -12,10 +12,10 @@ import KeyValuePairs from "@cloudscape-design/components/key-value-pairs";
 import BreadcrumbGroup from "@cloudscape-design/components/breadcrumb-group";
 import Alert from "@cloudscape-design/components/alert";
 import Box from "@cloudscape-design/components/box";
+import Toggle from "@cloudscape-design/components/toggle";
 import { api } from "@/services/api";
 
 const BEANCOUNT_FILE_KEY = "beancount_file_path";
-
 
 // Comprehensive currency list
 const CURRENCIES = [
@@ -101,6 +101,13 @@ export default function Settings() {
     fiscalYearStart: "01-01",
     language: "en",
     theme: "light",
+    tablePreferences: {
+      contentDensity: "compact",
+      wrapLines: true,
+      stickyFirstColumn: true,
+      stickyLastColumn: true,
+      columnReordering: true,
+    },
   });
   const [saveStatus, setSaveStatus] = useState<"success" | "error" | null>(
     null
@@ -123,7 +130,19 @@ export default function Settings() {
     if (savedSettings) {
       try {
         const parsed = JSON.parse(savedSettings);
-        setSettings(parsed);
+        const mergedSettings = {
+          ...settings,
+          ...parsed,
+          tablePreferences: {
+            contentDensity: "compact",
+            wrapLines: true,
+            stickyFirstColumn: true,
+            stickyLastColumn: true,
+            columnReordering: true,
+            ...(parsed.tablePreferences || {}),
+          },
+        };
+        setSettings(mergedSettings);
         // Apply theme immediately
         applyTheme(parsed.theme);
         // Apply language
@@ -196,12 +215,14 @@ export default function Settings() {
       const fileName = file.name;
       // Browsers don't expose full file paths for security reasons
       // We'll show an alert asking the user to provide the full path
-      alert(`Selected file: ${fileName}\n\nPlease enter the full path to this file in the input field above.\n\nExample: /Users/yourname/Documents/${fileName}`);
+      alert(
+        `Selected file: ${fileName}\n\nPlease enter the full path to this file in the input field above.\n\nExample: /Users/yourname/Documents/${fileName}`
+      );
       // Don't auto-populate, let user enter the full path manually
     }
     // Reset the input so the same file can be selected again
     if (event.target) {
-      event.target.value = '';
+      event.target.value = "";
     }
   };
 
@@ -218,17 +239,19 @@ export default function Settings() {
     // Validate that the file path is a full path, not just a filename
     if (!filePath.includes("/") && !filePath.includes("\\")) {
       setSaveStatus("error");
-      alert("Please provide the full path to the file (e.g., /Users/username/Documents/ledger.beancount), not just the filename.");
+      alert(
+        "Please provide the full path to the file (e.g., /Users/username/Documents/ledger.beancount), not just the filename."
+      );
       return;
     }
 
     localStorage.setItem(BEANCOUNT_FILE_KEY, filePath);
     localStorage.setItem("beancount-settings", JSON.stringify(settings));
-    
+
     // Apply theme and language immediately
     applyTheme(settings.theme);
     applyLanguage(settings.language);
-    
+
     setSaveStatus("success");
 
     // Reload page to apply new file path and load data
@@ -340,14 +363,16 @@ export default function Settings() {
                   type="file"
                   accept=".beancount,.bean"
                   onChange={handleFileSelect}
-                  style={{ display: 'none' }}
+                  style={{ display: "none" }}
                   id="file-input"
                 />
                 <Button
                   variant="normal"
                   iconName="folder-open"
                   onClick={() => {
-                    const input = document.getElementById('file-input') as HTMLInputElement;
+                    const input = document.getElementById(
+                      "file-input"
+                    ) as HTMLInputElement;
                     input?.click();
                   }}
                 >
@@ -381,7 +406,6 @@ export default function Settings() {
           </FormField>
         </Form>
       </Container>
-
 
       <Grid gridDefinition={[{ colspan: 6 }, { colspan: 6 }]}>
         <Container
@@ -512,6 +536,122 @@ export default function Settings() {
           </Form>
         </Container>
       </Grid>
+
+      <Container
+        variant="stacked"
+        header={<Header variant="h2">Table Preferences</Header>}
+      >
+        <Form>
+          <SpaceBetween size="l">
+            <FormField label="Content Density">
+              <Select
+                selectedOption={
+                  [
+                    { label: "Compact", value: "compact" },
+                    { label: "Comfortable", value: "comfortable" },
+                  ].find(
+                    (o) => o.value === settings.tablePreferences.contentDensity
+                  ) || { label: "Compact", value: "compact" }
+                }
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    tablePreferences: {
+                      ...settings.tablePreferences,
+                      contentDensity:
+                        e.detail.selectedOption.value || "compact",
+                    },
+                  })
+                }
+                options={[
+                  { label: "Compact", value: "compact" },
+                  { label: "Comfortable", value: "comfortable" },
+                ]}
+              />
+            </FormField>
+
+            <FormField
+              label="Wrap Lines"
+              description="Enable text wrapping in table cells"
+            >
+              <Toggle
+                checked={settings.tablePreferences.wrapLines}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    tablePreferences: {
+                      ...settings.tablePreferences,
+                      wrapLines: e.detail.checked,
+                    },
+                  })
+                }
+              >
+                Wrap lines in table cells
+              </Toggle>
+            </FormField>
+
+            <FormField
+              label="Sticky First Column"
+              description="Keep the first column fixed when scrolling horizontally"
+            >
+              <Toggle
+                checked={settings.tablePreferences.stickyFirstColumn}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    tablePreferences: {
+                      ...settings.tablePreferences,
+                      stickyFirstColumn: e.detail.checked,
+                    },
+                  })
+                }
+              >
+                Fix first column
+              </Toggle>
+            </FormField>
+
+            <FormField
+              label="Sticky Last Column"
+              description="Keep the last column (Actions) fixed when scrolling horizontally"
+            >
+              <Toggle
+                checked={settings.tablePreferences.stickyLastColumn}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    tablePreferences: {
+                      ...settings.tablePreferences,
+                      stickyLastColumn: e.detail.checked,
+                    },
+                  })
+                }
+              >
+                Fix last column
+              </Toggle>
+            </FormField>
+
+            <FormField
+              label="Column Reordering"
+              description="Allow dragging column headers to reorder columns"
+            >
+              <Toggle
+                checked={settings.tablePreferences.columnReordering}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    tablePreferences: {
+                      ...settings.tablePreferences,
+                      columnReordering: e.detail.checked,
+                    },
+                  })
+                }
+              >
+                Enable column reordering
+              </Toggle>
+            </FormField>
+          </SpaceBetween>
+        </Form>
+      </Container>
     </SpaceBetween>
   );
 }
