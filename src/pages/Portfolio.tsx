@@ -1,3 +1,4 @@
+import { useState, useEffect, useMemo } from "react";
 import { useBeancountStore } from "@/store/beancountStore";
 import Header from "@cloudscape-design/components/header";
 import Container from "@cloudscape-design/components/container";
@@ -6,6 +7,12 @@ import Box from "@cloudscape-design/components/box";
 import StatusIndicator from "@cloudscape-design/components/status-indicator";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import BreadcrumbGroup from "@cloudscape-design/components/breadcrumb-group";
+import Table from "@cloudscape-design/components/table";
+import Select from "@cloudscape-design/components/select";
+import Tabs from "@cloudscape-design/components/tabs";
+import KeyValuePairs from "@cloudscape-design/components/key-value-pairs";
+import { format, subMonths } from "date-fns";
+import { formatIndianCurrency } from "@/utils/currency";
 import {
   PieChart,
   Pie,
@@ -20,7 +27,14 @@ import {
 } from "recharts";
 
 export default function Portfolio() {
-  const { transactions, portfolios } = useBeancountStore();
+  const { transactions, portfolios, loadAll } = useBeancountStore();
+  const [timeRange, setTimeRange] = useState<"1M" | "3M" | "6M" | "1Y" | "ALL">(
+    "1Y"
+  );
+
+  useEffect(() => {
+    loadAll();
+  }, []);
 
   const portfolioData = portfolios.map((portfolio) => {
     const totalCost = portfolio.positions.reduce(
@@ -72,12 +86,50 @@ export default function Portfolio() {
     (sum, p) => sum + p.totalValue,
     0
   );
+  const totalCost = portfolioData.reduce((sum, p) => sum + p.totalCost, 0);
   const totalGain = portfolioData.reduce((sum, p) => sum + p.gain, 0);
-  const totalGainPercent =
-    portfolioData.reduce((sum, p) => sum + p.totalCost, 0) > 0
-      ? (totalGain / portfolioData.reduce((sum, p) => sum + p.totalCost, 0)) *
-        100
-      : 0;
+  const totalGainPercent = totalCost > 0 ? (totalGain / totalCost) * 100 : 0;
+
+  const holdingsByCommodity = useMemo(() => {
+    const grouped: Record<
+      string,
+      { quantity: number; cost: number; value: number }
+    > = {};
+    allPositions.forEach((pos) => {
+      if (!grouped[pos.commodity]) {
+        grouped[pos.commodity] = { quantity: 0, cost: 0, value: 0 };
+      }
+      grouped[pos.commodity].quantity += parseFloat(pos.quantity);
+      grouped[pos.commodity].cost +=
+        parseFloat(pos.cost.number) * parseFloat(pos.quantity);
+      grouped[pos.commodity].value += pos.value;
+    });
+    return grouped;
+  }, [allPositions]);
+
+  const holdingsByAccount = useMemo(() => {
+    const grouped: Record<
+      string,
+      { cost: number; value: number; gain: number }
+    > = {};
+    portfolioData.forEach((p) => {
+      grouped[p.account] = {
+        cost: p.totalCost,
+        value: p.totalValue,
+        gain: p.gain,
+      };
+    });
+    return grouped;
+  }, [portfolioData]);
+
+  const holdingsByCurrency = useMemo(() => {
+    const grouped: Record<string, number> = {};
+    allPositions.forEach((pos) => {
+      const currency = pos.cost.currency || "INR";
+      grouped[currency] = (grouped[currency] || 0) + pos.value;
+    });
+    return grouped;
+  }, [allPositions]);
 
   const breadcrumbs = [
     { text: "Friday", href: "/" },
@@ -97,13 +149,13 @@ export default function Portfolio() {
           variant="stacked"
           header={<Header variant="h2">Total Portfolio Value</Header>}
         >
-          <Box variant="h1">
-            $
-            {totalPortfolioValue.toLocaleString("en-US", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-          </Box>
+          <Box variant="h1">{formatIndianCurrency(totalPortfolioValue)}</Box>
+        </Container>
+        <Container
+          variant="stacked"
+          header={<Header variant="h2">Total Cost Basis</Header>}
+        >
+          <Box variant="h1">{formatIndianCurrency(totalCost)}</Box>
         </Container>
         <Container
           variant="stacked"
@@ -113,31 +165,13 @@ export default function Portfolio() {
             variant="h1"
             color={totalGain >= 0 ? "text-status-success" : "text-status-error"}
           >
-            {totalGain >= 0 ? "+" : ""}$
-            {totalGain.toLocaleString("en-US", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
+            {totalGain >= 0 ? "+" : ""}
+            {formatIndianCurrency(totalGain)}
           </Box>
           <StatusIndicator type={totalGain >= 0 ? "success" : "error"}>
-            {totalGain >= 0 ? "Positive" : "Negative"}
-          </StatusIndicator>
-        </Container>
-        <Container
-          variant="stacked"
-          header={<Header variant="h2">Total Return</Header>}
-        >
-          <Box
-            variant="h1"
-            color={
-              totalGainPercent >= 0
-                ? "text-status-success"
-                : "text-status-error"
-            }
-          >
             {totalGainPercent >= 0 ? "+" : ""}
-            {totalGainPercent.toFixed(2)}%
-          </Box>
+            {totalGainPercent.toFixed(2)}% Return
+          </StatusIndicator>
         </Container>
       </Grid>
 
@@ -188,41 +222,182 @@ export default function Portfolio() {
         </Container>
       </Grid>
 
-      <Container
-        variant="stacked"
-        header={<Header variant="h2">Portfolio Details</Header>}
-      >
-        {portfolioData.length === 0 ? (
-          <Box textAlign="center" padding={{ vertical: "xl" }}>
-            No portfolio data available
-          </Box>
-        ) : (
-          <SpaceBetween direction="vertical" size="m">
-            {portfolioData.map((portfolio) => (
+      <Tabs
+        tabs={[
+          {
+            label: "Portfolio Summary",
+            id: "summary",
+            content: (
               <Container
                 variant="stacked"
-                key={portfolio.account}
-                header={<Header variant="h3">{portfolio.account}</Header>}
+                header={<Header variant="h2">Portfolio by Account</Header>}
               >
-                <Box variant="h2">
-                  $
-                  {portfolio.totalValue.toLocaleString("en-US", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </Box>
-                <StatusIndicator
-                  type={portfolio.gain >= 0 ? "success" : "error"}
-                >
-                  {portfolio.gain >= 0 ? "+" : ""}${portfolio.gain.toFixed(2)} (
-                  {portfolio.gainPercent >= 0 ? "+" : ""}
-                  {portfolio.gainPercent.toFixed(2)}%)
-                </StatusIndicator>
+                {portfolioData.length === 0 ? (
+                  <Box textAlign="center" padding={{ vertical: "xl" }}>
+                    No portfolio data available
+                  </Box>
+                ) : (
+                  <Table
+                    columnDefinitions={[
+                      {
+                        id: "account",
+                        header: "Account",
+                        cell: (item) => item.account,
+                      },
+                      {
+                        id: "cost",
+                        header: "Total Cost",
+                        cell: (item) => formatIndianCurrency(item.totalCost),
+                      },
+                      {
+                        id: "value",
+                        header: "Current Value",
+                        cell: (item) => formatIndianCurrency(item.totalValue),
+                      },
+                      {
+                        id: "gain",
+                        header: "Gain/Loss",
+                        cell: (item) => (
+                          <Box
+                            color={
+                              item.gain >= 0
+                                ? "text-status-success"
+                                : "text-status-error"
+                            }
+                          >
+                            {item.gain >= 0 ? "+" : ""}
+                            {formatIndianCurrency(item.gain)}
+                          </Box>
+                        ),
+                      },
+                      {
+                        id: "return",
+                        header: "Return %",
+                        cell: (item) => (
+                          <StatusIndicator
+                            type={item.gainPercent >= 0 ? "success" : "error"}
+                          >
+                            {item.gainPercent >= 0 ? "+" : ""}
+                            {item.gainPercent.toFixed(2)}%
+                          </StatusIndicator>
+                        ),
+                      },
+                    ]}
+                    items={portfolioData}
+                  />
+                )}
               </Container>
-            ))}
-          </SpaceBetween>
-        )}
-      </Container>
+            ),
+          },
+          {
+            label: "Holdings",
+            id: "holdings",
+            content: (
+              <Container
+                variant="stacked"
+                header={<Header variant="h2">All Holdings</Header>}
+              >
+                {allPositions.length === 0 ? (
+                  <Box textAlign="center" padding={{ vertical: "xl" }}>
+                    No holdings data available
+                  </Box>
+                ) : (
+                  <Table
+                    columnDefinitions={[
+                      {
+                        id: "commodity",
+                        header: "Symbol",
+                        cell: (item) => item.commodity,
+                        sortingField: "commodity",
+                      },
+                      {
+                        id: "quantity",
+                        header: "Quantity",
+                        cell: (item) => parseFloat(item.quantity).toFixed(4),
+                      },
+                      {
+                        id: "cost",
+                        header: "Cost Basis",
+                        cell: (item) =>
+                          `${formatIndianCurrency(parseFloat(item.cost.number))} ${item.cost.currency}`,
+                      },
+                      {
+                        id: "value",
+                        header: "Current Value",
+                        cell: (item) => formatIndianCurrency(item.value),
+                      },
+                      {
+                        id: "portfolio",
+                        header: "Portfolio",
+                        cell: (item) => item.portfolio,
+                      },
+                    ]}
+                    items={allPositions}
+                    sortingColumn={{ sortingField: "commodity" }}
+                  />
+                )}
+              </Container>
+            ),
+          },
+          {
+            label: "By Commodity",
+            id: "by-commodity",
+            content: (
+              <Container
+                variant="stacked"
+                header={<Header variant="h2">Holdings by Commodity</Header>}
+              >
+                <KeyValuePairs
+                  items={Object.entries(holdingsByCommodity)
+                    .sort((a, b) => b[1].value - a[1].value)
+                    .map(([commodity, data]) => ({
+                      label: `${commodity} (${data.quantity.toFixed(4)} units)`,
+                      value: `${formatIndianCurrency(data.value)} (Cost: ${formatIndianCurrency(data.cost)})`,
+                    }))}
+                />
+              </Container>
+            ),
+          },
+          {
+            label: "By Account",
+            id: "by-account",
+            content: (
+              <Container
+                variant="stacked"
+                header={<Header variant="h2">Holdings by Account</Header>}
+              >
+                <KeyValuePairs
+                  items={Object.entries(holdingsByAccount)
+                    .sort((a, b) => b[1].value - a[1].value)
+                    .map(([account, data]) => ({
+                      label: account,
+                      value: `${formatIndianCurrency(data.value)} (Gain: ${formatIndianCurrency(data.gain)})`,
+                    }))}
+                />
+              </Container>
+            ),
+          },
+          {
+            label: "By Currency",
+            id: "by-currency",
+            content: (
+              <Container
+                variant="stacked"
+                header={<Header variant="h2">Holdings by Currency</Header>}
+              >
+                <KeyValuePairs
+                  items={Object.entries(holdingsByCurrency)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([currency, value]) => ({
+                      label: currency,
+                      value: formatIndianCurrency(value),
+                    }))}
+                />
+              </Container>
+            ),
+          },
+        ]}
+      />
     </SpaceBetween>
   );
 }

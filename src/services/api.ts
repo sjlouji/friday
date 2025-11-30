@@ -83,22 +83,24 @@ export const api = {
       }
     ) => {
       let url = `/transactions?page=${page}&page_size=${pageSize}`;
-      
+
       if (filters) {
         if (filters.freeText) {
           url += `&free_text=${encodeURIComponent(filters.freeText)}`;
         }
         if (filters.tokens && filters.tokens.length > 0) {
-          url += `&filter_tokens=${encodeURIComponent(JSON.stringify(filters.tokens))}`;
+          url += `&filter_tokens=${encodeURIComponent(
+            JSON.stringify(filters.tokens)
+          )}`;
           url += `&filter_operation=${filters.operation || "and"}`;
         }
       }
-      
+
       if (sorting && sorting.field) {
         url += `&sort_field=${encodeURIComponent(sorting.field)}`;
         url += `&sort_descending=${sorting.descending ? "true" : "false"}`;
       }
-      
+
       return fetchAPI<{ transactions: any[]; pagination?: any }>(url);
     },
     create: (transaction: any) =>
@@ -124,6 +126,27 @@ export const api = {
         method: "POST",
         body: JSON.stringify(account),
       }),
+    importExcel: async (file: File) => {
+      const filePath = getFilePath();
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await fetch(
+        `${API_BASE_URL}/accounts/import-excel?file_path=${encodeURIComponent(
+          filePath
+        )}`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+      if (!response.ok) {
+        const error = await response
+          .json()
+          .catch(() => ({ detail: response.statusText }));
+        throw new Error(error.detail || "Failed to import accounts");
+      }
+      return response.json();
+    },
   },
 
   balances: {

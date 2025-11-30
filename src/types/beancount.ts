@@ -42,7 +42,12 @@ export interface Account {
   metadata?: Record<string, string>;
 }
 
-export type AccountType = 'Assets' | 'Liabilities' | 'Equity' | 'Income' | 'Expenses';
+export type AccountType =
+  | "Assets"
+  | "Liabilities"
+  | "Equity"
+  | "Income"
+  | "Expenses";
 
 export interface Balance {
   account: string;
@@ -76,7 +81,7 @@ export interface Position {
 }
 
 export interface Report {
-  type: 'balance-sheet' | 'income-statement' | 'cash-flow' | 'portfolio';
+  type: "balance-sheet" | "income-statement" | "cash-flow" | "portfolio";
   period: {
     start: string;
     end: string;
@@ -84,3 +89,87 @@ export interface Report {
   data: any;
 }
 
+export interface RecurringTransaction {
+  id: string;
+  name: string;
+  frequency:
+    | "daily"
+    | "weekly"
+    | "biweekly"
+    | "monthly"
+    | "quarterly"
+    | "yearly";
+  startDate: string;
+  endDate?: string;
+  transaction: Transaction;
+  lastExecuted?: string;
+  nextExecution?: string;
+  enabled: boolean;
+}
+
+export interface TransactionTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  transaction: Transaction;
+  category?: string;
+  tags?: string[];
+}
+
+export interface Bill {
+  id: string;
+  name: string;
+  account: string;
+  amount: Amount;
+  dueDate: string;
+  frequency: "monthly" | "quarterly" | "yearly" | "one-time";
+  category?: string;
+  payee?: string;
+  paid: boolean;
+  paidDate?: string;
+  reminderDays?: number;
+  notes?: string;
+}
+
+export interface SavingsGoal {
+  id: string;
+  name: string;
+  targetAmount: Amount;
+  currentAmount: Amount;
+  targetDate: string;
+  account: string;
+  category?: string;
+  description?: string;
+}
+
+export interface DebtPayoff {
+  id: string;
+  name: string;
+  account: string;
+  currentBalance: Amount;
+  interestRate: number;
+  minimumPayment: Amount;
+  targetPayoffDate?: string;
+  strategy: "snowball" | "avalanche" | "custom";
+}
+
+export interface TaxCategory {
+  id: string;
+  name: string;
+  type: "deduction" | "income" | "expense";
+  schedule?: string;
+  description?: string;
+}
+
+export interface InvestmentTransaction {
+  id: string;
+  date: string;
+  type: "buy" | "sell" | "dividend" | "split" | "transfer";
+  account: string;
+  commodity: string;
+  quantity: string;
+  price: Amount;
+  cost?: Amount;
+  fees?: Amount;
+  notes?: string;
+}

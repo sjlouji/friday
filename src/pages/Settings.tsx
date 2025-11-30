@@ -17,8 +17,9 @@ import { api } from "@/services/api";
 
 const BEANCOUNT_FILE_KEY = "beancount_file_path";
 
-// Comprehensive currency list
+// Comprehensive currency list - INR first for Indian accounting
 const CURRENCIES = [
+  { label: "INR - Indian Rupee (₹)", value: "INR" },
   { label: "USD - US Dollar", value: "USD" },
   { label: "EUR - Euro", value: "EUR" },
   { label: "GBP - British Pound", value: "GBP" },
@@ -27,7 +28,6 @@ const CURRENCIES = [
   { label: "CAD - Canadian Dollar", value: "CAD" },
   { label: "CHF - Swiss Franc", value: "CHF" },
   { label: "CNY - Chinese Yuan", value: "CNY" },
-  { label: "INR - Indian Rupee", value: "INR" },
   { label: "BRL - Brazilian Real", value: "BRL" },
   { label: "ZAR - South African Rand", value: "ZAR" },
   { label: "MXN - Mexican Peso", value: "MXN" },
@@ -61,12 +61,12 @@ const CURRENCIES = [
   { label: "ISK - Icelandic Krona", value: "ISK" },
 ];
 
-// Fiscal year start months
+// Fiscal year start months - April first for Indian accounting
 const FISCAL_YEAR_MONTHS = [
+  { label: "April (04) - Indian FY", value: "04" },
   { label: "January (01)", value: "01" },
   { label: "February (02)", value: "02" },
   { label: "March (03)", value: "03" },
-  { label: "April (04)", value: "04" },
   { label: "May (05)", value: "05" },
   { label: "June (06)", value: "06" },
   { label: "July (07)", value: "07" },
@@ -96,9 +96,9 @@ const LANGUAGES = [
 export default function Settings() {
   const [filePath, setFilePath] = useState("");
   const [settings, setSettings] = useState({
-    defaultCurrency: "USD",
-    dateFormat: "YYYY-MM-DD",
-    fiscalYearStart: "01-01",
+    defaultCurrency: "INR",
+    dateFormat: "DD/MM/YYYY",
+    fiscalYearStart: "04-01",
     language: "en",
     theme: "light",
     tablePreferences: {
@@ -453,9 +453,9 @@ export default function Settings() {
                     })
                   }
                   options={[
+                    { label: "DD/MM/YYYY (Indian)", value: "DD/MM/YYYY" },
                     { label: "YYYY-MM-DD", value: "YYYY-MM-DD" },
                     { label: "MM/DD/YYYY", value: "MM/DD/YYYY" },
-                    { label: "DD/MM/YYYY", value: "DD/MM/YYYY" },
                     { label: "DD.MM.YYYY", value: "DD.MM.YYYY" },
                   ]}
                 />

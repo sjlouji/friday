@@ -18,7 +18,7 @@ interface TransactionModalProps {
 }
 
 export default function TransactionModal({ transaction, onClose }: TransactionModalProps) {
-  const { addTransaction, updateTransaction, loading } = useBeancountStore();
+  const { addTransaction, updateTransaction, accounts, loading } = useBeancountStore();
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     date: transaction?.date || new Date().toISOString().split('T')[0],
@@ -183,10 +183,27 @@ export default function TransactionModal({ transaction, onClose }: TransactionMo
                       </SpaceBetween>
                     </Box>
                     <FormField label="Account">
-                      <Input
-                        value={posting.account}
-                        onChange={(e) => updatePosting(index, 'account', e.detail.value)}
-                        placeholder="Assets:Checking"
+                      <Select
+                        selectedOption={
+                          accounts.find((a) => a.name === posting.account)
+                            ? { label: posting.account, value: posting.account }
+                            : posting.account
+                            ? { label: posting.account, value: posting.account }
+                            : null
+                        }
+                        onChange={(e) =>
+                          updatePosting(
+                            index,
+                            "account",
+                            e.detail.selectedOption.value || ""
+                          )
+                        }
+                        options={accounts.map((a) => ({
+                          label: a.name,
+                          value: a.name,
+                        }))}
+                        filteringType="auto"
+                        placeholder="Select account"
                       />
                     </FormField>
                     <SpaceBetween direction="horizontal" size="xs">

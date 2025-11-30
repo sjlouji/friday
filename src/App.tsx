@@ -1,18 +1,24 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { lazy, Suspense } from 'react';
-import Layout from './components/Layout';
-import Spinner from '@cloudscape-design/components/spinner';
-import Box from '@cloudscape-design/components/box';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { lazy, Suspense } from "react";
+import Layout from "./components/Layout";
+import Spinner from "@cloudscape-design/components/spinner";
+import Box from "@cloudscape-design/components/box";
 
 // Lazy load all page components
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const Transactions = lazy(() => import('./pages/Transactions'));
-const Accounts = lazy(() => import('./pages/Accounts'));
-const Reports = lazy(() => import('./pages/Reports'));
-const Portfolio = lazy(() => import('./pages/Portfolio'));
-const Budget = lazy(() => import('./pages/Budget'));
-const Import = lazy(() => import('./pages/Import'));
-const Settings = lazy(() => import('./pages/Settings'));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Transactions = lazy(() => import("./pages/Transactions"));
+const Accounts = lazy(() => import("./pages/Accounts"));
+const Reports = lazy(() => import("./pages/Reports"));
+const Portfolio = lazy(() => import("./pages/Portfolio"));
+const Budget = lazy(() => import("./pages/Budget"));
+const Bills = lazy(() => import("./pages/Bills"));
+const Tax = lazy(() => import("./pages/Tax"));
+const Goals = lazy(() => import("./pages/Goals"));
+const RecurringTransactions = lazy(() => import("./pages/RecurringTransactions"));
+const Assets = lazy(() => import("./pages/Assets"));
+const Debt = lazy(() => import("./pages/Debt"));
+const Import = lazy(() => import("./pages/Import"));
+const Settings = lazy(() => import("./pages/Settings"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -75,6 +81,54 @@ function App() {
             }
           />
           <Route
+            path="bills"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <Bills />
+              </Suspense>
+            }
+          />
+          <Route
+            path="tax"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <Tax />
+              </Suspense>
+            }
+          />
+          <Route
+            path="goals"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <Goals />
+              </Suspense>
+            }
+          />
+          <Route
+            path="recurring"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <RecurringTransactions />
+              </Suspense>
+            }
+          />
+          <Route
+            path="assets"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <Assets />
+              </Suspense>
+            }
+          />
+          <Route
+            path="debt"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <Debt />
+              </Suspense>
+            }
+          />
+          <Route
             path="import"
             element={
               <Suspense fallback={<LoadingFallback />}>
@@ -97,4 +151,3 @@ function App() {
 }
 
 export default App;
-

@@ -12,3 +12,71 @@ html.awsui-light-mode,
 body.awsui-light-mode {
   color-scheme: light;
 }
+
+/* Fixed top navigation */
+[data-awsui-top-navigation] {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+/* Fixed sidebar navigation */
+[data-awsui-side-navigation] {
+  height: 100% !important;
+}
+
+/* Content scroll area - only this should scroll */
+.content-scroll-area {
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
+}
+
+/* Breadcrumbs should be fixed at top of content area */
+.content-scroll-area > div:first-child {
+  position: sticky;
+  top: 0;
+  background: var(--color-background-layout-main, #ffffff);
+  z-index: 10;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+/* Tables should scroll within their containers - use max-height */
+[data-awsui-table-wrapper] {
+  max-height: calc(100vh - 400px);
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+/* Table container scroll */
+table[role="table"] {
+  display: block;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+/* Ensure Table component has proper scrolling */
+[data-awsui-table] {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 400px);
+}
+
+[data-awsui-table] > div {
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+/* Ensure body doesn't have extra margin */
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+html {
+  overflow: hidden;
+}

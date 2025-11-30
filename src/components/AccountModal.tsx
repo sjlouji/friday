@@ -31,6 +31,12 @@ export default function AccountModal({ account, onClose }: AccountModalProps) {
     e.preventDefault();
     setError(null);
 
+    // Validate account name format
+    if (!formData.name || !formData.name.includes(":")) {
+      setError("Account name must use colon separators (e.g., Assets:Bank:Checking)");
+      return;
+    }
+
     const newAccount: Account = {
       name: formData.name,
       type: formData.type,
@@ -46,7 +52,8 @@ export default function AccountModal({ account, onClose }: AccountModalProps) {
       }
       onClose();
     } catch (err: any) {
-      setError(err.message || 'Failed to save account');
+      const errorMessage = err.message || 'Failed to save account';
+      setError(errorMessage);
     }
   };
 
@@ -71,7 +78,12 @@ export default function AccountModal({ account, onClose }: AccountModalProps) {
       <Form>
         <SpaceBetween direction="vertical" size="l">
           {error && (
-            <Alert type="error" dismissible={false}>
+            <Alert
+              type="error"
+              dismissible
+              onDismiss={() => setError(null)}
+              header="Error creating account"
+            >
               {error}
             </Alert>
           )}
@@ -94,6 +106,8 @@ export default function AccountModal({ account, onClose }: AccountModalProps) {
                 { label: 'Equity', value: 'Equity' },
                 { label: 'Income', value: 'Income' },
                 { label: 'Expenses', value: 'Expenses' },
+                { label: 'GST Input (CGST/SGST/IGST)', value: 'Expenses:GST:Input' },
+                { label: 'GST Output (CGST/SGST/IGST)', value: 'Income:GST:Output' },
               ]}
             />
           </FormField>

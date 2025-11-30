@@ -18,7 +18,27 @@ export default function Layout() {
       text: "Transactions",
       items: [
         { type: "link", text: "Transactions", href: "/transactions" },
+        { type: "link", text: "Recurring", href: "/recurring" },
         { type: "link", text: "Accounts", href: "/accounts" },
+      ],
+    },
+    {
+      type: "section",
+      text: "Assets & Liabilities",
+      items: [
+        { type: "link", text: "Assets", href: "/assets" },
+        { type: "link", text: "Debt", href: "/debt" },
+        { type: "link", text: "Investments", href: "/portfolio" },
+      ],
+    },
+    {
+      type: "section",
+      text: "Planning & Budgeting",
+      items: [
+        { type: "link", text: "Budget", href: "/budget" },
+        { type: "link", text: "Bills", href: "/bills" },
+        { type: "link", text: "Goals", href: "/goals" },
+        { type: "link", text: "Tax Planning", href: "/tax" },
       ],
     },
     {
@@ -27,7 +47,6 @@ export default function Layout() {
       items: [
         { type: "link", text: "Reports", href: "/reports" },
         { type: "link", text: "Portfolio", href: "/portfolio" },
-        { type: "link", text: "Budget", href: "/budget" },
       ],
     },
     {
@@ -43,39 +62,67 @@ export default function Layout() {
   const activeHref = location.pathname;
 
   return (
-    <>
-      <TopNavigation
-        identity={{
-          href: "/",
-          title: "Friday",
-          logo: {
-            src: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiByeD0iNCIgZmlsbD0iI0ZGNjkwMCIvPgo8cGF0aCBkPSJNMTIgMkw2IDdIMTJWMTdINkwxMiAyMloiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPg==",
-            alt: "Friday",
-          },
-        }}
-        utilities={[
-          {
-            type: "button",
-            iconName: "settings",
-            text: "Settings",
-            href: "/settings",
-            onClick: (e) => {
-              e.preventDefault();
-              navigate("/settings");
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh",
+        overflow: "hidden",
+      }}
+    >
+      <div
+        style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000 }}
+      >
+        <TopNavigation
+          identity={{
+            href: "/",
+            title: "Friday",
+            logo: {
+              src: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiByeD0iNCIgZmlsbD0iI0ZGNjkwMCIvPgo8cGF0aCBkPSJNMTIgMkw2IDdIMTJWMTdINkwxMiAyMloiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPg==",
+              alt: "Friday",
             },
-          },
-        ]}
-        i18nStrings={{
-          searchIconAriaLabel: "Search",
-          searchDismissIconAriaLabel: "Close search",
-          overflowMenuTriggerText: "More",
-          overflowMenuTitleText: "All",
-          overflowMenuBackIconAriaLabel: "Back",
-          overflowMenuDismissIconAriaLabel: "Close menu",
+          }}
+          utilities={[
+            {
+              type: "button",
+              iconName: "settings",
+              text: "Settings",
+              href: "/settings",
+              onClick: (e) => {
+                e.preventDefault();
+                navigate("/settings");
+              },
+            },
+          ]}
+          i18nStrings={{
+            searchIconAriaLabel: "Search",
+            searchDismissIconAriaLabel: "Close search",
+            overflowMenuTriggerText: "More",
+            overflowMenuTitleText: "All",
+            overflowMenuBackIconAriaLabel: "Back",
+            overflowMenuDismissIconAriaLabel: "Close menu",
+          }}
+        />
+      </div>
+      <div
+        style={{
+          display: "flex",
+          marginTop: "60px",
+          height: "calc(100vh - 60px)",
+          position: "relative",
         }}
-      />
-      <AppLayout
-        navigation={
+      >
+        <div
+          style={{
+            position: "fixed",
+            left: 0,
+            top: "60px",
+            bottom: 0,
+            width: "220px",
+            zIndex: 999,
+            overflowY: "auto",
+          }}
+        >
           <SideNavigation
             header={{
               href: "/",
@@ -103,11 +150,29 @@ export default function Layout() {
               }
             }}
           />
-        }
-        content={<Outlet />}
-        toolsHide={true}
-        navigationWidth={220}
-      />
-    </>
+        </div>
+        <div
+          style={{
+            marginLeft: "220px",
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            height: "100%",
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              flex: 1,
+              overflow: "auto",
+              padding: "16px",
+            }}
+            className="content-scroll-area"
+          >
+            <Outlet />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

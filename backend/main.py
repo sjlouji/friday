@@ -14,6 +14,8 @@ from beancount.parser import printer
 import os
 import tempfile
 import json
+import pandas as pd
+import io
 
 app = FastAPI(title="Beancount API")
 
@@ -138,41 +140,64 @@ def _get_account_type(account_name: str) -> str:
 
 def load_beancount_file(filepath: str = BEANCOUNT_FILE):
     """Load and parse beancount file"""
-    if not os.path.exists(filepath):
-        return [], [], [], [], []
-    
-    entries, errors, options_map = loader.load_file(filepath)
-    
-    transactions = []
-    accounts = []
-    balances = []
-    prices = []
-    account_close_dates = {}
-    
-    for index, entry in enumerate(entries):
-        entry_dict = beancount_to_dict(entry, index)
-        if entry_dict:
-            if isinstance(entry, Transaction):
-                transactions.append(entry_dict)
-            elif isinstance(entry, Open):
-                accounts.append(entry_dict)
-            elif isinstance(entry, Close):
-                account_close_dates[entry.account] = entry.date.isoformat()
-            elif isinstance(entry, Balance):
-                balances.append(entry_dict)
-            elif isinstance(entry, Price):
-                prices.append(entry_dict)
-    
-    # Update accounts with close dates
-    for account in accounts:
-        if account["name"] in account_close_dates:
-            account["closeDate"] = account_close_dates[account["name"]]
-    
-    return transactions, accounts, balances, prices, errors
+    try:
+        if not os.path.exists(filepath):
+            return [], [], [], [], [f"File not found: {filepath}"]
+        
+        if not os.path.isfile(filepath):
+            return [], [], [], [], [f"Path is not a file: {filepath}"]
+        
+        # Check file size - warn if very large
+        file_size = os.path.getsize(filepath)
+        if file_size > 10 * 1024 * 1024:  # 10MB
+            print(f"Warning: Large file detected ({file_size / 1024 / 1024:.2f}MB): {filepath}")
+        
+        entries, errors, options_map = loader.load_file(filepath)
+        
+        transactions = []
+        accounts = []
+        balances = []
+        prices = []
+        account_close_dates = {}
+        
+        for index, entry in enumerate(entries):
+            try:
+                entry_dict = beancount_to_dict(entry, index)
+                if entry_dict:
+                    if isinstance(entry, Transaction):
+                        transactions.append(entry_dict)
+                    elif isinstance(entry, Open):
+                        accounts.append(entry_dict)
+                    elif isinstance(entry, Close):
+                        account_close_dates[entry.account] = entry.date.isoformat()
+                    elif isinstance(entry, Balance):
+                        balances.append(entry_dict)
+                    elif isinstance(entry, Price):
+                        prices.append(entry_dict)
+            except Exception as e:
+                errors.append(f"Error processing entry {index}: {str(e)}")
+                continue
+        
+        # Update accounts with close dates
+        for account in accounts:
+            if account["name"] in account_close_dates:
+                account["closeDate"] = account_close_dates[account["name"]]
+        
+        return transactions, accounts, balances, prices, errors
+    except Exception as e:
+        import traceback
+        error_msg = f"Failed to load beancount file: {str(e)}\n{traceback.format_exc()}"
+        print(error_msg)
+        return [], [], [], [], [error_msg]
 
 @app.get("/")
 async def root():
     return {"message": "Beancount API", "version": "1.0.0"}
+
+@app.get("/api/health")
+async def health_check():
+    """Health check endpoint"""
+    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
 @app.get("/api/files/browse")
 async def browse_files(path: Optional[str] = Query(default=None, description="Directory path to browse")):
@@ -291,25 +316,70 @@ async def create_beancount_file(file_path: str = Query(..., description="Path wh
         # Create a basic Beancount file with default structure
         today = date.today().isoformat()
         
-        default_content = f"""option "title" "Beancount Ledger"
-option "operating_currency" "USD"
+        default_content = f"""option "title" "Beancount Ledger - Indian Accounting"
+option "operating_currency" "INR"
 
-; Accounts
-{today} open Assets:Checking
-{today} open Assets:Savings
+; Assets
+{today} open Assets:Bank:Checking
+{today} open Assets:Bank:Savings
 {today} open Assets:Cash
+{today} open Assets:Investments:FD
+{today} open Assets:Investments:Equity
+{today} open Assets:Investments:MF
+{today} open Assets:Property
+
+; Liabilities
 {today} open Liabilities:CreditCard
+{today} open Liabilities:Loan:Home
+{today} open Liabilities:Loan:Personal
+{today} open Liabilities:Loan:Education
+
+; Income
 {today} open Income:Salary
-{today} open Income:Other
+{today} open Income:Salary:Allowances
+{today} open Income:Interest:FD
+{today} open Income:Interest:Savings
+{today} open Income:Dividends
+{today} open Income:CapitalGains:STCG
+{today} open Income:CapitalGains:LTCG
+{today} open Income:Business:Profession
+{today} open Income:Other:HouseProperty
+
+; Expenses
 {today} open Expenses:Food
 {today} open Expenses:Transport
 {today} open Expenses:Utilities
 {today} open Expenses:Entertainment
+{today} open Expenses:Medical
+{today} open Expenses:Education
+{today} open Expenses:Home:Maintenance
+{today} open Expenses:Home:PropertyTax
+
+; Tax Deductions (Income Tax Act Sections)
+{today} open Expenses:Tax:80C
+{today} open Expenses:Tax:80D
+{today} open Expenses:Tax:80G
+{today} open Expenses:Tax:24B
+{today} open Expenses:Tax:80E
+{today} open Expenses:Tax:80TTA
+{today} open Expenses:Tax:80CCD
+{today} open Expenses:Tax:80DDB
+{today} open Expenses:Tax:80U
+
+; GST Accounts
+{today} open Expenses:GST:Input:CGST
+{today} open Expenses:GST:Input:SGST
+{today} open Expenses:GST:Input:IGST
+{today} open Income:GST:Output:CGST
+{today} open Income:GST:Output:SGST
+{today} open Income:GST:Output:IGST
+
+; Equity
 {today} open Equity:Opening-Balances
 
 ; Opening balance example (uncomment and adjust as needed)
 ; {today} * "Opening Balance"
-;   Assets:Checking    1000.00 USD
+;   Assets:Bank:Checking    100000.00 INR
 ;   Equity:Opening-Balances
 
 """
@@ -404,7 +474,20 @@ async def get_transactions(
     sort_descending: Optional[bool] = Query(False, description="Sort in descending order")
 ):
     """Get transactions with pagination and filtering"""
-    transactions, _, _, _, errors = load_beancount_file(file_path)
+    try:
+        if not file_path or not file_path.strip():
+            raise HTTPException(status_code=400, detail="File path is required")
+        
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail=f"File not found: {file_path}")
+        
+        transactions, _, _, _, errors = load_beancount_file(file_path)
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        error_detail = f"Failed to load transactions: {str(e)}\n{traceback.format_exc()}"
+        raise HTTPException(status_code=500, detail=error_detail)
     
     # Apply filters
     filters = {}
@@ -474,10 +557,18 @@ async def get_transactions(
 async def get_accounts(file_path: str = Query(..., description="Path to Beancount file")):
     """Get all accounts"""
     try:
+        if not file_path or not file_path.strip():
+            raise HTTPException(status_code=400, detail="File path is required")
+        
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail=f"File not found: {file_path}")
+        
         _, accounts, _, _, errors = load_beancount_file(file_path)
         if errors:
             return {"accounts": accounts, "errors": errors}
         return {"accounts": accounts}
+    except HTTPException:
+        raise
     except Exception as e:
         import traceback
         error_detail = f"Failed to load accounts: {str(e)}\n{traceback.format_exc()}"
@@ -490,6 +581,66 @@ async def get_balances(file_path: str = Query(..., description="Path to Beancoun
     if errors:
         return {"balances": balances, "errors": errors}
     return {"balances": balances}
+
+@app.get("/api/accounts/{account_name}/balance")
+async def get_account_balance(
+    account_name: str,
+    file_path: str = Query(..., description="Path to Beancount file"),
+    date: Optional[str] = Query(None, description="Date to calculate balance (YYYY-MM-DD)")
+):
+    """Get current balance for a specific account"""
+    try:
+        from beancount.core import realization
+        from beancount.core import prices
+        from beancount.core import convert
+        
+        entries, errors, options_map = loader.load_file(file_path)
+        if errors:
+            return {"balance": None, "errors": errors}
+        
+        # Build realization tree
+        real_root = realization.realize(entries)
+        
+        # Get account node
+        account_parts = account_name.split(":")
+        account_node = real_root
+        for part in account_parts:
+            if part in account_node:
+                account_node = account_node[part]
+            else:
+                return {"balance": None, "error": "Account not found"}
+        
+        # Calculate balance
+        balance = realization.compute_balance(account_node)
+        
+        # Convert to single currency if multiple
+        if len(balance) == 1:
+            pos = list(balance)[0]
+            return {
+                "account": account_name,
+                "balance": {
+                    "number": str(pos.units.number),
+                    "currency": str(pos.units.currency)
+                },
+                "date": date or datetime.now().isoformat()
+            }
+        else:
+            # Multiple currencies - return all
+            return {
+                "account": account_name,
+                "balances": [
+                    {
+                        "number": str(pos.units.number),
+                        "currency": str(pos.units.currency)
+                    }
+                    for pos in balance
+                ],
+                "date": date or datetime.now().isoformat()
+            }
+    except Exception as e:
+        import traceback
+        error_detail = f"Failed to get account balance: {str(e)}\n{traceback.format_exc()}"
+        raise HTTPException(status_code=500, detail=error_detail)
 
 @app.get("/api/prices")
 async def get_prices(file_path: str = Query(..., description="Path to Beancount file")):
@@ -642,17 +793,72 @@ async def delete_transaction(transaction_id: str, file_path: str = Query(..., de
 async def create_account(account: AccountModel, file_path: str = Query(..., description="Path to Beancount file")):
     """Create a new account"""
     try:
+        if not file_path or not file_path.strip():
+            raise HTTPException(status_code=400, detail="File path is required")
+        
+        # Get currency from metadata or default to INR
+        currency = account.metadata.get("currency", "INR") if account.metadata else "INR"
+        
+        # Validate account name format (should be like Assets:Bank:Checking)
+        if not account.name or ":" not in account.name:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid account name: '{account.name}'. Account names must use colon separators (e.g., Assets:Bank:Checking)"
+            )
+        
+        # Check if account already exists
+        if os.path.exists(file_path):
+            entries, _, _ = loader.load_file(file_path)
+            for entry in entries:
+                if isinstance(entry, Open) and entry.account == account.name:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Account '{account.name}' already exists"
+                    )
+        
+        # Create directory if it doesn't exist
+        directory = os.path.dirname(file_path)
+        if directory and not os.path.exists(directory):
+            os.makedirs(directory, exist_ok=True)
+        
+        # Write account with proper Beancount syntax: date open Account:Name Currency
+        account_entry = f"{account.openDate} open {account.name} {currency}\n"
+        
         if os.path.exists(file_path):
             with open(file_path, "a") as f:
-                f.write(f"{account.openDate} open {account.name}\n")
+                f.write(account_entry)
         else:
+            # Create new file with header
             with open(file_path, "w") as f:
-                f.write(f"{account.openDate} open {account.name}\n")
+                f.write('option "operating_currency" "INR"\n\n')
+                f.write(account_entry)
         
+        # Validate the file after adding account
         _, accounts, _, _, errors = load_beancount_file(file_path)
-        return {"accounts": accounts, "errors": errors}
+        
+        if errors:
+            # Format errors for better display
+            formatted_errors = []
+            for error in errors:
+                if isinstance(error, (list, tuple)) and len(error) >= 2:
+                    error_info = error[1] if len(error) > 1 else str(error)
+                    formatted_errors.append(error_info)
+                else:
+                    formatted_errors.append(str(error))
+            
+            return {
+                "accounts": accounts,
+                "errors": formatted_errors,
+                "message": f"Account created but there were {len(formatted_errors)} error(s)"
+            }
+        
+        return {"accounts": accounts, "errors": []}
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        import traceback
+        error_detail = f"Failed to create account: {str(e)}\n{traceback.format_exc()}"
+        raise HTTPException(status_code=500, detail=error_detail)
 
 @app.post("/api/import")
 async def import_file(file: UploadFile = File(...), file_path: str = Query(..., description="Path to Beancount file")):
@@ -687,6 +893,127 @@ async def export_file(file_path: str = Query(..., description="Path to Beancount
         media_type="text/plain",
         filename=os.path.basename(file_path)
     )
+
+@app.post("/api/accounts/import-excel")
+async def import_accounts_excel(
+    file: UploadFile = File(...),
+    file_path: str = Query(..., description="Path to Beancount file")
+):
+    """Import accounts from Excel file
+    
+    Expected Excel format:
+    - Column A: Account Name (e.g., Assets:Bank:Checking)
+    - Column B: Type (Assets, Liabilities, Equity, Income, Expenses)
+    - Column C: Open Date (YYYY-MM-DD)
+    - Column D: Currency (optional, defaults to INR)
+    - Column E: Notes/Description (optional)
+    """
+    try:
+        if not file.filename.endswith(('.xlsx', '.xls')):
+            raise HTTPException(status_code=400, detail="Please upload an Excel file (.xlsx or .xls)")
+        
+        content = await file.read()
+        df = pd.read_excel(io.BytesIO(content))
+        
+        # Validate required columns
+        required_columns = ['Account Name', 'Type', 'Open Date']
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        if missing_columns:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Missing required columns: {', '.join(missing_columns)}. Please ensure your Excel file has columns: Account Name, Type, Open Date, Currency (optional), Notes (optional)"
+            )
+        
+        # Read or create beancount file
+        if not os.path.exists(file_path):
+            with open(file_path, "w") as f:
+                f.write('option "operating_currency" "INR"\n\n')
+        
+        # Read existing content
+        with open(file_path, "r") as f:
+            existing_content = f.read()
+        
+        # Generate account entries
+        account_entries = []
+        errors = []
+        valid_types = ["Assets", "Liabilities", "Equity", "Income", "Expenses"]
+        
+        for index, row in df.iterrows():
+            try:
+                account_name = str(row['Account Name']).strip()
+                account_type = str(row['Type']).strip()
+                open_date = str(row['Open Date']).strip()
+                currency = str(row.get('Currency', 'INR')).strip() if 'Currency' in df.columns else 'INR'
+                
+                # Validate account name
+                if not account_name:
+                    errors.append(f"Row {index + 2}: Account Name is required")
+                    continue
+                
+                # Validate type
+                if account_type not in valid_types:
+                    errors.append(f"Row {index + 2}: Invalid Type '{account_type}'. Must be one of: {', '.join(valid_types)}")
+                    continue
+                
+                # Validate date
+                try:
+                    if isinstance(open_date, str):
+                        # Try parsing different date formats
+                        if '/' in open_date:
+                            parts = open_date.split('/')
+                            if len(parts) == 3:
+                                open_date = f"{parts[2]}-{parts[1]}-{parts[0]}"
+                        elif '-' in open_date:
+                            # Already in YYYY-MM-DD format or similar
+                            pass
+                        else:
+                            # Try pandas date parsing
+                            open_date = pd.to_datetime(open_date).strftime('%Y-%m-%d')
+                    else:
+                        open_date = pd.to_datetime(open_date).strftime('%Y-%m-%d')
+                except Exception as e:
+                    errors.append(f"Row {index + 2}: Invalid date format '{row['Open Date']}'. Use YYYY-MM-DD format")
+                    continue
+                
+                # Check if account already exists
+                if f'open {account_name}' in existing_content:
+                    errors.append(f"Row {index + 2}: Account '{account_name}' already exists")
+                    continue
+                
+                # Generate beancount account entry
+                account_entry = f"{open_date} open {account_name} {currency}\n"
+                account_entries.append(account_entry)
+                
+            except Exception as e:
+                errors.append(f"Row {index + 2}: Error processing row - {str(e)}")
+                continue
+        
+        # Append new accounts to file
+        if account_entries:
+            with open(file_path, "a") as f:
+                f.write("\n; Accounts imported from Excel\n")
+                for entry in account_entries:
+                    f.write(entry)
+                f.write("\n")
+        
+        # Validate the updated file
+        entries, file_errors, options_map = loader.load_file(file_path)
+        
+        return {
+            "success": True,
+            "imported": len(account_entries),
+            "errors": errors + file_errors if file_errors else errors,
+            "message": f"Successfully imported {len(account_entries)} account(s)"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to import accounts: {str(e)}\n{traceback.format_exc()}"
+        )
 
 @app.get("/api/reports/balance-sheet")
 async def get_balance_sheet(file_path: str = Query(..., description="Path to Beancount file")):

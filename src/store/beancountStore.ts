@@ -140,10 +140,17 @@ export const useBeancountStore = create<BeancountState>((set, get) => ({
   addAccount: async (account) => {
     set({ loading: true, error: null });
     try {
-      await api.accounts.create(account);
+      const response = await api.accounts.create(account);
+      if (response.errors && response.errors.length > 0) {
+        const errorMessage = response.errors.join("; ");
+        set({ error: errorMessage, loading: false });
+        throw new Error(errorMessage);
+      }
       await get().fetchAccounts();
+      set({ loading: false });
     } catch (error: any) {
       set({ error: error.message, loading: false });
+      throw error;
     }
   },
 
