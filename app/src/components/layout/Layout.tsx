@@ -63,6 +63,7 @@ export default function Layout() {
 
   return (
     <div
+      className="app-layout-wrapper"
       style={{
         display: "flex",
         flexDirection: "column",
@@ -162,13 +163,12 @@ export default function Layout() {
           }}
         >
           <div
+            className="content-scroll-area"
             style={{
               flex: 1,
               overflow: "auto",
               padding: "16px",
-              backgroundColor: "var(--color-background-layout-main, #ffffff)",
             }}
-            className="content-scroll-area"
           >
             <Outlet />
           </div>

@@ -44,6 +44,23 @@ body.awsui-light-mode {
   overflow-y: auto;
   overflow-x: hidden;
   height: 100%;
+  background-color: #ffffff;
+  transition: background-color 0.2s ease;
+}
+
+html[data-mode="dark"] .content-scroll-area,
+html.awsui-dark-mode .content-scroll-area {
+  background-color: #1d1d1d !important;
+}
+
+.app-layout-wrapper {
+  background-color: #ffffff;
+  transition: background-color 0.2s ease;
+}
+
+html[data-mode="dark"] .app-layout-wrapper,
+html.awsui-dark-mode .app-layout-wrapper {
+  background-color: #1d1d1d !important;
 }
 
 /* Breadcrumbs should be fixed at top of content area */
@@ -54,6 +71,11 @@ body.awsui-light-mode {
   z-index: 10;
   padding-bottom: 8px;
   margin-bottom: 8px;
+}
+
+html[data-mode="dark"] .content-scroll-area > div:first-child,
+html.awsui-dark-mode .content-scroll-area > div:first-child {
+  background: var(--color-background-layout-main, #1d1d1d) !important;
 }
 
 /* Tables should scroll within their containers - use max-height */
@@ -87,18 +109,34 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background-color: var(--color-background-layout-main, #ffffff);
+  background-color: #ffffff;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 html {
   overflow: hidden;
-  background-color: var(--color-background-layout-main, #ffffff);
+  background-color: #ffffff;
   transition: background-color 0.2s ease;
 }
 
 #root {
-  background-color: var(--color-background-layout-main, #ffffff);
+  background-color: #ffffff;
   min-height: 100vh;
   transition: background-color 0.2s ease;
+}
+
+/* Dark mode overrides - must come after base styles */
+html[data-mode="dark"],
+html.awsui-dark-mode {
+  background-color: #1d1d1d !important;
+}
+
+html[data-mode="dark"] body,
+body.awsui-dark-mode {
+  background-color: #1d1d1d !important;
+}
+
+html[data-mode="dark"] #root,
+html.awsui-dark-mode #root {
+  background-color: #1d1d1d !important;
 }
