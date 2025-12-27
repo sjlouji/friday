@@ -2,7 +2,7 @@ import { useSettingsStore } from "@/store/settingsStore";
 
 export const formatDate = (date: string | Date, format?: string): string => {
   const settings = useSettingsStore.getState().settings;
-  const dateFormat = format || settings.dateFormat;
+  const dateFormat = format || settings.workspace.dateFormat;
   const dateObj = typeof date === "string" ? new Date(date) : date;
 
   if (isNaN(dateObj.getTime())) {
@@ -29,7 +29,7 @@ export const formatDate = (date: string | Date, format?: string): string => {
 
 export const parseDate = (dateString: string, format?: string): Date | null => {
   const settings = useSettingsStore.getState().settings;
-  const dateFormat = format || settings.dateFormat;
+  const dateFormat = format || settings.workspace.dateFormat;
 
   let day: string, month: string, year: string;
 
@@ -62,7 +62,7 @@ export const parseDate = (dateString: string, format?: string): Date | null => {
 
 export const getFiscalYear = (date: Date = new Date()): number => {
   const settings = useSettingsStore.getState().settings;
-  const [month, day] = settings.fiscalYearStart.split("-").map(Number);
+  const [month, day] = settings.workspace.fiscalYearStart.split("-").map(Number);
   const fiscalYearStart = new Date(date.getFullYear(), month - 1, day);
 
   if (date >= fiscalYearStart) {
@@ -74,7 +74,7 @@ export const getFiscalYear = (date: Date = new Date()): number => {
 
 export const getFiscalYearStart = (year?: number): Date => {
   const settings = useSettingsStore.getState().settings;
-  const [month, day] = settings.fiscalYearStart.split("-").map(Number);
+  const [month, day] = settings.workspace.fiscalYearStart.split("-").map(Number);
   const targetYear = year || getFiscalYear();
   return new Date(targetYear, month - 1, day);
 };

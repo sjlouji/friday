@@ -2,13 +2,13 @@ import { useSettingsStore } from "@/store/settingsStore";
 
 export const formatCurrency = (amount: number, currency?: string): string => {
   const settings = useSettingsStore.getState().settings;
-  const targetCurrency = currency || settings.defaultCurrency;
+  const targetCurrency = currency || settings.workspace.defaultCurrency;
   
   if (targetCurrency === "INR") {
     return formatIndianCurrency(amount);
   }
   
-  const locale = settings.locale || "en-US";
+  const locale = settings.appearance.locale || "en-US";
   const symbol = getCurrencySymbol(targetCurrency);
   
   return `${symbol}${amount.toLocaleString(locale, {

@@ -1,80 +1,93 @@
 import { create } from "zustand";
-
-export interface TablePreferences {
-  contentDensity: "compact" | "comfortable";
-  wrapLines: boolean;
-  stickyFirstColumn: boolean;
-  stickyLastColumn: boolean;
-  columnReordering: boolean;
-}
-
-export interface BeancountSettings {
-  operatingCurrency: string;
-  accountNameSeparator: string;
-  defaultAccountTypes: {
-    assets: string;
-    liabilities: string;
-    equity: string;
-    income: string;
-    expenses: string;
-  };
-  priceDatabase: string;
-  includeOptions: string[];
-  excludeOptions: string[];
-  defaultFlag: string;
-  defaultNarration: string;
-  useLegacyMetadata: boolean;
-}
-
-export interface AppSettings {
-  beancountFilePath: string;
-  defaultCurrency: string;
-  dateFormat: string;
-  timeFormat: "12h" | "24h";
-  fiscalYearStart: string;
-  language: string;
-  locale: string;
-  theme: "light" | "dark" | "auto";
-  tablePreferences: TablePreferences;
-  beancount: BeancountSettings;
-}
+import {
+  AppSettings,
+  AppearanceSettings,
+  WorkspaceSettings,
+  BookkeepingSettings,
+  TablePreferences,
+  DEFAULT_SETTINGS,
+  DEFAULT_APPEARANCE,
+  DEFAULT_WORKSPACE,
+  DEFAULT_BOOKKEEPING,
+} from "@/modules/settings/types";
 
 const STORAGE_KEY = "friday-settings";
 const BEANCOUNT_FILE_KEY = "beancount_file_path";
+const OLD_STORAGE_KEY = "beancount-settings";
+const SETTINGS_VERSION = 2;
 
-const defaultSettings: AppSettings = {
-  beancountFilePath: "",
-  defaultCurrency: "INR",
-  dateFormat: "DD/MM/YYYY",
-  timeFormat: "24h",
-  fiscalYearStart: "04-01",
-  language: "en",
-  locale: "en-IN",
-  theme: "light",
-  tablePreferences: {
-    contentDensity: "compact",
-    wrapLines: true,
-    stickyFirstColumn: true,
-    stickyLastColumn: true,
-    columnReordering: true,
-  },
-  beancount: {
-    operatingCurrency: "INR",
-    accountNameSeparator: ":",
-    defaultAccountTypes: {
-      assets: "Assets",
-      liabilities: "Liabilities",
-      equity: "Equity",
-      income: "Income",
-      expenses: "Expenses",
+interface OldSettings {
+  defaultCurrency?: string;
+  dateFormat?: string;
+  fiscalYearStart?: string;
+  language?: string;
+  locale?: string;
+  theme?: string;
+  timeFormat?: "12h" | "24h";
+  tablePreferences?: TablePreferences;
+  beancount?: {
+    accountNameSeparator?: string;
+    defaultAccountTypes?: {
+      assets?: string;
+      liabilities?: string;
+      equity?: string;
+      income?: string;
+      expenses?: string;
+    };
+    defaultFlag?: string;
+    defaultNarration?: string;
+    useLegacyMetadata?: boolean;
+  };
+  [key: string]: unknown;
+}
+
+const migrateFromOldFormat = (oldSettings: OldSettings): AppSettings => {
+  const migrated: AppSettings = {
+    ...DEFAULT_SETTINGS,
+    beancountFilePath: localStorage.getItem(BEANCOUNT_FILE_KEY) || "",
+    appearance: {
+      ...DEFAULT_APPEARANCE,
+      language: oldSettings.language || DEFAULT_APPEARANCE.language,
+      locale: oldSettings.locale || DEFAULT_APPEARANCE.locale,
+      theme: (oldSettings.theme as "light" | "dark" | "auto") || DEFAULT_APPEARANCE.theme,
+      tablePreferences: {
+        ...DEFAULT_APPEARANCE.tablePreferences,
+        ...(oldSettings.tablePreferences || {}),
+      },
     },
-    priceDatabase: "",
-    includeOptions: [],
-    excludeOptions: [],
-    defaultFlag: "*",
-    defaultNarration: "",
-    useLegacyMetadata: false,
-  },
+    workspace: {
+      ...DEFAULT_WORKSPACE,
+      defaultCurrency: oldSettings.defaultCurrency || DEFAULT_WORKSPACE.defaultCurrency,
+      dateFormat: oldSettings.dateFormat || DEFAULT_WORKSPACE.dateFormat,
+      fiscalYearStart: oldSettings.fiscalYearStart || DEFAULT_WORKSPACE.fiscalYearStart,
+      timeFormat: oldSettings.timeFormat || DEFAULT_WORKSPACE.timeFormat,
+    },
+  };
+
+  if (oldSettings.beancount) {
+    migrated.bookkeeping = {
+      ...DEFAULT_BOOKKEEPING,
+      account: {
+        ...DEFAULT_BOOKKEEPING.account,
+        accountNameSeparator:
+          oldSettings.beancount.accountNameSeparator ||
+          DEFAULT_BOOKKEEPING.account.accountNameSeparator,
+        defaultAccountTypes: {
+          ...DEFAULT_BOOKKEEPING.account.defaultAccountTypes,
+          ...(oldSettings.beancount.defaultAccountTypes || {}),
+        },
+      },
+      beancount: {
+        ...DEFAULT_BOOKKEEPING.beancount,
+        defaultFlag: oldSettings.beancount.defaultFlag || DEFAULT_BOOKKEEPING.beancount.defaultFlag,
+        defaultNarration:
+          oldSettings.beancount.defaultNarration || DEFAULT_BOOKKEEPING.beancount.defaultNarration,
+        useLegacyMetadata: oldSettings.beancount.useLegacyMetadata || false,
+      },
+    };
+  }
+
+  return migrated;
 };
 
 const loadSettings = (): AppSettings => {
@@ -84,31 +97,82 @@ const loadSettings = (): AppSettings => {
 
     if (saved) {
       const parsed = JSON.parse(saved);
-      return {
-        ...defaultSettings,
-        ...parsed,
-        beancountFilePath: filePath || parsed.beancountFilePath || "",
-        tablePreferences: {
-          ...defaultSettings.tablePreferences,
-          ...(parsed.tablePreferences || {}),
-        },
-        beancount: {
-          ...defaultSettings.beancount,
-          ...(parsed.beancount || {}),
-        },
-      };
+
+      if (parsed.version === SETTINGS_VERSION && parsed.settings) {
+        return {
+          ...DEFAULT_SETTINGS,
+          ...parsed.settings,
+          beancountFilePath: filePath || parsed.settings.beancountFilePath || "",
+          appearance: {
+            ...DEFAULT_APPEARANCE,
+            ...(parsed.settings.appearance || {}),
+            tablePreferences: {
+              ...DEFAULT_APPEARANCE.tablePreferences,
+              ...(parsed.settings.appearance?.tablePreferences || {}),
+            },
+          },
+          workspace: {
+            ...DEFAULT_WORKSPACE,
+            ...(parsed.settings.workspace || {}),
+          },
+          bookkeeping: {
+            account: {
+              ...DEFAULT_BOOKKEEPING.account,
+              ...(parsed.settings.bookkeeping?.account || {}),
+              defaultAccountTypes: {
+                ...DEFAULT_BOOKKEEPING.account.defaultAccountTypes,
+                ...(parsed.settings.bookkeeping?.account?.defaultAccountTypes || {}),
+              },
+            },
+            importExport: {
+              ...DEFAULT_BOOKKEEPING.importExport,
+              ...(parsed.settings.bookkeeping?.importExport || {}),
+            },
+            beancount: {
+              ...DEFAULT_BOOKKEEPING.beancount,
+              ...(parsed.settings.bookkeeping?.beancount || {}),
+            },
+          },
+        };
+      }
+
+      if (
+        parsed.version &&
+        typeof parsed.version === "number" &&
+        parsed.version < SETTINGS_VERSION
+      ) {
+        return migrateFromOldFormat((parsed.settings || parsed) as OldSettings);
+      }
     }
 
-    return { ...defaultSettings, beancountFilePath: filePath };
-  } catch {
+    const oldSettings = localStorage.getItem(OLD_STORAGE_KEY);
+    if (oldSettings) {
+      try {
+        const parsed = JSON.parse(oldSettings);
+        const migrated = migrateFromOldFormat(parsed);
+        saveSettings(migrated);
+        localStorage.removeItem(OLD_STORAGE_KEY);
+        return migrated;
+      } catch {
+        console.warn("Failed to migrate old settings");
+      }
+    }
+
+    return { ...DEFAULT_SETTINGS, beancountFilePath: filePath };
+  } catch (error) {
+    console.error("Failed to load settings", error);
     const filePath = localStorage.getItem(BEANCOUNT_FILE_KEY) || "";
-    return { ...defaultSettings, beancountFilePath: filePath };
+    return { ...DEFAULT_SETTINGS, beancountFilePath: filePath };
   }
 };
 
 const saveSettings = (settings: AppSettings) => {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    const toSave = {
+      version: SETTINGS_VERSION,
+      settings,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
     localStorage.setItem(BEANCOUNT_FILE_KEY, settings.beancountFilePath);
   } catch (error) {
     console.error("Failed to save settings", error);
@@ -120,15 +184,17 @@ interface SettingsState {
   initialized: boolean;
   initialize: () => void;
   updateSettings: (updates: Partial<AppSettings>) => void;
+  updateAppearance: (updates: Partial<AppearanceSettings>) => void;
+  updateWorkspace: (updates: Partial<WorkspaceSettings>) => void;
+  updateBookkeeping: (updates: Partial<BookkeepingSettings>) => void;
   updateTablePreferences: (preferences: Partial<TablePreferences>) => void;
-  updateBeancountSettings: (settings: Partial<BeancountSettings>) => void;
   resetSettings: () => void;
   applyTheme: (theme: "light" | "dark" | "auto") => void;
   applyLanguage: (language: string) => void;
 }
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
-  settings: defaultSettings,
+  settings: DEFAULT_SETTINGS,
   initialized: false,
 
   initialize: () => {
@@ -137,10 +203,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     const loaded = loadSettings();
     set({ settings: loaded, initialized: true });
 
-    get().applyTheme(loaded.theme);
-    get().applyLanguage(loaded.language);
+    get().applyTheme(loaded.appearance.theme);
+    get().applyLanguage(loaded.appearance.language);
 
-    if (loaded.theme === "auto") {
+    if (loaded.appearance.theme === "auto") {
       const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
       const handleThemeChange = () => {
         get().applyTheme("auto");
@@ -155,24 +221,61 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     saveSettings(newSettings);
   },
 
-  updateTablePreferences: (preferences) => {
+  updateAppearance: (updates) => {
     const newSettings = {
       ...get().settings,
-      tablePreferences: {
-        ...get().settings.tablePreferences,
-        ...preferences,
+      appearance: {
+        ...get().settings.appearance,
+        ...updates,
       },
     };
     set({ settings: newSettings });
     saveSettings(newSettings);
   },
 
-  updateBeancountSettings: (settings) => {
+  updateWorkspace: (updates) => {
     const newSettings = {
       ...get().settings,
-      beancount: {
-        ...get().settings.beancount,
-        ...settings,
+      workspace: {
+        ...get().settings.workspace,
+        ...updates,
+      },
+    };
+    set({ settings: newSettings });
+    saveSettings(newSettings);
+  },
+
+  updateBookkeeping: (updates) => {
+    const newSettings = {
+      ...get().settings,
+      bookkeeping: {
+        account: {
+          ...get().settings.bookkeeping.account,
+          ...(updates.account || {}),
+        },
+        importExport: {
+          ...get().settings.bookkeeping.importExport,
+          ...(updates.importExport || {}),
+        },
+        beancount: {
+          ...get().settings.bookkeeping.beancount,
+          ...(updates.beancount || {}),
+        },
+      },
+    };
+    set({ settings: newSettings });
+    saveSettings(newSettings);
+  },
+
+  updateTablePreferences: (preferences) => {
+    const newSettings = {
+      ...get().settings,
+      appearance: {
+        ...get().settings.appearance,
+        tablePreferences: {
+          ...get().settings.appearance.tablePreferences,
+          ...preferences,
+        },
       },
     };
     set({ settings: newSettings });
@@ -181,7 +284,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   resetSettings: () => {
     const filePath = get().settings.beancountFilePath;
-    const reset = { ...defaultSettings, beancountFilePath: filePath };
+    const reset = { ...DEFAULT_SETTINGS, beancountFilePath: filePath };
     set({ settings: reset });
     saveSettings(reset);
   },
@@ -202,9 +305,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       body.classList.add("awsui-light-mode");
       html.setAttribute("data-mode", "light");
     } else {
-      const prefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)"
-      ).matches;
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
       if (prefersDark) {
         html.classList.add("awsui-dark-mode");
         body.classList.add("awsui-dark-mode");
@@ -216,11 +317,19 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       }
     }
 
-    get().updateSettings({ theme });
+    get().updateAppearance({ theme });
   },
 
   applyLanguage: (language) => {
     document.documentElement.lang = language;
-    get().updateSettings({ language });
+    get().updateAppearance({ language });
   },
 }));
+
+export type {
+  AppSettings,
+  AppearanceSettings,
+  WorkspaceSettings,
+  BookkeepingSettings,
+  TablePreferences,
+};
