@@ -94,17 +94,20 @@ def load_beancount_file(filepath: str) -> Tuple[List[Dict], List[Dict], List[Dic
         Tuple of (transactions, accounts, balances, prices, errors)
     """
     try:
-        if not os.path.exists(filepath):
-            return [], [], [], [], [f"File not found: {filepath}"]
+        # Expand ~ to home directory
+        expanded_path = os.path.expanduser(filepath)
         
-        if not os.path.isfile(filepath):
-            return [], [], [], [], [f"Path is not a file: {filepath}"]
+        if not os.path.exists(expanded_path):
+            return [], [], [], [], [f"File not found: {expanded_path}"]
         
-        file_size = os.path.getsize(filepath)
+        if not os.path.isfile(expanded_path):
+            return [], [], [], [], [f"Path is not a file: {expanded_path}"]
+        
+        file_size = os.path.getsize(expanded_path)
         if file_size > 10 * 1024 * 1024:
-            print(f"Warning: Large file detected ({file_size / 1024 / 1024:.2f}MB): {filepath}")
+            print(f"Warning: Large file detected ({file_size / 1024 / 1024:.2f}MB): {expanded_path}")
         
-        entries, errors, options_map = loader.load_file(filepath)
+        entries, errors, options_map = loader.load_file(expanded_path)
         
         transactions = []
         accounts = []

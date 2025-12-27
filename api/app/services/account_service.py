@@ -21,6 +21,9 @@ class AccountService:
     @staticmethod
     def create_account(file_path: str, account_data: Dict) -> Dict:
         """Create a new account"""
+        # Expand ~ to home directory
+        file_path = os.path.expanduser(file_path)
+        
         currency = account_data.get("metadata", {}).get("currency", "INR") if account_data.get("metadata") else "INR"
         
         account_name = account_data["name"]

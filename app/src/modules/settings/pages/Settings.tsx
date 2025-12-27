@@ -87,7 +87,9 @@ export default function Settings() {
       setIsUploading(true);
       setFileInfo(null);
 
-      const fileHandles = await (window as { showOpenFilePicker?: (options: unknown) => Promise<FileSystemFileHandle[]> }).showOpenFilePicker?.({
+      const fileHandles = await (
+        window as { showOpenFilePicker?: (options: unknown) => Promise<FileSystemFileHandle[]> }
+      ).showOpenFilePicker?.({
         types: [
           {
             description: "Beancount files",

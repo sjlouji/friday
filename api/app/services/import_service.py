@@ -13,7 +13,14 @@ class ImportService:
     @staticmethod
     def import_file(file_path: str, content: bytes) -> Dict:
         """Import beancount file"""
+        # Expand ~ to home directory
+        file_path = os.path.expanduser(file_path)
+        
         content_str = content.decode("utf-8")
+        
+        directory = os.path.dirname(file_path)
+        if directory and not os.path.exists(directory):
+            os.makedirs(directory, exist_ok=True)
         
         with open(file_path, "w") as f:
             f.write(content_str)
@@ -84,12 +91,19 @@ class ImportService:
         mapping: Dict
     ) -> Dict:
         """Import transactions using column mapping"""
+        # Expand ~ to home directory
+        file_path = os.path.expanduser(file_path)
+        
         if filename.endswith(('.csv', '.CSV')):
             df = pd.read_csv(io.BytesIO(file))
         elif filename.endswith(('.xlsx', '.xls', '.XLSX', '.XLS')):
             df = pd.read_excel(io.BytesIO(file))
         else:
             raise ValueError("Unsupported file type")
+        
+        directory = os.path.dirname(file_path)
+        if directory and not os.path.exists(directory):
+            os.makedirs(directory, exist_ok=True)
         
         if not os.path.exists(file_path):
             with open(file_path, "w") as f:

@@ -25,6 +25,9 @@ async def export_file(
     file_path: str = Query(..., description="Path to Beancount file"),
 ):
     """Export beancount file"""
+    # Expand ~ to home directory
+    file_path = os.path.expanduser(file_path)
+    
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="No file to export")
     

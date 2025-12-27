@@ -93,6 +93,9 @@ class FileService:
     @staticmethod
     def create_file(file_path: str) -> Dict:
         """Create a new beancount file"""
+        # Expand ~ to home directory
+        file_path = os.path.expanduser(file_path)
+        
         if os.path.exists(file_path):
             raise FileExistsError(f"File already exists at {file_path}")
         

@@ -22,6 +22,8 @@ class TransactionService:
         sort_descending: bool = False
     ) -> Dict:
         """Get transactions with pagination and filtering"""
+        # Expand ~ to home directory (load_beancount_file also does this, but be explicit)
+        file_path = os.path.expanduser(file_path)
         transactions, _, _, _, errors = load_beancount_file(file_path)
         
         filters = {}
@@ -77,6 +79,9 @@ class TransactionService:
     @staticmethod
     def create_transaction(file_path: str, transaction_data: Dict) -> Dict:
         """Create a new transaction"""
+        # Expand ~ to home directory
+        file_path = os.path.expanduser(file_path)
+        
         postings_str = "\n".join([
             f"  {p['account']}  {p['amount']['number']} {p['amount']['currency']}" 
             if p.get('amount') and p['amount'].get('number')
@@ -88,6 +93,10 @@ class TransactionService:
         narration_str = f' "{transaction_data.get("narration")}"' if transaction_data.get("narration") else ""
         
         new_transaction = f"{transaction_data['date']} {transaction_data['flag']}{payee_str}{narration_str}\n{postings_str}\n\n"
+        
+        directory = os.path.dirname(file_path)
+        if directory and not os.path.exists(directory):
+            os.makedirs(directory, exist_ok=True)
         
         if not os.path.exists(file_path):
             with open(file_path, "w") as f:
@@ -104,6 +113,9 @@ class TransactionService:
     @staticmethod
     def update_transaction(file_path: str, transaction_id: str, transaction_data: Dict) -> Dict:
         """Update a transaction"""
+        # Expand ~ to home directory
+        file_path = os.path.expanduser(file_path)
+        
         if not os.path.exists(file_path):
             raise FileNotFoundError("File not found")
         
@@ -145,6 +157,9 @@ class TransactionService:
     @staticmethod
     def delete_transaction(file_path: str, transaction_id: str) -> Dict:
         """Delete a transaction"""
+        # Expand ~ to home directory
+        file_path = os.path.expanduser(file_path)
+        
         if not os.path.exists(file_path):
             raise FileNotFoundError("File not found")
         
