@@ -1,8 +1,16 @@
 {
   "name": "friday-frontend",
   "version": "1.0.0",
-  "description": "Friday - Modern UI for Beancount plain text accounting",
+  "description": "Friday - A modern, comprehensive personal accounting and bookkeeping software solution",
   "type": "module",
+  "author": "Joan Louji <sjlouji10@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sjlouji/friday.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sjlouji/friday/issues"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

@@ -9,27 +9,27 @@ echo "🚀 Deploying Friday to $ENVIRONMENT environment..."
 
 case $ENVIRONMENT in
   staging)
-    echo "📦 Building for staging..."
+    echo "Info Building for staging..."
     cd app && npm run build
-    echo "✅ Build complete"
-    echo "📤 Deploy to staging server..."
+    echo "Success Build complete"
+    echo "Info Deploy to staging server..."
     # Add your staging deployment commands here
     # Example: rsync -avz dist/ user@staging-server:/var/www/friday/
     ;;
   prod|production)
-    echo "📦 Building for production..."
+    echo "Info Building for production..."
     cd app && npm run build
-    echo "✅ Build complete"
-    echo "📤 Deploy to production server..."
+    echo "Success Build complete"
+    echo "Info Deploy to production server..."
     # Add your production deployment commands here
     # Example: rsync -avz dist/ user@prod-server:/var/www/friday/
     ;;
   *)
-    echo "❌ Unknown environment: $ENVIRONMENT"
+    echo "Error: Unknown environment: $ENVIRONMENT"
     echo "Usage: ./scripts/deploy.sh [staging|prod]"
     exit 1
     ;;
 esac
 
-echo "✅ Deployment to $ENVIRONMENT complete!"
+echo "Success Deployment to $ENVIRONMENT complete!"
 

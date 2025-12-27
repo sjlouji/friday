@@ -1,8 +1,16 @@
 {
   "name": "friday",
   "version": "1.0.0",
-  "description": "Friday - Modern UI for Beancount plain text accounting",
+  "description": "A modern, comprehensive personal accounting and bookkeeping software solution built on Beancount",
   "private": true,
+  "author": "Joan Louji <sjlouji10@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sjlouji/friday.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sjlouji/friday/issues"
+  },
   "scripts": {
     "dev": "cd app && npm run dev",
     "dev:api": "cd api && ./start.sh",
@@ -13,4 +21,3 @@
     "install:api": "cd api && pip install -r requirements.txt"
   }
 }
-
