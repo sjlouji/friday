@@ -53,9 +53,9 @@ The `docker-compose.yml` file defines three services:
 
 ### Services Overview
 
-1. **nginx** - Reverse proxy and web server
-2. **api** - FastAPI backend service
-3. **app** - React frontend service
+1. **nginx** (container: `friday-nginx`) - Reverse proxy and web server
+2. **api** (container: `friday-backend`) - FastAPI backend service
+3. **app** (container: `friday-frontend`) - React frontend service
 
 ### Service Details
 
@@ -63,11 +63,10 @@ The `docker-compose.yml` file defines three services:
 
 ```yaml
 nginx:
+  container_name: friday-nginx
   build:
     context: .
     dockerfile: nginx.Dockerfile
-    args:
-      CONFIG_FILE: nginx/nginx.conf # Use nginx.prod.conf for production
   ports:
     - "80:80" # HTTP port
     - "443:443" # HTTPS port (if SSL configured)
@@ -115,21 +114,41 @@ app:
 
 ## Nginx Configuration
 
-Nginx acts as a reverse proxy, routing requests between the frontend and backend.
+Nginx acts as a reverse proxy, routing requests between the frontend and backend. A single configuration file (`nginx/nginx.conf`) works for both development and production environments.
 
-### Development Configuration (`nginx/nginx.conf`)
+### Configuration Features
 
-- Proxies frontend dev server (Vite HMR support)
-- Routes `/api/*` to backend
-- Supports WebSocket for hot module replacement
+- **Security Headers**: Comprehensive security headers including:
 
-### Production Configuration (`nginx/nginx.prod.conf`)
+  - `X-Frame-Options: DENY` - Prevents clickjacking attacks
+  - `X-Content-Type-Options: nosniff` - Prevents MIME type sniffing
+  - `X-XSS-Protection` - XSS protection
+  - `Content-Security-Policy` - CSP headers
+  - `Referrer-Policy` - Controls referrer information
+  - `Permissions-Policy` - Feature permissions
+  - Server tokens hidden
 
-- Serves static files from built frontend
-- Routes `/api/*` to backend
-- Optimized caching for static assets
-- Security headers enabled
-- Gzip compression enabled
+- **API Timeouts**: Configured timeouts for API requests:
+
+  - Connection timeout: 60s
+  - Read timeout: 300s
+  - Send timeout: 300s
+
+- **Development Support**:
+
+  - Proxies to frontend dev server (Vite HMR support)
+  - WebSocket support for hot module replacement
+
+- **Production Support**:
+
+  - Serves static files when available
+  - Falls back to dev server if static files not found
+  - Optimized caching for static assets
+
+- **Performance**:
+  - Gzip compression enabled
+  - Keepalive connections
+  - Static asset caching
 
 ### Routing Rules
 
@@ -202,20 +221,17 @@ make nginx-test
 
 ### Production Build
 
-For production, use production Dockerfiles and configurations:
+For production, use production Dockerfiles:
 
-1. **Update docker-compose.yml** to use production configs:
+1. **Update docker-compose.yml** to use production Dockerfile for app:
 
 ```yaml
-nginx:
-  build:
-    args:
-      CONFIG_FILE: nginx/nginx.prod.conf # Production config
-
 app:
   build:
     dockerfile: Dockerfile.prod # Production Dockerfile
 ```
+
+Note: Nginx configuration is the same for both development and production.
 
 2. **Build production images**:
 
@@ -233,7 +249,7 @@ docker-compose up -d
 
 For production, configure SSL certificates:
 
-1. **Update nginx.prod.conf** to include SSL:
+1. **Update nginx/nginx.conf** to include SSL:
 
 ```nginx
 server {
@@ -290,26 +306,114 @@ api:
 
 ## Health Checks
 
-### API Health Check
+### Health Check Endpoints
 
-The API provides a health endpoint:
+The API provides multiple health check endpoints:
+
+- **`/api/health`** - General health check (returns 200 if healthy, 503 if unhealthy)
+- **`/api/health/live`** - Liveness probe (Kubernetes compatible)
+- **`/api/health/ready`** - Readiness probe (Kubernetes compatible)
 
 ```bash
+# Test health endpoint
 curl http://localhost/health
+curl http://localhost:8000/api/health
 ```
 
-### Container Health Checks
+### Docker Health Checks
 
-Add health checks to docker-compose.yml:
+All services have health checks configured in `docker-compose.yml`:
+
+#### API Service Health Check
 
 ```yaml
 api:
   healthcheck:
-    test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+    test:
+      [
+        "CMD",
+        "python",
+        "-c",
+        "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=5).read()",
+      ]
+    interval: 30s # Check every 30 seconds
+    timeout: 10s # Timeout after 10 seconds
+    retries: 3 # Mark unhealthy after 3 failures
+    start_period: 40s # Allow 40 seconds for startup
+```
+
+#### Nginx Health Check
+
+```yaml
+nginx:
+  healthcheck:
+    test:
+      [
+        "CMD",
+        "wget",
+        "--quiet",
+        "--tries=1",
+        "--spider",
+        "http://localhost/health",
+      ]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+    start_period: 10s
+```
+
+#### Frontend Health Check
+
+```yaml
+app:
+  healthcheck:
+    test:
+      [
+        "CMD",
+        "wget",
+        "--quiet",
+        "--tries=1",
+        "--spider",
+        "http://localhost:5173",
+      ]
     interval: 30s
     timeout: 10s
     retries: 3
     start_period: 40s
+```
+
+### Nginx Upstream Health Checks
+
+Nginx monitors backend health using passive health checks:
+
+```nginx
+upstream api_backend {
+    server api:8000 max_fails=3 fail_timeout=30s;
+    keepalive 32;
+}
+```
+
+- **max_fails=3**: Mark server as down after 3 consecutive failures
+- **fail_timeout=30s**: Server is marked unavailable for 30 seconds after failures
+- **proxy_next_upstream**: Automatically retry on errors (500, 502, 503, 504)
+
+### Auto-Restart Behavior
+
+- **Docker Compose**: Services restart automatically on failure (`restart: unless-stopped`)
+- **Health Check Integration**: Nginx waits for API to be healthy before starting (`depends_on: condition: service_healthy`)
+- **Graceful Degradation**: Nginx retries failed requests to alternative upstreams (if multiple backends configured)
+
+### Monitoring Health Status
+
+```bash
+# Check container health status
+docker ps --format "table {{.Names}}\t{{.Status}}"
+
+# View health check logs
+docker inspect friday-backend | grep -A 10 Health
+
+# Test health endpoints
+curl -f http://localhost/health && echo "Healthy" || echo "Unhealthy"
 ```
 
 ## Monitoring and Logs
@@ -320,10 +424,15 @@ api:
 # All services
 make docker-logs
 
-# Specific service
+# Specific service (by service name)
 docker-compose logs -f api
 docker-compose logs -f app
 docker-compose logs -f nginx
+
+# Or by container name
+docker logs friday-backend
+docker logs friday-frontend
+docker logs friday-nginx
 ```
 
 ### Log Rotation
@@ -355,6 +464,7 @@ Consider integrating:
 1. Check logs: `docker-compose logs`
 2. Verify ports aren't in use: `netstat -tulpn | grep :80`
 3. Check Docker daemon: `docker ps`
+4. Check specific containers: `docker ps -a | grep friday`
 
 ### Nginx Configuration Errors
 
@@ -368,15 +478,15 @@ docker run --rm -v $(pwd)/nginx:/etc/nginx/conf.d:ro nginx:alpine nginx -t
 
 ### API Connection Issues
 
-1. Verify API is running: `docker-compose ps api`
-2. Check API logs: `docker-compose logs api`
+1. Verify API is running: `docker-compose ps api` or `docker ps | grep friday-backend`
+2. Check API logs: `docker-compose logs api` or `docker logs friday-backend`
 3. Test API directly: `curl http://localhost:8000/api/health`
 
 ### Frontend Not Loading
 
-1. Check app service: `docker-compose ps app`
-2. Verify build: `docker-compose logs app`
-3. Check Nginx routing: `docker-compose logs nginx`
+1. Check app service: `docker-compose ps app` or `docker ps | grep friday-frontend`
+2. Verify build: `docker-compose logs app` or `docker logs friday-frontend`
+3. Check Nginx routing: `docker-compose logs nginx` or `docker logs friday-nginx`
 
 ### Permission Issues
 

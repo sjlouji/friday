@@ -1,37 +1,52 @@
-from fastapi import HTTPException, status
+import logging
+from fastapi import Request
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+logger = logging.getLogger(__name__)
 
 
-class BeancountFileNotFoundError(HTTPException):
-    def __init__(self, file_path: str):
-        super().__init__(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Beancount file not found: {file_path}",
-        )
+async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Global exception handler for unhandled exceptions"""
+    request_id = getattr(request.state, "request_id", "unknown")
+    logger.exception(f"Unhandled exception: {type(exc).__name__}", exc_info=exc)
+
+    return JSONResponse(
+        status_code=500,
+        content={
+            "message": "Internal Server Error",
+            "request_id": request_id,
+        },
+    )
 
 
-class BeancountFileError(HTTPException):
-    def __init__(self, message: str):
-        super().__init__(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Beancount file error: {message}",
-        )
+async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
+    """Handler for HTTP exceptions"""
+    request_id = getattr(request.state, "request_id", "unknown")
+    logger.warning(f"HTTP {exc.status_code}: {exc.detail}")
+
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "message": exc.detail,
+            "request_id": request_id,
+        },
+    )
 
 
-class AccountAlreadyExistsError(HTTPException):
-    def __init__(self, account_name: str):
-        super().__init__(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Account '{account_name}' already exists",
-        )
+async def validation_exception_handler(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
+    """Handler for request validation errors"""
+    request_id = getattr(request.state, "request_id", "unknown")
+    logger.warning(f"Validation error: {exc.errors()}")
 
-
-class InvalidAccountNameError(HTTPException):
-    def __init__(self, account_name: str, reason: str = ""):
-        detail = f"Invalid account name: '{account_name}'"
-        if reason:
-            detail += f". {reason}"
-        super().__init__(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=detail,
-        )
-
+    return JSONResponse(
+        status_code=422,
+        content={
+            "message": "Validation Error",
+            "errors": exc.errors(),
+            "request_id": request_id,
+        },
+    )

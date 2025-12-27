@@ -1,7 +1,6 @@
 FROM nginx:alpine
 
-ARG CONFIG_FILE=nginx/nginx.conf
-COPY ${CONFIG_FILE} /etc/nginx/conf.d/default.conf
+COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
 
 RUN rm -f /etc/nginx/conf.d/default.conf.bak
 

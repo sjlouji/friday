@@ -117,7 +117,7 @@ friday/
 │
 ├── nginx/                       # Nginx configuration
 │   ├── nginx.conf              # Development config
-│   └── nginx.prod.conf         # Production config
+│   └── nginx.conf              # Nginx configuration (dev & prod)
 │
 ├── docker-compose.yml           # Docker Compose configuration
 ├── Makefile                     # Make commands for common tasks

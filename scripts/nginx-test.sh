@@ -2,21 +2,12 @@
 
 set -e
 
-echo "Info Testing nginx configuration..."
+echo "🧪 Testing nginx configuration..."
 
-# Test development config
-echo "Testing development config..."
 docker run --rm \
   -v "$(pwd)/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro" \
   nginx:alpine \
   nginx -t
 
-# Test production config
-echo "Testing production config..."
-docker run --rm \
-  -v "$(pwd)/nginx/nginx.prod.conf:/etc/nginx/conf.d/default.conf:ro" \
-  nginx:alpine \
-  nginx -t
-
-echo "Success All nginx configurations are valid!"
+echo "✅ Nginx configuration is valid!"
 

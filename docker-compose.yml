@@ -2,21 +2,37 @@ version: "3.8"
 
 services:
   nginx:
+    container_name: friday-nginx
     build:
       context: .
       dockerfile: nginx.Dockerfile
-      args:
-        CONFIG_FILE: nginx/nginx.conf
     ports:
       - "80:80"
     depends_on:
-      - api
-      - app
+      api:
+        condition: service_healthy
+      app:
+        condition: service_started
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   api:
+    container_name: friday-backend
     build:
       context: ./api
       dockerfile: Dockerfile
@@ -28,8 +44,26 @@ services:
       - ./api:/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=5).read()",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   app:
+    container_name: friday-frontend
     build:
       context: ./app
       dockerfile: Dockerfile
@@ -42,3 +76,15 @@ services:
       - /app/node_modules
     command: npm run dev
     restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:5173', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
