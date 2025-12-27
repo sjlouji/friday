@@ -8,6 +8,7 @@ import Button from "@cloudscape-design/components/button";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import BreadcrumbGroup from "@cloudscape-design/components/breadcrumb-group";
 import Alert from "@cloudscape-design/components/alert";
+import Box from "@cloudscape-design/components/box";
 import Tabs from "@cloudscape-design/components/tabs";
 import { api } from "@/lib/api";
 import { useSettings } from "@/hooks/useSettings";
@@ -27,6 +28,10 @@ export default function Settings() {
   );
   const [createMessage, setCreateMessage] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [fileInfo, setFileInfo] = useState<{
+    name: string;
+    show: boolean;
+  } | null>(null);
 
   useEffect(() => {
     setFilePath(settings.beancountFilePath);
@@ -36,9 +41,10 @@ export default function Settings() {
     const file = event.target.files?.[0];
     if (file) {
       const fileName = file.name;
-      alert(
-        `Selected file: ${fileName}\n\nPlease enter the full path to this file in the input field above.\n\nExample: /Users/yourname/Documents/${fileName}`
-      );
+      setFileInfo({
+        name: fileName,
+        show: true,
+      });
     }
     if (event.target) {
       event.target.value = "";
@@ -146,6 +152,28 @@ export default function Settings() {
       {createStatus === "error" && (
         <Alert type="error" dismissible onDismiss={() => setCreateStatus(null)}>
           {createMessage}
+        </Alert>
+      )}
+
+      {fileInfo?.show && (
+        <Alert
+          type="info"
+          dismissible
+          onDismiss={() => setFileInfo(null)}
+          header="File Selected"
+        >
+          <SpaceBetween direction="vertical" size="xs">
+            <Box>
+              <strong>Selected file:</strong> {fileInfo.name}
+            </Box>
+            <Box variant="small" color="text-body-secondary">
+              For security reasons, browsers don't expose full file paths. Please enter the full
+              path to this file manually in the input field below.
+            </Box>
+            <Box variant="small" color="text-body-secondary">
+              <strong>Example:</strong> /Users/yourname/Documents/{fileInfo.name}
+            </Box>
+          </SpaceBetween>
         </Alert>
       )}
 
