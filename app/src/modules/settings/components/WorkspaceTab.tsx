@@ -6,7 +6,7 @@ import Toggle from "@cloudscape-design/components/toggle";
 import Input from "@cloudscape-design/components/input";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import Header from "@cloudscape-design/components/header";
-import { useSettingsStore } from "@/store/settingsStore";
+import { useSettings } from "@/hooks/useSettings";
 
 const CURRENCIES = [
   { label: "INR - Indian Rupee (₹)", value: "INR" },
@@ -67,8 +67,7 @@ const FISCAL_YEAR_MONTHS = [
 ];
 
 export default function WorkspaceTab() {
-  const { settings, updateWorkspace } = useSettingsStore();
-  const workspace = settings.workspace;
+  const { workspace, updateWorkspace } = useSettings();
 
   return (
     <SpaceBetween size="l">

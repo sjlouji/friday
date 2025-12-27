@@ -3,12 +3,14 @@
 # Script to create GitHub issues for settings refactoring
 # Usage: GITHUB_TOKEN=your_token ./scripts/create-github-issues.sh
 
+REPO_SSH="git@github.com:sjlouji/friday.git"
 REPO="sjlouji/friday"
 API_URL="https://api.github.com/repos/${REPO}/issues"
 
 if [ -z "$GITHUB_TOKEN" ]; then
   echo "Error: GITHUB_TOKEN environment variable is not set"
   echo "Usage: GITHUB_TOKEN=your_token ./scripts/create-github-issues.sh"
+  echo "Repository: ${REPO_SSH}"
   exit 1
 fi
 

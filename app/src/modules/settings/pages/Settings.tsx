@@ -10,15 +10,13 @@ import BreadcrumbGroup from "@cloudscape-design/components/breadcrumb-group";
 import Alert from "@cloudscape-design/components/alert";
 import Tabs from "@cloudscape-design/components/tabs";
 import { api } from "@/lib/api";
-import { useSettingsStore } from "@/store/settingsStore";
+import { useSettings } from "@/hooks/useSettings";
 import AppearanceTab from "../components/AppearanceTab";
 import WorkspaceTab from "../components/WorkspaceTab";
 import BookkeepingTab from "../components/BookkeepingTab";
 
-const BEANCOUNT_FILE_KEY = "beancount_file_path";
-
 export default function Settings() {
-  const { settings, updateSettings, initialize } = useSettingsStore();
+  const { settings, updateSettings } = useSettings();
   const [filePath, setFilePath] = useState(settings.beancountFilePath);
   const [activeTab, setActiveTab] = useState("appearance");
   const [saveStatus, setSaveStatus] = useState<"success" | "error" | null>(
@@ -31,12 +29,8 @@ export default function Settings() {
   const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
-    initialize();
-    const savedPath = localStorage.getItem(BEANCOUNT_FILE_KEY);
-    if (savedPath) {
-      setFilePath(savedPath);
-    }
-  }, [initialize]);
+    setFilePath(settings.beancountFilePath);
+  }, [settings.beancountFilePath]);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

@@ -6,11 +6,11 @@ import Toggle from "@cloudscape-design/components/toggle";
 import Input from "@cloudscape-design/components/input";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import Header from "@cloudscape-design/components/header";
-import { useSettingsStore } from "@/store/settingsStore";
+import { useSettings } from "@/hooks/useSettings";
 
 export default function BookkeepingTab() {
-  const { settings, updateBookkeeping } = useSettingsStore();
-  const { account, importExport, beancount } = settings.bookkeeping;
+  const { bookkeeping, updateBookkeeping } = useSettings();
+  const { account, importExport, beancount } = bookkeeping;
 
   return (
     <SpaceBetween size="l">

@@ -50,11 +50,7 @@ export const parseDate = (dateString: string, format?: string): Date | null => {
     return null;
   }
 
-  const date = new Date(
-    parseInt(year),
-    parseInt(month) - 1,
-    parseInt(day)
-  );
+  const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
 
   if (isNaN(date.getTime())) return null;
   return date;
@@ -86,4 +82,3 @@ export const getFiscalYearEnd = (year?: number): Date => {
   end.setDate(end.getDate() - 1);
   return end;
 };
-

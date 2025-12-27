@@ -7,7 +7,7 @@ import Toggle from "@cloudscape-design/components/toggle";
 import Input from "@cloudscape-design/components/input";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import Header from "@cloudscape-design/components/header";
-import { useSettingsStore } from "@/store/settingsStore";
+import { useSettings } from "@/hooks/useSettings";
 
 const LANGUAGES = [
   { label: "English", value: "en" },
@@ -42,8 +42,7 @@ const LOCALES = [
 ];
 
 export default function AppearanceTab() {
-  const { settings, updateAppearance, applyTheme, applyLanguage } = useSettingsStore();
-  const appearance = settings.appearance;
+  const { appearance, updateAppearance, applyTheme, applyLanguage } = useSettings();
 
   const handleThemeChange = (theme: string) => {
     updateAppearance({ theme: theme as "light" | "dark" | "auto" });

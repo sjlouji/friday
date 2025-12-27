@@ -11,10 +11,12 @@ import {
   DEFAULT_BOOKKEEPING,
 } from "@/modules/settings/types";
 
-const STORAGE_KEY = "friday-settings";
-const BEANCOUNT_FILE_KEY = "beancount_file_path";
+const BEANCOUNT_FILE_KEY = "friday-beancount-file-path";
+const APPEARANCE_KEY = "friday-settings-appearance";
+const WORKSPACE_KEY = "friday-settings-workspace";
+const BOOKKEEPING_KEY = "friday-settings-bookkeeping";
 const OLD_STORAGE_KEY = "beancount-settings";
-const SETTINGS_VERSION = 2;
+const OLD_FRIDAY_KEY = "friday-settings";
 
 interface OldSettings {
   defaultCurrency?: string;
@@ -41,10 +43,76 @@ interface OldSettings {
   [key: string]: unknown;
 }
 
+const loadAppearance = (): AppearanceSettings => {
+  try {
+    const saved = localStorage.getItem(APPEARANCE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return {
+        ...DEFAULT_APPEARANCE,
+        ...parsed,
+        tablePreferences: {
+          ...DEFAULT_APPEARANCE.tablePreferences,
+          ...(parsed.tablePreferences || {}),
+        },
+      };
+    }
+  } catch (error) {
+    console.error("Failed to load appearance settings", error);
+  }
+  return DEFAULT_APPEARANCE;
+};
+
+const loadWorkspace = (): WorkspaceSettings => {
+  try {
+    const saved = localStorage.getItem(WORKSPACE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return {
+        ...DEFAULT_WORKSPACE,
+        ...parsed,
+      };
+    }
+  } catch (error) {
+    console.error("Failed to load workspace settings", error);
+  }
+  return DEFAULT_WORKSPACE;
+};
+
+const loadBookkeeping = (): BookkeepingSettings => {
+  try {
+    const saved = localStorage.getItem(BOOKKEEPING_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return {
+        account: {
+          ...DEFAULT_BOOKKEEPING.account,
+          ...(parsed.account || {}),
+          defaultAccountTypes: {
+            ...DEFAULT_BOOKKEEPING.account.defaultAccountTypes,
+            ...(parsed.account?.defaultAccountTypes || {}),
+          },
+        },
+        importExport: {
+          ...DEFAULT_BOOKKEEPING.importExport,
+          ...(parsed.importExport || {}),
+        },
+        beancount: {
+          ...DEFAULT_BOOKKEEPING.beancount,
+          ...(parsed.beancount || {}),
+        },
+      };
+    }
+  } catch (error) {
+    console.error("Failed to load bookkeeping settings", error);
+  }
+  return DEFAULT_BOOKKEEPING;
+};
+
 const migrateFromOldFormat = (oldSettings: OldSettings): AppSettings => {
   const migrated: AppSettings = {
     ...DEFAULT_SETTINGS,
-    beancountFilePath: localStorage.getItem(BEANCOUNT_FILE_KEY) || "",
+    beancountFilePath: localStorage.getItem(BEANCOUNT_FILE_KEY) || localStorage.getItem("beancount_file_path") || "",
     appearance: {
       ...DEFAULT_APPEARANCE,
       language: oldSettings.language || DEFAULT_APPEARANCE.language,
@@ -87,95 +155,73 @@ const migrateFromOldFormat = (oldSettings: OldSettings): AppSettings => {
     };
   }
 
+  localStorage.setItem(APPEARANCE_KEY, JSON.stringify(migrated.appearance));
+  localStorage.setItem(WORKSPACE_KEY, JSON.stringify(migrated.workspace));
+  localStorage.setItem(BOOKKEEPING_KEY, JSON.stringify(migrated.bookkeeping));
+  localStorage.setItem(BEANCOUNT_FILE_KEY, migrated.beancountFilePath);
+
   return migrated;
 };
 
 const loadSettings = (): AppSettings => {
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    const filePath = localStorage.getItem(BEANCOUNT_FILE_KEY) || "";
-
-    if (saved) {
-      const parsed = JSON.parse(saved);
-
-      if (parsed.version === SETTINGS_VERSION && parsed.settings) {
-        return {
-          ...DEFAULT_SETTINGS,
-          ...parsed.settings,
-          beancountFilePath: filePath || parsed.settings.beancountFilePath || "",
-          appearance: {
-            ...DEFAULT_APPEARANCE,
-            ...(parsed.settings.appearance || {}),
-            tablePreferences: {
-              ...DEFAULT_APPEARANCE.tablePreferences,
-              ...(parsed.settings.appearance?.tablePreferences || {}),
-            },
-          },
-          workspace: {
-            ...DEFAULT_WORKSPACE,
-            ...(parsed.settings.workspace || {}),
-          },
-          bookkeeping: {
-            account: {
-              ...DEFAULT_BOOKKEEPING.account,
-              ...(parsed.settings.bookkeeping?.account || {}),
-              defaultAccountTypes: {
-                ...DEFAULT_BOOKKEEPING.account.defaultAccountTypes,
-                ...(parsed.settings.bookkeeping?.account?.defaultAccountTypes || {}),
-              },
-            },
-            importExport: {
-              ...DEFAULT_BOOKKEEPING.importExport,
-              ...(parsed.settings.bookkeeping?.importExport || {}),
-            },
-            beancount: {
-              ...DEFAULT_BOOKKEEPING.beancount,
-              ...(parsed.settings.bookkeeping?.beancount || {}),
-            },
-          },
-        };
-      }
-
-      if (
-        parsed.version &&
-        typeof parsed.version === "number" &&
-        parsed.version < SETTINGS_VERSION
-      ) {
-        return migrateFromOldFormat((parsed.settings || parsed) as OldSettings);
-      }
-    }
-
-    const oldSettings = localStorage.getItem(OLD_STORAGE_KEY);
+    const oldSettings = localStorage.getItem(OLD_STORAGE_KEY) || localStorage.getItem(OLD_FRIDAY_KEY);
     if (oldSettings) {
       try {
         const parsed = JSON.parse(oldSettings);
-        const migrated = migrateFromOldFormat(parsed);
-        saveSettings(migrated);
+        const migrated = migrateFromOldFormat(parsed.settings || parsed);
         localStorage.removeItem(OLD_STORAGE_KEY);
+        localStorage.removeItem(OLD_FRIDAY_KEY);
+        localStorage.removeItem("beancount_file_path");
         return migrated;
       } catch {
         console.warn("Failed to migrate old settings");
       }
     }
 
-    return { ...DEFAULT_SETTINGS, beancountFilePath: filePath };
+    const filePath = localStorage.getItem(BEANCOUNT_FILE_KEY) || localStorage.getItem("beancount_file_path") || "";
+    if (filePath && !localStorage.getItem(BEANCOUNT_FILE_KEY)) {
+      localStorage.setItem(BEANCOUNT_FILE_KEY, filePath);
+      localStorage.removeItem("beancount_file_path");
+    }
+
+    return {
+      beancountFilePath: filePath,
+      appearance: loadAppearance(),
+      workspace: loadWorkspace(),
+      bookkeeping: loadBookkeeping(),
+    };
   } catch (error) {
     console.error("Failed to load settings", error);
-    const filePath = localStorage.getItem(BEANCOUNT_FILE_KEY) || "";
-    return { ...DEFAULT_SETTINGS, beancountFilePath: filePath };
+    const filePath = localStorage.getItem(BEANCOUNT_FILE_KEY) || localStorage.getItem("beancount_file_path") || "";
+    return {
+      ...DEFAULT_SETTINGS,
+      beancountFilePath: filePath,
+    };
   }
 };
 
-const saveSettings = (settings: AppSettings) => {
+const saveAppearance = (appearance: AppearanceSettings) => {
   try {
-    const toSave = {
-      version: SETTINGS_VERSION,
-      settings,
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
-    localStorage.setItem(BEANCOUNT_FILE_KEY, settings.beancountFilePath);
+    localStorage.setItem(APPEARANCE_KEY, JSON.stringify(appearance));
   } catch (error) {
-    console.error("Failed to save settings", error);
+    console.error("Failed to save appearance settings", error);
+  }
+};
+
+const saveWorkspace = (workspace: WorkspaceSettings) => {
+  try {
+    localStorage.setItem(WORKSPACE_KEY, JSON.stringify(workspace));
+  } catch (error) {
+    console.error("Failed to save workspace settings", error);
+  }
+};
+
+const saveBookkeeping = (bookkeeping: BookkeepingSettings) => {
+  try {
+    localStorage.setItem(BOOKKEEPING_KEY, JSON.stringify(bookkeeping));
+  } catch (error) {
+    console.error("Failed to save bookkeeping settings", error);
   }
 };
 
@@ -218,75 +264,95 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   updateSettings: (updates) => {
     const newSettings = { ...get().settings, ...updates };
     set({ settings: newSettings });
-    saveSettings(newSettings);
+    
+    if (updates.appearance) {
+      saveAppearance(newSettings.appearance);
+    }
+    if (updates.workspace) {
+      saveWorkspace(newSettings.workspace);
+    }
+    if (updates.bookkeeping) {
+      saveBookkeeping(newSettings.bookkeeping);
+    }
+    if (updates.beancountFilePath !== undefined) {
+      localStorage.setItem(BEANCOUNT_FILE_KEY, updates.beancountFilePath);
+    }
   },
 
   updateAppearance: (updates) => {
+    const newAppearance = {
+      ...get().settings.appearance,
+      ...updates,
+    };
     const newSettings = {
       ...get().settings,
-      appearance: {
-        ...get().settings.appearance,
-        ...updates,
-      },
+      appearance: newAppearance,
     };
     set({ settings: newSettings });
-    saveSettings(newSettings);
+    saveAppearance(newAppearance);
   },
 
   updateWorkspace: (updates) => {
+    const newWorkspace = {
+      ...get().settings.workspace,
+      ...updates,
+    };
     const newSettings = {
       ...get().settings,
-      workspace: {
-        ...get().settings.workspace,
-        ...updates,
-      },
+      workspace: newWorkspace,
     };
     set({ settings: newSettings });
-    saveSettings(newSettings);
+    saveWorkspace(newWorkspace);
   },
 
   updateBookkeeping: (updates) => {
-    const newSettings = {
-      ...get().settings,
-      bookkeeping: {
-        account: {
-          ...get().settings.bookkeeping.account,
-          ...(updates.account || {}),
-        },
-        importExport: {
-          ...get().settings.bookkeeping.importExport,
-          ...(updates.importExport || {}),
-        },
-        beancount: {
-          ...get().settings.bookkeeping.beancount,
-          ...(updates.beancount || {}),
-        },
+    const newBookkeeping = {
+      account: {
+        ...get().settings.bookkeeping.account,
+        ...(updates.account || {}),
+      },
+      importExport: {
+        ...get().settings.bookkeeping.importExport,
+        ...(updates.importExport || {}),
+      },
+      beancount: {
+        ...get().settings.bookkeeping.beancount,
+        ...(updates.beancount || {}),
       },
     };
+    const newSettings = {
+      ...get().settings,
+      bookkeeping: newBookkeeping,
+    };
     set({ settings: newSettings });
-    saveSettings(newSettings);
+    saveBookkeeping(newBookkeeping);
   },
 
   updateTablePreferences: (preferences) => {
-    const newSettings = {
-      ...get().settings,
-      appearance: {
-        ...get().settings.appearance,
-        tablePreferences: {
-          ...get().settings.appearance.tablePreferences,
-          ...preferences,
-        },
+    const newAppearance = {
+      ...get().settings.appearance,
+      tablePreferences: {
+        ...get().settings.appearance.tablePreferences,
+        ...preferences,
       },
     };
+    const newSettings = {
+      ...get().settings,
+      appearance: newAppearance,
+    };
     set({ settings: newSettings });
-    saveSettings(newSettings);
+    saveAppearance(newAppearance);
   },
 
   resetSettings: () => {
     const filePath = get().settings.beancountFilePath;
     const reset = { ...DEFAULT_SETTINGS, beancountFilePath: filePath };
     set({ settings: reset });
-    saveSettings(reset);
+    
+    saveAppearance(reset.appearance);
+    saveWorkspace(reset.workspace);
+    saveBookkeeping(reset.bookkeeping);
+    localStorage.setItem(BEANCOUNT_FILE_KEY, filePath);
   },
 
   applyTheme: (theme) => {
