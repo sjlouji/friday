@@ -2,15 +2,27 @@
 
 /* Theme support - Cloudscape uses data-mode attribute */
 html[data-mode="dark"],
-html.awsui-dark-mode,
+html.awsui-dark-mode {
+  color-scheme: dark;
+  background-color: var(--color-background-layout-main, #1d1d1d);
+}
+
 body.awsui-dark-mode {
   color-scheme: dark;
+  background-color: var(--color-background-layout-main, #1d1d1d);
+  color: var(--color-text-body-default, #e9ebed);
 }
 
 html[data-mode="light"],
-html.awsui-light-mode,
+html.awsui-light-mode {
+  color-scheme: light;
+  background-color: var(--color-background-layout-main, #ffffff);
+}
+
 body.awsui-light-mode {
   color-scheme: light;
+  background-color: var(--color-background-layout-main, #ffffff);
+  color: var(--color-text-body-default, #16191f);
 }
 
 /* Fixed top navigation */
@@ -75,8 +87,18 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
+  background-color: var(--color-background-layout-main, #ffffff);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 html {
   overflow: hidden;
+  background-color: var(--color-background-layout-main, #ffffff);
+  transition: background-color 0.2s ease;
+}
+
+#root {
+  background-color: var(--color-background-layout-main, #ffffff);
+  min-height: 100vh;
+  transition: background-color 0.2s ease;
 }

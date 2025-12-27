@@ -166,6 +166,7 @@ export default function Layout() {
               flex: 1,
               overflow: "auto",
               padding: "16px",
+              backgroundColor: "var(--color-background-layout-main, #ffffff)",
             }}
             className="content-scroll-area"
           >

@@ -1,20 +1,85 @@
 #!/bin/bash
 
 # Script to create GitHub issues for settings refactoring
-# Usage: GITHUB_TOKEN=your_token ./scripts/create-github-issues.sh
+# Uses SSH key authentication via GitHub CLI or SSH agent
+# Usage: ./scripts/create-github-issues.sh
 
 REPO_SSH="git@github.com:sjlouji/friday.git"
 REPO="sjlouji/friday"
 API_URL="https://api.github.com/repos/${REPO}/issues"
 
-if [ -z "$GITHUB_TOKEN" ]; then
-  echo "Error: GITHUB_TOKEN environment variable is not set"
-  echo "Usage: GITHUB_TOKEN=your_token ./scripts/create-github-issues.sh"
-  echo "Repository: ${REPO_SSH}"
-  exit 1
+# Check if GitHub CLI is available
+if command -v gh &> /dev/null; then
+  USE_GH_CLI=true
+  echo "Using GitHub CLI (gh) for authentication..."
+  if ! gh auth status &> /dev/null; then
+    echo "Error: GitHub CLI not authenticated"
+    echo "Please run: gh auth login"
+    exit 1
+  fi
+else
+  USE_GH_CLI=false
+  echo "GitHub CLI not found. Using SSH key authentication..."
+  
+  # Check for SSH key in common locations
+  SSH_KEY=""
+  if [ -f "$HOME/.ssh/id_ed25519" ]; then
+    SSH_KEY="$HOME/.ssh/id_ed25519"
+  elif [ -f "$HOME/.ssh/id_rsa" ]; then
+    SSH_KEY="$HOME/.ssh/id_rsa"
+  elif [ -f "$HOME/.ssh/id_ecdsa" ]; then
+    SSH_KEY="$HOME/.ssh/id_ecdsa"
+  fi
+  
+  if [ -z "$SSH_KEY" ]; then
+    echo "Error: No SSH key found"
+    echo "Please ensure you have an SSH key set up, or install GitHub CLI:"
+    echo "  brew install gh"
+    echo "  gh auth login"
+    exit 1
+  fi
+  
+  # Check if SSH agent is running and has the key loaded
+  if ! ssh-add -l &> /dev/null; then
+    echo "Warning: SSH agent not running or key not loaded"
+    echo "Attempting to add SSH key to agent..."
+    ssh-add "$SSH_KEY" 2>/dev/null || {
+      echo "Error: Failed to add SSH key to agent"
+      echo "Please run: ssh-add $SSH_KEY"
+      exit 1
+    }
+  fi
+  
+  # Try to get token from GitHub using SSH
+  # Note: This requires a GitHub personal access token
+  # For SSH-only auth, we need to use gh CLI or provide token via environment
+  if [ -z "$GITHUB_TOKEN" ]; then
+    echo "Error: GITHUB_TOKEN not set and GitHub CLI not available"
+    echo "Options:"
+    echo "  1. Install GitHub CLI: brew install gh && gh auth login"
+    echo "  2. Set GITHUB_TOKEN environment variable"
+    echo "     Create token at: https://github.com/settings/tokens"
+    exit 1
+  fi
 fi
 
-create_issue() {
+create_issue_gh() {
+  local title="$1"
+  local body="$2"
+  local labels="$3"
+  
+  # Convert labels from JSON array format to space-separated
+  local label_list=$(echo "$labels" | sed 's/\[//g' | sed 's/\]//g' | sed 's/"//g' | sed 's/,/ /g')
+  
+  gh issue create \
+    --repo "$REPO" \
+    --title "$title" \
+    --body "$body" \
+    --label "$label_list" \
+    --output json | jq -r '.number'
+}
+
+create_issue_api() {
   local title="$1"
   local body="$2"
   local labels="$3"
@@ -29,7 +94,16 @@ create_issue() {
     }" | jq -r '.number'
 }
 
-echo "Creating GitHub issues..."
+create_issue() {
+  if [ "$USE_GH_CLI" = true ]; then
+    create_issue_gh "$@"
+  else
+    create_issue_api "$@"
+  fi
+}
+
+echo "Creating GitHub issues for repository: ${REPO_SSH}"
+echo ""
 
 # Issue 1: Create Settings Type Definitions and Store Structure
 ISSUE_1=$(create_issue \
@@ -198,4 +272,5 @@ echo "Created issue #${ISSUE_8}"
 echo ""
 echo "All issues created successfully!"
 echo "Issue numbers: ${ISSUE_1}, ${ISSUE_2}, ${ISSUE_3}, ${ISSUE_4}, ${ISSUE_5}, ${ISSUE_6}, ${ISSUE_7}, ${ISSUE_8}"
-
+echo ""
+echo "View issues at: https://github.com/${REPO}/issues"
