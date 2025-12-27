@@ -20,34 +20,108 @@ export default function Settings() {
   const { settings, updateSettings } = useSettings();
   const [filePath, setFilePath] = useState(settings.beancountFilePath);
   const [activeTab, setActiveTab] = useState("appearance");
-  const [saveStatus, setSaveStatus] = useState<"success" | "error" | null>(
-    null
-  );
-  const [createStatus, setCreateStatus] = useState<"success" | "error" | null>(
-    null
-  );
+  const [saveStatus, setSaveStatus] = useState<"success" | "error" | null>(null);
+  const [createStatus, setCreateStatus] = useState<"success" | "error" | null>(null);
   const [createMessage, setCreateMessage] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [fileInfo, setFileInfo] = useState<{
     name: string;
     show: boolean;
   } | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     setFilePath(settings.beancountFilePath);
   }, [settings.beancountFilePath]);
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
+    if (!file) {
+      if (event.target) {
+        event.target.value = "";
+      }
+      return;
+    }
+
+    setIsUploading(true);
+    setFileInfo(null);
+
+    try {
       const fileName = file.name;
+      const isWindows = navigator.platform.toLowerCase().includes("win");
+      const homeDir = isWindows ? "C:\\Users\\YourName" : "~";
+      const suggestedPath = `${homeDir}/Documents/${fileName}`;
+
+      setFilePath(suggestedPath);
       setFileInfo({
         name: fileName,
         show: true,
       });
+
+      setSaveStatus(null);
+      setCreateStatus(null);
+    } catch (error: unknown) {
+      const err = error as { message?: string };
+      setFileInfo({
+        name: file.name,
+        show: true,
+      });
+      setCreateStatus("error");
+      setCreateMessage(err.message || "Failed to process file");
+    } finally {
+      setIsUploading(false);
+      if (event.target) {
+        event.target.value = "";
+      }
     }
-    if (event.target) {
-      event.target.value = "";
+  };
+
+  const handleSelectFileWithAPI = async () => {
+    if (!("showOpenFilePicker" in window)) {
+      const input = document.getElementById("file-input") as HTMLInputElement;
+      input?.click();
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      setFileInfo(null);
+
+      const fileHandles = await (window as { showOpenFilePicker?: (options: unknown) => Promise<FileSystemFileHandle[]> }).showOpenFilePicker?.({
+        types: [
+          {
+            description: "Beancount files",
+            accept: {
+              "text/plain": [".beancount", ".bean"],
+            },
+          },
+        ],
+        multiple: false,
+      });
+
+      if (fileHandles && fileHandles.length > 0) {
+        const fileHandle = fileHandles[0];
+        const file = await fileHandle.getFile();
+        const fileName = file.name;
+
+        const isWindows = navigator.platform.toLowerCase().includes("win");
+        const homeDir = isWindows ? "C:\\Users\\YourName" : "~";
+        const suggestedPath = `${homeDir}/Documents/${fileName}`;
+
+        setFilePath(suggestedPath);
+        setFileInfo({
+          name: fileName,
+          show: true,
+        });
+      }
+    } catch (error: unknown) {
+      const err = error as { name?: string; message?: string };
+      if (err.name !== "AbortError") {
+        setCreateStatus("error");
+        setCreateMessage(err.message || "Failed to select file");
+      }
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -98,9 +172,10 @@ export default function Settings() {
       setTimeout(() => {
         window.location.reload();
       }, 1500);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { message?: string };
       setCreateStatus("error");
-      setCreateMessage(error.message || "Failed to create file");
+      setCreateMessage(err.message || "Failed to create file");
     } finally {
       setIsCreating(false);
     }
@@ -119,7 +194,7 @@ export default function Settings() {
         variant="h1"
         description="Configure your Friday preferences"
         actions={
-          <Button variant="primary" iconName="save" onClick={handleSave}>
+          <Button variant="primary" iconName="settings" onClick={handleSave}>
             Save Settings
           </Button>
         }
@@ -140,11 +215,7 @@ export default function Settings() {
       )}
 
       {createStatus === "success" && (
-        <Alert
-          type="success"
-          dismissible
-          onDismiss={() => setCreateStatus(null)}
-        >
+        <Alert type="success" dismissible onDismiss={() => setCreateStatus(null)}>
           {createMessage}
         </Alert>
       )}
@@ -157,7 +228,7 @@ export default function Settings() {
 
       {fileInfo?.show && (
         <Alert
-          type="info"
+          type="success"
           dismissible
           onDismiss={() => setFileInfo(null)}
           header="File Selected"
@@ -167,11 +238,8 @@ export default function Settings() {
               <strong>Selected file:</strong> {fileInfo.name}
             </Box>
             <Box variant="small" color="text-body-secondary">
-              For security reasons, browsers don't expose full file paths. Please enter the full
-              path to this file manually in the input field below.
-            </Box>
-            <Box variant="small" color="text-body-secondary">
-              <strong>Example:</strong> /Users/yourname/Documents/{fileInfo.name}
+              A suggested path has been filled in the input field below. Please verify and adjust
+              the path if needed, then click "Save Settings" to use this file.
             </Box>
           </SpaceBetween>
         </Alert>
@@ -194,14 +262,10 @@ export default function Settings() {
                 <Button
                   variant="normal"
                   iconName="folder-open"
-                  onClick={() => {
-                    const input = document.getElementById(
-                      "file-input"
-                    ) as HTMLInputElement;
-                    input?.click();
-                  }}
+                  onClick={handleSelectFileWithAPI}
+                  disabled={isUploading}
                 >
-                  Select File
+                  {isUploading ? "Processing..." : "Select File"}
                 </Button>
                 <Button
                   variant="normal"
