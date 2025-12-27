@@ -1,6 +1,7 @@
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:8000/api" : "/api");
-const BEANCOUNT_FILE_KEY = "beancount_file_path";
+const BEANCOUNT_FILE_KEY = "friday-beancount-file-path";
+const OLD_BEANCOUNT_FILE_KEY = "beancount_file_path";
 
 export interface ApiResponse<T> {
   data?: T;
@@ -9,7 +10,17 @@ export interface ApiResponse<T> {
 }
 
 function getFilePath(): string {
-  const path = localStorage.getItem(BEANCOUNT_FILE_KEY);
+  // Check new key first, then fall back to old key for migration
+  let path = localStorage.getItem(BEANCOUNT_FILE_KEY);
+  if (!path) {
+    path = localStorage.getItem(OLD_BEANCOUNT_FILE_KEY);
+    // Migrate to new key if found in old location
+    if (path) {
+      localStorage.setItem(BEANCOUNT_FILE_KEY, path);
+      localStorage.removeItem(OLD_BEANCOUNT_FILE_KEY);
+    }
+  }
+  
   if (!path) {
     throw new Error(
       "Beancount file path not set. Please configure it in Settings."
