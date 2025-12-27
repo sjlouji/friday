@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx.Dockerfile
+      args:
+        CONFIG_FILE: nginx/nginx.conf
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+      - app
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    expose:
+      - "8000"
+    environment:
+      - BEANCOUNT_FILE=${BEANCOUNT_FILE:-ledger.beancount}
+    volumes:
+      - ./api:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
+
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    expose:
+      - "5173"
+    environment:
+      - VITE_API_URL=/api
+    volumes:
+      - ./app:/app
+      - /app/node_modules
+    command: npm run dev
+    restart: unless-stopped

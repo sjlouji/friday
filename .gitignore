@@ -23,14 +23,21 @@ dist-ssr
 *.sln
 *.sw?
 
-# Backend
-backend/__pycache__/
-backend/*.pyc
-backend/*.pyo
-backend/*.pyd
-backend/.Python
-backend/ledger.beancount
-backend/.env
-backend/venv/
-backend/env/
+# API (Backend)
+api/__pycache__/
+api/*.pyc
+api/*.pyo
+api/*.pyd
+api/.Python
+api/ledger.beancount
+api/.env
+api/venv/
+api/env/
+
+# App (Frontend)
+app/node_modules/
+app/dist/
+app/dist-ssr/
+app/.env.local
+app/.env.*.local
 

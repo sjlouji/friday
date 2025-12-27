@@ -1,0 +1,12 @@
+node_modules
+dist
+dist-ssr
+.vite
+.next
+.nuxt
+.cache
+coverage
+.nyc_output
+*.log
+package-lock.json
+

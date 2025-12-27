@@ -1,0 +1,19 @@
+[MASTER]
+ignore=venv,env,.venv,migrations
+disable=
+    C0111,
+    R0903,
+    R0913
+
+[MESSAGES CONTROL]
+disable=
+    missing-docstring,
+    too-few-public-methods,
+    too-many-arguments
+
+[FORMAT]
+max-line-length=100
+
+[TYPECHECK]
+ignored-modules=beancount
+
