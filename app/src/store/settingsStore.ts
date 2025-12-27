@@ -112,7 +112,8 @@ const loadBookkeeping = (): BookkeepingSettings => {
 const migrateFromOldFormat = (oldSettings: OldSettings): AppSettings => {
   const migrated: AppSettings = {
     ...DEFAULT_SETTINGS,
-    beancountFilePath: localStorage.getItem(BEANCOUNT_FILE_KEY) || localStorage.getItem("beancount_file_path") || "",
+    beancountFilePath:
+      localStorage.getItem(BEANCOUNT_FILE_KEY) || localStorage.getItem("beancount_file_path") || "",
     appearance: {
       ...DEFAULT_APPEARANCE,
       language: oldSettings.language || DEFAULT_APPEARANCE.language,
@@ -165,7 +166,8 @@ const migrateFromOldFormat = (oldSettings: OldSettings): AppSettings => {
 
 const loadSettings = (): AppSettings => {
   try {
-    const oldSettings = localStorage.getItem(OLD_STORAGE_KEY) || localStorage.getItem(OLD_FRIDAY_KEY);
+    const oldSettings =
+      localStorage.getItem(OLD_STORAGE_KEY) || localStorage.getItem(OLD_FRIDAY_KEY);
     if (oldSettings) {
       try {
         const parsed = JSON.parse(oldSettings);
@@ -179,7 +181,8 @@ const loadSettings = (): AppSettings => {
       }
     }
 
-    const filePath = localStorage.getItem(BEANCOUNT_FILE_KEY) || localStorage.getItem("beancount_file_path") || "";
+    const filePath =
+      localStorage.getItem(BEANCOUNT_FILE_KEY) || localStorage.getItem("beancount_file_path") || "";
     if (filePath && !localStorage.getItem(BEANCOUNT_FILE_KEY)) {
       localStorage.setItem(BEANCOUNT_FILE_KEY, filePath);
       localStorage.removeItem("beancount_file_path");
@@ -193,7 +196,8 @@ const loadSettings = (): AppSettings => {
     };
   } catch (error) {
     console.error("Failed to load settings", error);
-    const filePath = localStorage.getItem(BEANCOUNT_FILE_KEY) || localStorage.getItem("beancount_file_path") || "";
+    const filePath =
+      localStorage.getItem(BEANCOUNT_FILE_KEY) || localStorage.getItem("beancount_file_path") || "";
     return {
       ...DEFAULT_SETTINGS,
       beancountFilePath: filePath,
@@ -264,7 +268,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   updateSettings: (updates) => {
     const newSettings = { ...get().settings, ...updates };
     set({ settings: newSettings });
-    
+
     if (updates.appearance) {
       saveAppearance(newSettings.appearance);
     }
@@ -348,7 +352,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     const filePath = get().settings.beancountFilePath;
     const reset = { ...DEFAULT_SETTINGS, beancountFilePath: filePath };
     set({ settings: reset });
-    
+
     saveAppearance(reset.appearance);
     saveWorkspace(reset.workspace);
     saveBookkeeping(reset.bookkeeping);
