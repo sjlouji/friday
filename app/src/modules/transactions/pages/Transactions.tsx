@@ -11,7 +11,7 @@ import BreadcrumbGroup from "@cloudscape-design/components/breadcrumb-group";
 import Pagination from "@cloudscape-design/components/pagination";
 import CollectionPreferences from "@cloudscape-design/components/collection-preferences";
 import { Transaction } from "@/types/beancount";
-import TransactionModal from "@/components/TransactionModal";
+import TransactionModal from "../components/TransactionModal";
 
 const FILTERING_PROPERTIES = [
   {

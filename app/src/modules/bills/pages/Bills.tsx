@@ -12,7 +12,7 @@ import BreadcrumbGroup from "@cloudscape-design/components/breadcrumb-group";
 import Alert from "@cloudscape-design/components/alert";
 import StatusIndicator from "@cloudscape-design/components/status-indicator";
 import { Bill } from "@/types/beancount";
-import BillModal from "@/components/BillModal";
+import BillModal from "../components/BillModal";
 
 export default function Bills() {
   const { accounts, transactions } = useBeancountStore();

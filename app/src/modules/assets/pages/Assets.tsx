@@ -26,7 +26,7 @@ import {
   LineChart,
   Line,
 } from "recharts";
-import { formatIndianCurrency } from "@/utils/currency";
+import { formatIndianCurrency } from "@/lib/utils/currency";
 
 export default function Assets() {
   const { accounts, balances, transactions, loadAll } = useBeancountStore();

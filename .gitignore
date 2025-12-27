@@ -41,3 +41,4 @@ app/dist-ssr/
 app/.env.local
 app/.env.*.local
 
+app/package-lock.json

@@ -11,22 +11,18 @@ import Grid from "@cloudscape-design/components/grid";
 import Cards from "@cloudscape-design/components/cards";
 import BreadcrumbGroup from "@cloudscape-design/components/breadcrumb-group";
 import Tabs from "@cloudscape-design/components/tabs";
-import { api } from "@/services/api";
-import TransactionMappingModal from "@/components/TransactionMappingModal";
+import { api } from "@/lib/api";
+import TransactionMappingModal from "../components/TransactionMappingModal";
 
 export default function Import() {
   const { importFile, exportFile, fetchTransactions } = useBeancountStore();
-  const [importStatus, setImportStatus] = useState<
-    "idle" | "success" | "error"
-  >("idle");
+  const [importStatus, setImportStatus] = useState<"idle" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [transactionImportStatus, setTransactionImportStatus] = useState<
     "idle" | "success" | "error"
   >("idle");
   const [transactionImportMessage, setTransactionImportMessage] = useState("");
-  const [transactionImportErrors, setTransactionImportErrors] = useState<
-    string[]
-  >([]);
+  const [transactionImportErrors, setTransactionImportErrors] = useState<string[]>([]);
   const [mappingFile, setMappingFile] = useState<File | null>(null);
   const [previewData, setPreviewData] = useState<{
     columns: string[];
@@ -78,8 +74,7 @@ export default function Import() {
       const result = await api.transactions.importCSV(file);
       setTransactionImportStatus("success");
       setTransactionImportMessage(
-        result.message ||
-          `Successfully imported ${result.imported || 0} transaction(s)`
+        result.message || `Successfully imported ${result.imported || 0} transaction(s)`
       );
       if (result.errors && result.errors.length > 0) {
         setTransactionImportErrors(result.errors);
@@ -98,9 +93,7 @@ export default function Import() {
 
     if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".xls")) {
       setTransactionImportStatus("error");
-      setTransactionImportMessage(
-        "Please upload an Excel file (.xlsx or .xls)"
-      );
+      setTransactionImportMessage("Please upload an Excel file (.xlsx or .xls)");
       return;
     }
 
@@ -112,8 +105,7 @@ export default function Import() {
       const result = await api.transactions.importExcel(file);
       setTransactionImportStatus("success");
       setTransactionImportMessage(
-        result.message ||
-          `Successfully imported ${result.imported || 0} transaction(s)`
+        result.message || `Successfully imported ${result.imported || 0} transaction(s)`
       );
       if (result.errors && result.errors.length > 0) {
         setTransactionImportErrors(result.errors);
@@ -122,9 +114,7 @@ export default function Import() {
       await fetchTransactions();
     } catch (error: any) {
       setTransactionImportStatus("error");
-      setTransactionImportMessage(
-        error.message || "Failed to import Excel file"
-      );
+      setTransactionImportMessage(error.message || "Failed to import Excel file");
     }
   };
 
@@ -132,9 +122,14 @@ export default function Import() {
     const file = files[0];
     if (!file) return;
 
-    if (!file.name.endsWith(".csv") && !file.name.endsWith(".CSV") && 
-        !file.name.endsWith(".xlsx") && !file.name.endsWith(".xls") &&
-        !file.name.endsWith(".XLSX") && !file.name.endsWith(".XLS")) {
+    if (
+      !file.name.endsWith(".csv") &&
+      !file.name.endsWith(".CSV") &&
+      !file.name.endsWith(".xlsx") &&
+      !file.name.endsWith(".xls") &&
+      !file.name.endsWith(".XLSX") &&
+      !file.name.endsWith(".XLS")
+    ) {
       setTransactionImportStatus("error");
       setTransactionImportMessage("Please upload a CSV or Excel file");
       return;
@@ -211,10 +206,7 @@ export default function Import() {
     <SpaceBetween size="l">
       <BreadcrumbGroup items={breadcrumbs} />
 
-      <Header
-        variant="h1"
-        description="Import beancount files or export your data"
-      >
+      <Header variant="h1" description="Import beancount files or export your data">
         Import & Export
       </Header>
 
@@ -245,20 +237,12 @@ export default function Import() {
           />
         </Container>
 
-        <Container
-          variant="stacked"
-          header={<Header variant="h2">Export to Beancount</Header>}
-        >
+        <Container variant="stacked" header={<Header variant="h2">Export to Beancount</Header>}>
           <Box variant="p">
-            Export your current data to a beancount file format that can be used
-            with the beancount command-line tools or other beancount-compatible
-            applications.
+            Export your current data to a beancount file format that can be used with the beancount
+            command-line tools or other beancount-compatible applications.
           </Box>
-          <Button
-            variant="primary"
-            iconName="download"
-            onClick={exportToBeancount}
-          >
+          <Button variant="primary" iconName="download" onClick={exportToBeancount}>
             Export to .beancount
           </Button>
         </Container>
@@ -314,7 +298,8 @@ export default function Import() {
                   </Alert>
                 )}
                 <Box variant="p" margin={{ bottom: "m" }}>
-                  Upload any CSV or Excel file. The system will extract the data and let you map your columns to transaction fields.
+                  Upload any CSV or Excel file. The system will extract the data and let you map
+                  your columns to transaction fields.
                   <br />
                   <strong>Supported formats:</strong> CSV (.csv), Excel (.xlsx, .xls)
                 </Box>
@@ -331,9 +316,15 @@ export default function Import() {
                   <Box as="ul" padding={{ left: "l" }}>
                     <li>Upload your file (CSV or Excel)</li>
                     <li>System extracts and shows a preview of your data</li>
-                    <li>Map your columns to transaction fields (Date, Narration, Account, Amount, etc.)</li>
+                    <li>
+                      Map your columns to transaction fields (Date, Narration, Account, Amount,
+                      etc.)
+                    </li>
                     <li>Review the preview and import</li>
-                    <li>System automatically categorizes transactions based on amount and category mapping</li>
+                    <li>
+                      System automatically categorizes transactions based on amount and category
+                      mapping
+                    </li>
                   </Box>
                 </Box>
               </Container>
@@ -371,9 +362,7 @@ export default function Import() {
                 <Grid gridDefinition={[{ colspan: 6 }, { colspan: 6 }]}>
                   <Container
                     variant="stacked"
-                    header={
-                      <Header variant="h2">Import Transactions from CSV</Header>
-                    }
+                    header={<Header variant="h2">Import Transactions from CSV</Header>}
                     footer={
                       transactionImportStatus === "success" && (
                         <Alert type="success" dismissible={false}>
@@ -383,21 +372,12 @@ export default function Import() {
                               <Box variant="small" fontWeight="bold">
                                 Warnings/Errors:
                               </Box>
-                              <Box
-                                variant="small"
-                                as="ul"
-                                padding={{ left: "l" }}
-                              >
-                                {transactionImportErrors
-                                  .slice(0, 10)
-                                  .map((err, idx) => (
-                                    <li key={idx}>{err}</li>
-                                  ))}
+                              <Box variant="small" as="ul" padding={{ left: "l" }}>
+                                {transactionImportErrors.slice(0, 10).map((err, idx) => (
+                                  <li key={idx}>{err}</li>
+                                ))}
                                 {transactionImportErrors.length > 10 && (
-                                  <li>
-                                    ... and{" "}
-                                    {transactionImportErrors.length - 10} more
-                                  </li>
+                                  <li>... and {transactionImportErrors.length - 10} more</li>
                                 )}
                               </Box>
                             </Box>
@@ -411,21 +391,12 @@ export default function Import() {
                         {transactionImportMessage}
                         {transactionImportErrors.length > 0 && (
                           <Box margin={{ top: "s" }}>
-                            <Box
-                              variant="small"
-                              as="ul"
-                              padding={{ left: "l" }}
-                            >
-                              {transactionImportErrors
-                                .slice(0, 10)
-                                .map((err, idx) => (
-                                  <li key={idx}>{err}</li>
-                                ))}
+                            <Box variant="small" as="ul" padding={{ left: "l" }}>
+                              {transactionImportErrors.slice(0, 10).map((err, idx) => (
+                                <li key={idx}>{err}</li>
+                              ))}
                               {transactionImportErrors.length > 10 && (
-                                <li>
-                                  ... and {transactionImportErrors.length - 10}{" "}
-                                  more
-                                </li>
+                                <li>... and {transactionImportErrors.length - 10} more</li>
                               )}
                             </Box>
                           </Box>
@@ -435,62 +406,49 @@ export default function Import() {
                     <Box variant="p" margin={{ bottom: "m" }}>
                       Upload a CSV file to bulk import transactions.
                       <br />
-                      <strong>Required columns:</strong> Date, Narration,
-                      Account, Amount
+                      <strong>Required columns:</strong> Date, Narration, Account, Amount
                       <br />
-                      <strong>Optional columns:</strong> Payee, Currency
-                      (defaults to INR), Category (for categorization), Flag (*,
-                      !, or ?)
+                      <strong>Optional columns:</strong> Payee, Currency (defaults to INR), Category
+                      (for categorization), Flag (*, !, or ?)
                     </Box>
                     <FileUpload
                       value={[]}
-                      onChange={(e) =>
-                        handleTransactionCSVUpload(e.detail.value)
-                      }
+                      onChange={(e) => handleTransactionCSVUpload(e.detail.value)}
                       accept=".csv"
                       showFileLastModified
                       showFileSize
                       showFileThumbnail
                     />
-                    <Box
-                      margin={{ top: "m" }}
-                      variant="small"
-                      color="text-body-secondary"
-                    >
+                    <Box margin={{ top: "m" }} variant="small" color="text-body-secondary">
                       <Box fontWeight="bold">CSV Format:</Box>
                       <Box as="ul" padding={{ left: "l" }}>
                         <li>
-                          <strong>Date:</strong> Transaction date in YYYY-MM-DD
-                          format (e.g., 2024-01-15)
+                          <strong>Date:</strong> Transaction date in YYYY-MM-DD format (e.g.,
+                          2024-01-15)
                         </li>
                         <li>
-                          <strong>Payee:</strong> (Optional) Who you paid or
-                          received from
+                          <strong>Payee:</strong> (Optional) Who you paid or received from
                         </li>
                         <li>
-                          <strong>Narration:</strong> Description of the
-                          transaction
+                          <strong>Narration:</strong> Description of the transaction
                         </li>
                         <li>
-                          <strong>Account:</strong> Account name (e.g.,
-                          Assets:Bank:Checking)
+                          <strong>Account:</strong> Account name (e.g., Assets:Bank:Checking)
                         </li>
                         <li>
-                          <strong>Amount:</strong> Positive for income/asset
-                          increase, negative for expenses/asset decrease
+                          <strong>Amount:</strong> Positive for income/asset increase, negative for
+                          expenses/asset decrease
                         </li>
                         <li>
-                          <strong>Currency:</strong> (Optional) Currency code,
-                          defaults to INR
+                          <strong>Currency:</strong> (Optional) Currency code, defaults to INR
                         </li>
                         <li>
-                          <strong>Category:</strong> (Optional) Category account
-                          for automatic categorization (e.g., Expenses:Food or
-                          Income:Salary)
+                          <strong>Category:</strong> (Optional) Category account for automatic
+                          categorization (e.g., Expenses:Food or Income:Salary)
                         </li>
                         <li>
-                          <strong>Flag:</strong> (Optional) Transaction flag (*,
-                          !, or ?), defaults to *
+                          <strong>Flag:</strong> (Optional) Transaction flag (*, !, or ?), defaults
+                          to *
                         </li>
                       </Box>
                     </Box>
@@ -498,11 +456,7 @@ export default function Import() {
 
                   <Container
                     variant="stacked"
-                    header={
-                      <Header variant="h2">
-                        Import Transactions from Excel
-                      </Header>
-                    }
+                    header={<Header variant="h2">Import Transactions from Excel</Header>}
                     footer={
                       transactionImportStatus === "success" && (
                         <Alert type="success" dismissible={false}>
@@ -512,21 +466,12 @@ export default function Import() {
                               <Box variant="small" fontWeight="bold">
                                 Warnings/Errors:
                               </Box>
-                              <Box
-                                variant="small"
-                                as="ul"
-                                padding={{ left: "l" }}
-                              >
-                                {transactionImportErrors
-                                  .slice(0, 10)
-                                  .map((err, idx) => (
-                                    <li key={idx}>{err}</li>
-                                  ))}
+                              <Box variant="small" as="ul" padding={{ left: "l" }}>
+                                {transactionImportErrors.slice(0, 10).map((err, idx) => (
+                                  <li key={idx}>{err}</li>
+                                ))}
                                 {transactionImportErrors.length > 10 && (
-                                  <li>
-                                    ... and{" "}
-                                    {transactionImportErrors.length - 10} more
-                                  </li>
+                                  <li>... and {transactionImportErrors.length - 10} more</li>
                                 )}
                               </Box>
                             </Box>
@@ -540,21 +485,12 @@ export default function Import() {
                         {transactionImportMessage}
                         {transactionImportErrors.length > 0 && (
                           <Box margin={{ top: "s" }}>
-                            <Box
-                              variant="small"
-                              as="ul"
-                              padding={{ left: "l" }}
-                            >
-                              {transactionImportErrors
-                                .slice(0, 10)
-                                .map((err, idx) => (
-                                  <li key={idx}>{err}</li>
-                                ))}
+                            <Box variant="small" as="ul" padding={{ left: "l" }}>
+                              {transactionImportErrors.slice(0, 10).map((err, idx) => (
+                                <li key={idx}>{err}</li>
+                              ))}
                               {transactionImportErrors.length > 10 && (
-                                <li>
-                                  ... and {transactionImportErrors.length - 10}{" "}
-                                  more
-                                </li>
+                                <li>... and {transactionImportErrors.length - 10} more</li>
                               )}
                             </Box>
                           </Box>
@@ -562,64 +498,48 @@ export default function Import() {
                       </Alert>
                     )}
                     <Box variant="p" margin={{ bottom: "m" }}>
-                      Upload an Excel file (.xlsx or .xls) to bulk import
-                      transactions.
+                      Upload an Excel file (.xlsx or .xls) to bulk import transactions.
                       <br />
-                      <strong>Required columns:</strong> Date, Narration,
-                      Account, Amount
+                      <strong>Required columns:</strong> Date, Narration, Account, Amount
                       <br />
-                      <strong>Optional columns:</strong> Payee, Currency
-                      (defaults to INR), Category (for categorization), Flag (*,
-                      !, or ?)
+                      <strong>Optional columns:</strong> Payee, Currency (defaults to INR), Category
+                      (for categorization), Flag (*, !, or ?)
                     </Box>
                     <FileUpload
                       value={[]}
-                      onChange={(e) =>
-                        handleTransactionExcelUpload(e.detail.value)
-                      }
+                      onChange={(e) => handleTransactionExcelUpload(e.detail.value)}
                       accept=".xlsx,.xls"
                       showFileLastModified
                       showFileSize
                       showFileThumbnail
                     />
-                    <Box
-                      margin={{ top: "m" }}
-                      variant="small"
-                      color="text-body-secondary"
-                    >
+                    <Box margin={{ top: "m" }} variant="small" color="text-body-secondary">
                       <Box fontWeight="bold">Excel Format:</Box>
                       <Box as="ul" padding={{ left: "l" }}>
                         <li>
-                          <strong>Date:</strong> Transaction date in YYYY-MM-DD
-                          format
+                          <strong>Date:</strong> Transaction date in YYYY-MM-DD format
                         </li>
                         <li>
-                          <strong>Payee:</strong> (Optional) Who you paid or
-                          received from
+                          <strong>Payee:</strong> (Optional) Who you paid or received from
                         </li>
                         <li>
-                          <strong>Narration:</strong> Description of the
-                          transaction
+                          <strong>Narration:</strong> Description of the transaction
                         </li>
                         <li>
-                          <strong>Account:</strong> Account name (e.g.,
-                          Assets:Bank:Checking)
+                          <strong>Account:</strong> Account name (e.g., Assets:Bank:Checking)
                         </li>
                         <li>
-                          <strong>Amount:</strong> Positive for income, negative
-                          for expenses
+                          <strong>Amount:</strong> Positive for income, negative for expenses
                         </li>
                         <li>
-                          <strong>Currency:</strong> (Optional) Currency code,
-                          defaults to INR
+                          <strong>Currency:</strong> (Optional) Currency code, defaults to INR
                         </li>
                         <li>
-                          <strong>Category:</strong> (Optional) Category account
-                          for automatic categorization
+                          <strong>Category:</strong> (Optional) Category account for automatic
+                          categorization
                         </li>
                         <li>
-                          <strong>Flag:</strong> (Optional) Transaction flag (*,
-                          !, or ?)
+                          <strong>Flag:</strong> (Optional) Transaction flag (*, !, or ?)
                         </li>
                       </Box>
                     </Box>
@@ -635,28 +555,24 @@ export default function Import() {
                   </Box>
                   <Box as="ul" padding={{ left: "l" }}>
                     <li>
-                      <strong>Positive amounts:</strong> If you provide a
-                      Category column, the transaction will be categorized as
-                      Income. For example, if Account is "Assets:Bank:Checking"
-                      and Category is "Income:Salary", it creates: Income:Salary
-                      → Assets:Bank:Checking
+                      <strong>Positive amounts:</strong> If you provide a Category column, the
+                      transaction will be categorized as Income. For example, if Account is
+                      "Assets:Bank:Checking" and Category is "Income:Salary", it creates:
+                      Income:Salary → Assets:Bank:Checking
                     </li>
                     <li>
-                      <strong>Negative amounts:</strong> If you provide a
-                      Category column, the transaction will be categorized as
-                      Expense. For example, if Account is "Assets:Bank:Checking"
-                      and Category is "Expenses:Food", it creates: Expenses:Food
-                      → Assets:Bank:Checking
+                      <strong>Negative amounts:</strong> If you provide a Category column, the
+                      transaction will be categorized as Expense. For example, if Account is
+                      "Assets:Bank:Checking" and Category is "Expenses:Food", it creates:
+                      Expenses:Food → Assets:Bank:Checking
                     </li>
                     <li>
                       <strong>Without Category:</strong> Transactions default to
-                      "Income:Uncategorized" or "Expenses:Uncategorized" based
-                      on the amount sign
+                      "Income:Uncategorized" or "Expenses:Uncategorized" based on the amount sign
                     </li>
                     <li>
-                      <strong>Account names:</strong> All account names are
-                      automatically capitalized (e.g., "assets:bank" becomes
-                      "Assets:Bank")
+                      <strong>Account names:</strong> All account names are automatically
+                      capitalized (e.g., "assets:bank" becomes "Assets:Bank")
                     </li>
                   </Box>
                 </Container>

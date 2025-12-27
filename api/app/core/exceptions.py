@@ -1,10 +1,34 @@
 import logging
-from fastapi import Request
+from typing import Union
+from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 logger = logging.getLogger(__name__)
+
+
+class AccountAlreadyExistsError(HTTPException):
+    """Raised when trying to create an account that already exists"""
+
+    def __init__(self, account_name: str):
+        super().__init__(
+            status_code=409,
+            detail=f"Account '{account_name}' already exists",
+        )
+        self.account_name = account_name
+
+
+class InvalidAccountNameError(HTTPException):
+    """Raised when an account name is invalid"""
+
+    def __init__(self, account_name: str, reason: str = "Invalid account name format"):
+        super().__init__(
+            status_code=400,
+            detail=f"Invalid account name '{account_name}': {reason}",
+        )
+        self.account_name = account_name
+        self.reason = reason
 
 
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
@@ -21,8 +45,8 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
     )
 
 
-async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
-    """Handler for HTTP exceptions"""
+async def http_exception_handler(request: Request, exc: Union[HTTPException, StarletteHTTPException]) -> JSONResponse:
+    """Handler for HTTP exceptions (including FastAPI HTTPException and custom exceptions)"""
     request_id = getattr(request.state, "request_id", "unknown")
     logger.warning(f"HTTP {exc.status_code}: {exc.detail}")
 

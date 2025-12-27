@@ -7,7 +7,7 @@ import {
   Budget,
   Portfolio,
 } from "@/types/beancount";
-import { api } from "@/services/api";
+import { api } from "@/lib/api";
 
 interface BeancountState {
   transactions: Transaction[];

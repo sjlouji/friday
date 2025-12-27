@@ -11,7 +11,7 @@ import ProgressBar from "@cloudscape-design/components/progress-bar";
 import Alert from "@cloudscape-design/components/alert";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import BreadcrumbGroup from "@cloudscape-design/components/breadcrumb-group";
-import BudgetModal from "@/components/BudgetModal";
+import BudgetModal from "../components/BudgetModal";
 import {
   BarChart,
   Bar,

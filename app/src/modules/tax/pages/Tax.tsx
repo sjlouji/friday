@@ -23,7 +23,7 @@ import {
   Legend,
 } from "recharts";
 import { Transaction } from "@/types/beancount";
-import { formatIndianCurrency } from "@/utils/currency";
+import { formatIndianCurrency } from "@/lib/utils/currency";
 
 export default function Tax() {
   const { transactions, accounts } = useBeancountStore();

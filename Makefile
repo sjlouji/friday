@@ -49,6 +49,7 @@ dev: dev-api dev-app ## Start both API and app in development mode (with hot rel
 
 dev-api: ## Start API server only in development mode (runs with auto-reload on localhost:8000)
 	@echo "Starting API server..."
+	@lsof -ti :8000 | xargs kill -9 2>/dev/null || true
 	cd api && ./start.sh
 
 dev-app: ## Start app only in development mode (runs Vite dev server on localhost:5173)

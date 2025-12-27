@@ -12,7 +12,7 @@ import Select from "@cloudscape-design/components/select";
 import Tabs from "@cloudscape-design/components/tabs";
 import KeyValuePairs from "@cloudscape-design/components/key-value-pairs";
 import { format, subMonths } from "date-fns";
-import { formatIndianCurrency } from "@/utils/currency";
+import { formatIndianCurrency } from "@/lib/utils/currency";
 import {
   PieChart,
   Pie,

@@ -3,7 +3,7 @@ import { Account } from "@/types/beancount";
 import Box from "@cloudscape-design/components/box";
 import Button from "@cloudscape-design/components/button";
 import SpaceBetween from "@cloudscape-design/components/space-between";
-import { formatIndianCurrency } from "@/utils/currency";
+import { formatIndianCurrency } from "@/lib/utils/currency";
 
 interface AccountNode {
   name: string;

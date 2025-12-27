@@ -13,10 +13,10 @@ import FileUpload from "@cloudscape-design/components/file-upload";
 import Alert from "@cloudscape-design/components/alert";
 import Flashbar from "@cloudscape-design/components/flashbar";
 import { Account, AccountType } from "@/types/beancount";
-import AccountModal from "@/components/AccountModal";
-import AccountTree from "@/components/AccountTree";
-import { formatIndianCurrency } from "@/utils/currency";
-import { api } from "@/services/api";
+import AccountModal from "../components/AccountModal";
+import AccountTree from "../components/AccountTree";
+import { formatIndianCurrency } from "@/lib/utils/currency";
+import { api } from "@/lib/api";
 
 const accountTypeColors: Record<
   AccountType,

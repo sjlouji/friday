@@ -13,7 +13,7 @@ import BreadcrumbGroup from "@cloudscape-design/components/breadcrumb-group";
 import Alert from "@cloudscape-design/components/alert";
 import Box from "@cloudscape-design/components/box";
 import Toggle from "@cloudscape-design/components/toggle";
-import { api } from "@/services/api";
+import { api } from "@/lib/api";
 
 const BEANCOUNT_FILE_KEY = "beancount_file_path";
 

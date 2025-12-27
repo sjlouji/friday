@@ -12,7 +12,7 @@ import Box from "@cloudscape-design/components/box";
 import BreadcrumbGroup from "@cloudscape-design/components/breadcrumb-group";
 import StatusIndicator from "@cloudscape-design/components/status-indicator";
 import { SavingsGoal, DebtPayoff } from "@/types/beancount";
-import GoalModal from "@/components/GoalModal";
+import GoalModal from "../components/GoalModal";
 
 export default function Goals() {
   const { accounts } = useBeancountStore();

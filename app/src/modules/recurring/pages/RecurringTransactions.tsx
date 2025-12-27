@@ -18,7 +18,7 @@ import Box from "@cloudscape-design/components/box";
 import BreadcrumbGroup from "@cloudscape-design/components/breadcrumb-group";
 import StatusIndicator from "@cloudscape-design/components/status-indicator";
 import { RecurringTransaction, Transaction } from "@/types/beancount";
-import RecurringTransactionModal from "@/components/RecurringTransactionModal";
+import RecurringTransactionModal from "../components/RecurringTransactionModal";
 
 export default function RecurringTransactions() {
   const { addTransaction } = useBeancountStore();
