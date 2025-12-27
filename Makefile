@@ -10,7 +10,7 @@ install: install-api install-app ## Install all dependencies (creates venv for A
 
 install-api: ## Install API dependencies (creates Python virtual environment and installs packages)
 	@echo "Installing API dependencies..."
-	cd api && python3 -m venv venv || true
+	cd api && rm -rf venv && python3 -m venv venv
 	cd api && source venv/bin/activate && pip install --upgrade pip && pip install -r requirements.txt
 
 install-app: ## Install app dependencies (installs all npm packages including dev dependencies)
