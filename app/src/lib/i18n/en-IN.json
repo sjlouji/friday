@@ -22,13 +22,13 @@
     "select": "Select",
     "selectAccount": "Select account",
     "new": "New",
+    "name": "Name",
     "actions": "Actions",
     "noData": "No data available",
     "failedToSave": "Failed to save",
     "failedToDelete": "Failed to delete",
     "failedToLoad": "Failed to load",
-    "of": "of",
-    "name": "Name"
+    "of": "of"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -315,14 +315,14 @@
     "title": "Goals",
     "description": "Set and track your financial goals",
     "newGoal": "New Goal",
+    "newSavingsGoal": "New Savings Goal",
+    "newDebtPayoff": "New Debt Payoff",
     "editGoal": "Edit Goal",
     "goalName": "Goal Name",
     "targetAmount": "Target Amount",
     "currentAmount": "Current Amount",
     "targetDate": "Target Date",
     "noGoals": "No goals found",
-    "newSavingsGoal": "New Savings Goal",
-    "newDebtPayoff": "New Debt Payoff",
     "confirmDelete": "Are you sure you want to delete this goal?",
     "savingsGoals": "Savings Goals",
     "debtPayoffs": "Debt Payoffs"
@@ -380,7 +380,7 @@
     "remainingTax": "Remaining Tax"
   },
   "import": {
-    "title": "Import",
+    "title": "Import & Export",
     "description": "Description of the transaction",
     "selectFile": "Select File",
     "mapColumns": "Map Columns",
