@@ -226,13 +226,22 @@ export default function Settings() {
     try {
       if (!targetPath) {
         const selectedDirectory = await pickDirectory();
-        const fileName = "ledger.beancount";
-        targetPath = `${selectedDirectory}/${fileName}`;
-        setFilePath(targetPath);
+        setCreateStatus("error");
+        setCreateMessage(
+          "Please enter a filename in the input field above (e.g., ledger.beancount), then click 'Create New File' again."
+        );
+        setFilePath(selectedDirectory + "/");
+        setTimeout(() => {
+          filePathInputRef.current?.focus();
+          filePathInputRef.current?.setSelectionRange(
+            selectedDirectory.length + 1,
+            selectedDirectory.length + 1
+          );
+        }, 100);
+        return;
       } else if (!isFullPath(targetPath)) {
         const selectedDirectory = await pickDirectory();
-        const fileName = targetPath || "ledger.beancount";
-        targetPath = `${selectedDirectory}/${fileName}`;
+        targetPath = `${selectedDirectory}/${targetPath}`;
         setFilePath(targetPath);
       }
 
