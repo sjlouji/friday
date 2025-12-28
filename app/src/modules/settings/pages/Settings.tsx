@@ -168,131 +168,127 @@ export default function Settings() {
     setFileInfo(null);
   };
 
+  const isFullPath = (path: string): boolean => {
+    return path.includes("/") || path.includes("\\");
+  };
+
+  const pickDirectory = async (): Promise<string> => {
+    if ("showDirectoryPicker" in window) {
+      const dirHandle = await (window as any).showDirectoryPicker({
+        mode: "readwrite",
+      });
+      const dirName = dirHandle.name;
+
+      const platform = navigator.platform.toLowerCase();
+      let suggestedPath = "";
+
+      if (platform.includes("win")) {
+        suggestedPath = `~/${dirName}/ledger.beancount`;
+      } else if (platform.includes("mac")) {
+        suggestedPath = `~/Documents/${dirName}/ledger.beancount`;
+      } else {
+        suggestedPath = `~/${dirName}/ledger.beancount`;
+      }
+
+      return suggestedPath;
+    } else {
+      return new Promise<string>((resolve, reject) => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.webkitdirectory = true;
+        input.style.display = "none";
+        document.body.appendChild(input);
+
+        const handleChange = async (event: Event) => {
+          const target = event.target as HTMLInputElement;
+          const files = target.files;
+
+          if (files && files.length > 0) {
+            const firstFile = files[0];
+            const relativePath = (firstFile as any).webkitRelativePath || "";
+            const dirName = relativePath.split("/")[0] || "Documents";
+
+            const platform = navigator.platform.toLowerCase();
+            let suggestedPath = "";
+
+            if (platform.includes("win")) {
+              suggestedPath = `~/${dirName}/ledger.beancount`;
+            } else if (platform.includes("mac")) {
+              suggestedPath = `~/Documents/${dirName}/ledger.beancount`;
+            } else {
+              suggestedPath = `~/${dirName}/ledger.beancount`;
+            }
+
+            document.body.removeChild(input);
+            resolve(suggestedPath);
+          } else {
+            document.body.removeChild(input);
+            reject(new Error("No directory selected"));
+          }
+        };
+
+        const handleCancel = () => {
+          document.body.removeChild(input);
+          reject(new Error("Directory selection cancelled"));
+        };
+
+        input.addEventListener("change", handleChange);
+        input.addEventListener("cancel", handleCancel);
+
+        setTimeout(() => {
+          input.click();
+        }, 0);
+      });
+    }
+  };
+
   const handleCreateFile = async () => {
     let targetPath = filePath.trim();
 
-    if (!targetPath) {
-      try {
-        if ("showDirectoryPicker" in window) {
-          const dirHandle = await (window as any).showDirectoryPicker({
-            mode: "readwrite",
-          });
-          const dirName = dirHandle.name;
+    try {
+      if (!targetPath) {
+        targetPath = await pickDirectory();
+        setFilePath(targetPath);
+      }
 
-          const platform = navigator.platform.toLowerCase();
-          let suggestedPath = "";
-
-          if (platform.includes("win")) {
-            suggestedPath = `~/${dirName}/ledger.beancount`;
-          } else if (platform.includes("mac")) {
-            suggestedPath = `~/Documents/${dirName}/ledger.beancount`;
-          } else {
-            suggestedPath = `~/${dirName}/ledger.beancount`;
-          }
-
-          setFilePath(suggestedPath);
-          targetPath = suggestedPath;
-        } else {
-          const selectedPath = await new Promise<string>((resolve, reject) => {
-            const input = document.createElement("input");
-            input.type = "file";
-            input.webkitdirectory = true;
-            input.style.display = "none";
-            document.body.appendChild(input);
-
-            const handleChange = async (event: Event) => {
-              const target = event.target as HTMLInputElement;
-              const files = target.files;
-
-              if (files && files.length > 0) {
-                const firstFile = files[0];
-                const relativePath = (firstFile as any).webkitRelativePath || "";
-                const dirName = relativePath.split("/")[0] || "Documents";
-
-                const platform = navigator.platform.toLowerCase();
-                let suggestedPath = "";
-
-                if (platform.includes("win")) {
-                  suggestedPath = `~/${dirName}/ledger.beancount`;
-                } else if (platform.includes("mac")) {
-                  suggestedPath = `~/Documents/${dirName}/ledger.beancount`;
-                } else {
-                  suggestedPath = `~/${dirName}/ledger.beancount`;
-                }
-
-                document.body.removeChild(input);
-                resolve(suggestedPath);
-              } else {
-                document.body.removeChild(input);
-                reject(new Error("No directory selected"));
-              }
-            };
-
-            const handleCancel = () => {
-              document.body.removeChild(input);
-              reject(new Error("Directory selection cancelled"));
-            };
-
-            input.addEventListener("change", handleChange);
-            input.addEventListener("cancel", handleCancel);
-
-            setTimeout(() => {
-              input.click();
-            }, 0);
-          });
-
-          setFilePath(selectedPath);
-          targetPath = selectedPath;
-        }
-      } catch (error: unknown) {
-        const err = error as { name?: string; message?: string };
-        if (err.message === "Directory selection cancelled") {
-          return;
-        }
-        if (err.name !== "AbortError") {
-          setCreateStatus("error");
-          setCreateMessage(
-            err.message ||
-              "Failed to select directory. Please enter a full file path manually in the input field above."
-          );
-          setTimeout(() => {
-            filePathInputRef.current?.focus();
-            filePathInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-          }, 100);
-        }
+      if (!isFullPath(targetPath)) {
+        setCreateStatus("error");
+        setCreateMessage(
+          "Please provide the full path (e.g., /Users/username/Documents/ledger.beancount)."
+        );
         return;
       }
-    }
 
-    if (!targetPath.includes("/") && !targetPath.includes("\\")) {
-      setCreateStatus("error");
-      setCreateMessage(
-        "Please provide the full path to the file (e.g., /Users/username/Documents/ledger.beancount), not just the filename."
-      );
-      return;
-    }
+      setIsCreating(true);
+      setCreateStatus(null);
+      setCreateMessage("");
 
-    setIsCreating(true);
-    setCreateStatus(null);
-    setCreateMessage("");
-
-    try {
       const result = await api.files.create(targetPath);
+
       setCreateStatus("success");
       setCreateMessage(result.message || "File created successfully!");
 
       setFilePath(targetPath);
       updateSettings({ beancountFilePath: targetPath });
 
-      try {
-        await loadAll();
-      } catch (error: unknown) {
-        console.error("Failed to load data after creating file:", error);
+      loadAll().catch((err) => console.error("Failed to load data after creating file:", err));
+    } catch (error: any) {
+      if (error?.name === "AbortError" || error?.message === "Directory selection cancelled") {
+        return;
       }
-    } catch (error: unknown) {
-      const err = error as { message?: string };
+
       setCreateStatus("error");
-      setCreateMessage(err.message || "Failed to create file");
+      setCreateMessage(
+        error?.message || "Failed to select directory. Please enter a full file path manually."
+      );
+
+      setTimeout(() => {
+        filePathInputRef.current?.focus();
+        filePathInputRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }, 100);
     } finally {
       setIsCreating(false);
     }
