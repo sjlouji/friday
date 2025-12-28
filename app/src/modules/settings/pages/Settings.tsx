@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Header from "@cloudscape-design/components/header";
 import Container from "@cloudscape-design/components/container";
 import Form from "@cloudscape-design/components/form";
@@ -32,6 +32,7 @@ export default function Settings() {
     show: boolean;
   } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const filePathInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setFilePath(settings.beancountFilePath);
@@ -183,8 +184,12 @@ export default function Settings() {
         } else {
           setCreateStatus("error");
           setCreateMessage(
-            "Directory picker is not supported in your browser. Please enter a full file path manually in the input field above (e.g., /Users/username/Documents/ledger.beancount or ~/Documents/ledger.beancount)."
+            "Directory picker is not supported in your browser. Please enter a full file path manually in the input field below."
           );
+          setTimeout(() => {
+            filePathInputRef.current?.focus();
+            filePathInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+          }, 100);
           return;
         }
       } catch (error: unknown) {
@@ -271,8 +276,38 @@ export default function Settings() {
       )}
 
       {createStatus === "error" && (
-        <Alert type="error" dismissible onDismiss={() => setCreateStatus(null)}>
+        <Alert
+          type="error"
+          dismissible
+          onDismiss={() => setCreateStatus(null)}
+          action={
+            createMessage.includes("Directory picker is not supported") ? (
+              <Button
+                variant="link"
+                onClick={() => {
+                  filePathInputRef.current?.focus();
+                  filePathInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+                }}
+              >
+                Go to input field
+              </Button>
+            ) : undefined
+          }
+        >
           {createMessage}
+          {createMessage.includes("Directory picker is not supported") && (
+            <Box variant="small" color="text-body-secondary" margin={{ top: "xs" }}>
+              <Box as="strong">Examples:</Box>
+              <Box as="ul" padding={{ left: "l" }} margin={{ top: "xs" }}>
+                <li>
+                  <code>/Users/username/Documents/ledger.beancount</code> (absolute path)
+                </li>
+                <li>
+                  <code>~/Documents/ledger.beancount</code> (home directory shortcut)
+                </li>
+              </Box>
+            </Box>
+          )}
         </Alert>
       )}
 
@@ -348,6 +383,7 @@ export default function Settings() {
             }
           >
             <Input
+              ref={filePathInputRef}
               value={filePath}
               onChange={(e) => handleFilePathChange(e.detail.value)}
               placeholder="/Users/username/Documents/ledger.beancount or ~/Documents/ledger.beancount"
