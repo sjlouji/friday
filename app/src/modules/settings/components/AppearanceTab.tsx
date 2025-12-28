@@ -8,6 +8,7 @@ import Input from "@cloudscape-design/components/input";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import Header from "@cloudscape-design/components/header";
 import { useSettings } from "@/hooks/useSettings";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const LOCALES = [
   { label: "English (US)", value: "en-US" },
@@ -28,7 +29,9 @@ const LOCALE_TO_DATE_FORMAT: Record<string, string> = {
 };
 
 export default function AppearanceTab() {
-  const { appearance, updateAppearance, workspace, updateWorkspace, applyTheme, applyLanguage } = useSettings();
+  const { appearance, updateAppearance, workspace, updateWorkspace, applyTheme, applyLanguage } =
+    useSettings();
+  const { t } = useTranslation();
 
   const handleThemeChange = (theme: string) => {
     updateAppearance({ theme: theme as "light" | "dark" | "auto" });
@@ -60,18 +63,13 @@ export default function AppearanceTab() {
     <SpaceBetween size="l">
       <Container
         variant="stacked"
-        header={<Header variant="h2">Language & Locale</Header>}
+        header={<Header variant="h2">{t("settings.appearance.title")}</Header>}
       >
         <Form>
-          <FormField label="Locale">
+          <FormField label={t("settings.appearance.locale")}>
             <Select
-              selectedOption={
-                LOCALES.find((l) => l.value === appearance.locale) ||
-                LOCALES[0]
-              }
-              onChange={(e) =>
-                handleLocaleChange(e.detail.selectedOption.value || "en-US")
-              }
+              selectedOption={LOCALES.find((l) => l.value === appearance.locale) || LOCALES[0]}
+              onChange={(e) => handleLocaleChange(e.detail.selectedOption.value || "en-US")}
               options={LOCALES}
             />
           </FormField>
@@ -80,27 +78,25 @@ export default function AppearanceTab() {
 
       <Container
         variant="stacked"
-        header={<Header variant="h2">Theme</Header>}
+        header={<Header variant="h2">{t("settings.appearance.theme")}</Header>}
       >
         <Form>
-          <FormField label="Theme">
+          <FormField label={t("settings.appearance.theme")}>
             <Select
               selectedOption={{
                 label:
                   appearance.theme === "light"
-                    ? "Light"
+                    ? t("settings.appearance.themeLight")
                     : appearance.theme === "dark"
-                    ? "Dark"
-                    : "Auto (System)",
+                      ? t("settings.appearance.themeDark")
+                      : t("settings.appearance.themeAuto"),
                 value: appearance.theme,
               }}
-              onChange={(e) =>
-                handleThemeChange(e.detail.selectedOption.value || "light")
-              }
+              onChange={(e) => handleThemeChange(e.detail.selectedOption.value || "light")}
               options={[
-                { label: "Light", value: "light" },
-                { label: "Dark", value: "dark" },
-                { label: "Auto (System)", value: "auto" },
+                { label: t("settings.appearance.themeLight"), value: "light" },
+                { label: t("settings.appearance.themeDark"), value: "dark" },
+                { label: t("settings.appearance.themeAuto"), value: "auto" },
               ]}
             />
           </FormField>
@@ -109,7 +105,7 @@ export default function AppearanceTab() {
 
       <Container
         variant="stacked"
-        header={<Header variant="h2">Table Preferences</Header>}
+        header={<Header variant="h2">{t("settings.appearance.tablePreferences")}</Header>}
       >
         <Form>
           <SpaceBetween size="l">
@@ -127,8 +123,7 @@ export default function AppearanceTab() {
                     tablePreferences: {
                       ...appearance.tablePreferences,
                       contentDensity:
-                        (e.detail.selectedOption.value as "compact" | "comfortable") ||
-                        "compact",
+                        (e.detail.selectedOption.value as "compact" | "comfortable") || "compact",
                     },
                   })
                 }
@@ -139,10 +134,7 @@ export default function AppearanceTab() {
               />
             </FormField>
 
-            <FormField
-              label="Wrap Lines"
-              description="Enable text wrapping in table cells"
-            >
+            <FormField label="Wrap Lines" description="Enable text wrapping in table cells">
               <Toggle
                 checked={appearance.tablePreferences.wrapLines}
                 onChange={(e) =>
@@ -218,10 +210,7 @@ export default function AppearanceTab() {
         </Form>
       </Container>
 
-      <Container
-        variant="stacked"
-        header={<Header variant="h2">Display Options</Header>}
-      >
+      <Container variant="stacked" header={<Header variant="h2">Display Options</Header>}>
         <Form>
           <SpaceBetween size="l">
             <FormField
@@ -239,10 +228,7 @@ export default function AppearanceTab() {
               />
             </FormField>
 
-            <FormField
-              label="Currency Column"
-              description="Column position for currency display"
-            >
+            <FormField label="Currency Column" description="Column position for currency display">
               <Input
                 type="number"
                 value={appearance.currencyColumn.toString()}
@@ -349,10 +335,7 @@ export default function AppearanceTab() {
               />
             </FormField>
 
-            <FormField
-              label="Upcoming Events"
-              description="Number of upcoming events to display"
-            >
+            <FormField label="Upcoming Events" description="Number of upcoming events to display">
               <Input
                 type="number"
                 value={appearance.upcomingEvents.toString()}
@@ -373,8 +356,7 @@ export default function AppearanceTab() {
                 value={appearance.uptodateIndicatorGreyLookbackDays.toString()}
                 onChange={(e) =>
                   updateAppearance({
-                    uptodateIndicatorGreyLookbackDays:
-                      parseInt(e.detail.value) || 60,
+                    uptodateIndicatorGreyLookbackDays: parseInt(e.detail.value) || 60,
                   })
                 }
               />
@@ -385,4 +367,3 @@ export default function AppearanceTab() {
     </SpaceBetween>
   );
 }
-

@@ -14,6 +14,7 @@ import Spinner from "@cloudscape-design/components/spinner";
 import { useSettings } from "@/hooks/useSettings";
 import { useBeancountStore } from "@/store/beancountStore";
 import { useAutoSave } from "@/hooks/useAutoSave";
+import { useTranslation } from "@/hooks/useTranslation";
 import AppearanceTab from "../components/AppearanceTab";
 import WorkspaceTab from "../components/WorkspaceTab";
 import BookkeepingTab from "../components/BookkeepingTab";
@@ -21,6 +22,7 @@ import BookkeepingTab from "../components/BookkeepingTab";
 export default function Settings() {
   const { settings, updateSettings } = useSettings();
   const { loadAll } = useBeancountStore();
+  const { t } = useTranslation();
   const [filePath, setFilePath] = useState(settings.beancountFilePath);
   const [activeTab, setActiveTab] = useState("appearance");
   const filePathInputRef = useRef<HTMLInputElement>(null);
@@ -77,7 +79,7 @@ export default function Settings() {
 
   const breadcrumbs = [
     { text: "Friday", href: "/" },
-    { text: "Settings", href: "/settings" },
+    { text: t("settings.title"), href: "/settings" },
   ];
 
   return (
@@ -86,7 +88,7 @@ export default function Settings() {
 
       <Header
         variant="h1"
-        description="Configure your Friday preferences"
+        description={t("settings.description")}
         actions={
           <SpaceBetween direction="horizontal" size="xs">
             {isSavingFilePath && (
@@ -102,7 +104,7 @@ export default function Settings() {
           </SpaceBetween>
         }
       >
-        Settings
+        {t("settings.title")}
       </Header>
 
       <Container
@@ -116,37 +118,34 @@ export default function Settings() {
                   iconName="close"
                   variant="icon"
                   onClick={handleClearFilePath}
-                  ariaLabel="Clear file path"
+                  ariaLabel={t("common.clear")}
                 />
               ) : undefined
             }
           >
-            Beancount File
+            {t("settings.beancountFile.title")}
           </Header>
         }
       >
         <Form>
           <FormField
-            label="Beancount File Path"
-            description="Enter the full path to your Beancount ledger file."
+            label={t("settings.beancountFile.filePath")}
+            description={t("settings.beancountFile.filePathDescription")}
             secondaryControl={
               filePath ? (
                 <Button
                   iconName="close"
                   variant="icon"
                   onClick={handleClearFilePath}
-                  ariaLabel="Clear file path"
+                  ariaLabel={t("common.clear")}
                 />
               ) : undefined
             }
             constraintText={
               <Box variant="small" color="text-body-secondary">
-                To create a new Beancount file, create it manually using a text editor and then
-                enter its path here.
+                {t("settings.beancountFile.filePathHint")}
                 <br />
-                Example: Create a file named <code>ledger.beancount</code> in your Documents folder,
-                then enter the path <code>~/Documents/ledger.beancount</code> or{" "}
-                <code>/Users/username/Documents/ledger.beancount</code>.
+                {t("settings.beancountFile.filePathExample")}
               </Box>
             }
           >
@@ -165,17 +164,17 @@ export default function Settings() {
         onChange={({ detail }) => setActiveTab(detail.activeTabId)}
         tabs={[
           {
-            label: "Appearance",
+            label: t("settings.appearance.title"),
             id: "appearance",
             content: <AppearanceTab />,
           },
           {
-            label: "Workspace",
+            label: t("settings.workspace.title"),
             id: "workspace",
             content: <WorkspaceTab />,
           },
           {
-            label: "Bookkeeping",
+            label: t("settings.bookkeeping.title"),
             id: "bookkeeping",
             content: <BookkeepingTab />,
           },
