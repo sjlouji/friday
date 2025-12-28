@@ -124,8 +124,14 @@ export default function Settings() {
           let fullPath = "";
 
           try {
-            if (fileHandle.getParent) {
-              const dirHandle = await fileHandle.getParent();
+            interface FileHandleWithParent extends FileSystemFileHandle {
+              getParent?: () => Promise<FileSystemDirectoryHandle>;
+            }
+
+            const handleWithParent = fileHandle as FileHandleWithParent;
+
+            if (handleWithParent.getParent && typeof handleWithParent.getParent === "function") {
+              const dirHandle = await handleWithParent.getParent();
               const pathParts: string[] = [dirHandle.name];
               let currentHandle = dirHandle;
               let depth = 0;
