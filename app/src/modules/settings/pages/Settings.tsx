@@ -265,12 +265,38 @@ export default function Settings() {
         return;
       }
 
-      const errorMessage = error?.message || "Failed to create file. Please enter a full file path manually.";
-      
+      console.error("Error creating file:", error);
+
+      let errorMessage = "Failed to create file. Please check the path and try again.";
+
+      if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.detail) {
+        errorMessage = error.detail;
+      } else if (typeof error === "string") {
+        errorMessage = error;
+      }
+
       if (errorMessage.includes("already exists") || errorMessage.includes("FileExistsError")) {
         setCreateStatus("error");
         setCreateMessage(
           `File already exists at this path. Please choose a different filename or clear the existing path first.`
+        );
+      } else if (
+        errorMessage.includes("Permission denied") ||
+        errorMessage.includes("permission")
+      ) {
+        setCreateStatus("error");
+        setCreateMessage(
+          `Permission denied. Please check that you have write access to the directory.`
+        );
+      } else if (
+        errorMessage.includes("No such file or directory") ||
+        errorMessage.includes("directory")
+      ) {
+        setCreateStatus("error");
+        setCreateMessage(
+          `Directory does not exist. Please check the path and ensure the directory exists.`
         );
       } else {
         setCreateStatus("error");
