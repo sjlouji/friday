@@ -144,7 +144,7 @@ export default function Debt() {
   ];
 
   return (
-    <SpaceBetween size="l">
+    <SpaceBetween size="s">
       <BreadcrumbGroup items={breadcrumbs} />
 
       <Header

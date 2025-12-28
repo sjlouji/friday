@@ -205,7 +205,7 @@ export default function Import() {
   ];
 
   return (
-    <SpaceBetween size="l">
+    <SpaceBetween size="s">
       <BreadcrumbGroup items={breadcrumbs} />
 
       <Header variant="h1" description="Import beancount files or export your data">

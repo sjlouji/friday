@@ -100,7 +100,7 @@ export default function Bills() {
   ];
 
   return (
-    <SpaceBetween size="l">
+    <SpaceBetween size="s">
       <BreadcrumbGroup items={breadcrumbs} />
 
       <Header

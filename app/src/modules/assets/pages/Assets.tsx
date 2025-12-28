@@ -145,7 +145,7 @@ export default function Assets() {
   ];
 
   return (
-    <SpaceBetween size="l">
+    <SpaceBetween size="s">
       <BreadcrumbGroup items={breadcrumbs} />
 
       <Header

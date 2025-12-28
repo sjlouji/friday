@@ -385,7 +385,7 @@ export default function Transactions() {
   ];
 
   return (
-    <SpaceBetween size="l">
+    <SpaceBetween size="s">
       <BreadcrumbGroup items={breadcrumbs} />
 
       <Header

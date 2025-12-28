@@ -119,7 +119,7 @@ export default function Reports() {
   ];
 
   return (
-    <SpaceBetween size="l">
+    <SpaceBetween size="s">
       <BreadcrumbGroup items={breadcrumbs} />
 
       <Header variant="h1" description={t("reports.description")}>

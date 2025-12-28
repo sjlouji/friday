@@ -130,7 +130,7 @@ export default function Dashboard() {
   }
 
   return (
-    <SpaceBetween size="l">
+    <SpaceBetween size="s">
       <BreadcrumbGroup items={breadcrumbs} />
 
       <Header variant="h1" description={t("dashboard.description")}>

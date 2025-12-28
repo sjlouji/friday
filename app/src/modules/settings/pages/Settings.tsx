@@ -83,7 +83,7 @@ export default function Settings() {
   ];
 
   return (
-    <SpaceBetween size="m">
+    <SpaceBetween size="s">
       <BreadcrumbGroup items={breadcrumbs} />
 
       <Header

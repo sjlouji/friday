@@ -59,3 +59,4 @@ export function useTranslation() {
 
   return { t: translate, locale, translations };
 }
+
