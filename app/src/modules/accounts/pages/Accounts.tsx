@@ -125,6 +125,41 @@ export default function Accounts() {
     }
   };
 
+  const handleBulkUpload = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".xlsx,.xls";
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        await handleExcelImport([file]);
+      }
+    };
+    input.click();
+  };
+
+  const handleDownloadSample = () => {
+    const sampleData = [
+      ["Account Name", "Type", "Open Date", "Currency", "Notes"],
+      ["Assets:Bank:Checking", "Assets", "2024-01-01", "USD", "Primary checking account"],
+      ["Assets:Bank:Savings", "Assets", "2024-01-01", "USD", "Savings account"],
+      ["Liabilities:CreditCard:Visa", "Liabilities", "2024-01-01", "USD", "Visa credit card"],
+      ["Expenses:Food:Groceries", "Expenses", "2024-01-01", "USD", "Grocery expenses"],
+      ["Income:Salary", "Income", "2024-01-01", "USD", "Monthly salary"],
+    ];
+
+    const csvContent = sampleData.map(row => row.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "accounts_sample.csv");
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const breadcrumbs = [
     { text: "Friday", href: "/" },
     { text: "Accounts", href: "/accounts" },
@@ -138,9 +173,23 @@ export default function Accounts() {
         variant="h1"
         description={t("accounts.description")}
         actions={
-          <Button variant="primary" onClick={handleNew}>
-            {t("accounts.newAccount")}
-          </Button>
+          <SpaceBetween direction="horizontal" size="xs">
+            <Button
+              iconName="download"
+              onClick={handleDownloadSample}
+            >
+              {t("accounts.downloadSample")}
+            </Button>
+            <Button
+              iconName="upload"
+              onClick={handleBulkUpload}
+            >
+              {t("accounts.bulkUpload")}
+            </Button>
+            <Button variant="primary" onClick={handleNew}>
+              {t("accounts.newAccount")}
+            </Button>
+          </SpaceBetween>
         }
       >
         {t("accounts.title")}
@@ -151,25 +200,6 @@ export default function Accounts() {
         header={
           <Header
             variant="h2"
-            actions={
-              <Button
-                iconName="upload"
-                onClick={() => {
-                  const input = document.createElement("input");
-                  input.type = "file";
-                  input.accept = ".xlsx,.xls";
-                  input.onchange = async (e) => {
-                    const file = (e.target as HTMLInputElement).files?.[0];
-                    if (file) {
-                      await handleExcelImport([file]);
-                    }
-                  };
-                  input.click();
-                }}
-              >
-                {t("accounts.bulkUpload")}
-              </Button>
-            }
             description={t("accounts.importDescription")}
           >
             {t("accounts.importFromExcel")}

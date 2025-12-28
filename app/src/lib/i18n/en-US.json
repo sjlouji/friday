@@ -238,6 +238,7 @@
     "confirmDelete": "Are you sure you want to delete account",
     "importFromExcel": "Import Accounts from Excel",
     "bulkUpload": "Bulk Upload",
+    "downloadSample": "Download Sample",
     "importDescription": "Upload an Excel file with columns: Account Name, Type, Open Date, Currency (optional), Notes (optional)",
     "uploadExcelFile": "Upload Excel file with columns: Account Name, Type, Open Date, Currency (optional), Notes (optional)",
     "excelFormat": "Excel Format:",
