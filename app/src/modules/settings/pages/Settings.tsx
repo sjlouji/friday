@@ -11,9 +11,11 @@ import Alert from "@cloudscape-design/components/alert";
 import Box from "@cloudscape-design/components/box";
 import Tabs from "@cloudscape-design/components/tabs";
 import Spinner from "@cloudscape-design/components/spinner";
+import Modal from "@cloudscape-design/components/modal";
 import { useSettings } from "@/hooks/useSettings";
 import { useBeancountStore } from "@/store/beancountStore";
 import { useAutoSave } from "@/hooks/useAutoSave";
+import { api } from "@/lib/api";
 import AppearanceTab from "../components/AppearanceTab";
 import WorkspaceTab from "../components/WorkspaceTab";
 import BookkeepingTab from "../components/BookkeepingTab";
@@ -28,6 +30,10 @@ export default function Settings() {
     show: boolean;
   } | null>(null);
   const [isSelecting, setIsSelecting] = useState(false);
+  const [showFileBrowser, setShowFileBrowser] = useState(false);
+  const [browserPath, setBrowserPath] = useState("");
+  const [browserItems, setBrowserItems] = useState<Array<{ name: string; type: string; path: string }>>([]);
+  const [isLoadingBrowser, setIsLoadingBrowser] = useState(false);
   const filePathInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -70,6 +76,20 @@ export default function Settings() {
     saveFilePath,
     1000
   );
+
+  const loadBrowserDirectory = useCallback(async (path: string = "") => {
+    setIsLoadingBrowser(true);
+    try {
+      const result = await api.files.browse(path);
+      setBrowserItems(result.items || []);
+      setBrowserPath(path);
+    } catch (error) {
+      console.error("Error browsing directory:", error);
+      setBrowserItems([]);
+    } finally {
+      setIsLoadingBrowser(false);
+    }
+  }, []);
 
   const handleSelectFile = async () => {
     if ("showOpenFilePicker" in window) {
@@ -167,15 +187,28 @@ export default function Settings() {
         const err = error as { name?: string; message?: string };
         if (err.name !== "AbortError") {
           console.error("Error selecting file:", error);
+          setShowFileBrowser(true);
+          loadBrowserDirectory();
         }
       } finally {
         setIsSelecting(false);
       }
     } else {
-      const input = document.getElementById("file-input") as HTMLInputElement;
-      if (input) {
-        input.click();
-      }
+      setShowFileBrowser(true);
+      loadBrowserDirectory();
+    }
+  };
+
+  const handleBrowserItemClick = (item: { name: string; type: string; path: string }) => {
+    if (item.type === "directory") {
+      loadBrowserDirectory(item.path);
+    } else if (item.name.endsWith(".beancount") || item.name.endsWith(".bean")) {
+      setFilePath(item.path);
+      setFileInfo({
+        name: item.name,
+        show: true,
+      });
+      setShowFileBrowser(false);
     }
   };
 
