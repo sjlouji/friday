@@ -32,7 +32,9 @@ export default function Settings() {
   const [isSelecting, setIsSelecting] = useState(false);
   const [showFileBrowser, setShowFileBrowser] = useState(false);
   const [browserPath, setBrowserPath] = useState("");
-  const [browserItems, setBrowserItems] = useState<Array<{ name: string; type: string; path: string }>>([]);
+  const [browserItems, setBrowserItems] = useState<
+    Array<{ name: string; type: string; path: string }>
+  >([]);
   const [isLoadingBrowser, setIsLoadingBrowser] = useState(false);
   const filePathInputRef = useRef<HTMLInputElement>(null);
 
@@ -241,8 +243,8 @@ export default function Settings() {
       console.error("Error processing file selection:", error);
     } finally {
       setIsSelecting(false);
-      if (event.target) {
-        event.target.value = "";
+    if (event.target) {
+      event.target.value = "";
       }
     }
   };
@@ -392,6 +394,71 @@ export default function Settings() {
           },
         ]}
       />
+
+      {showFileBrowser && (
+        <Modal
+          visible={showFileBrowser}
+          onDismiss={() => setShowFileBrowser(false)}
+          header="Select Beancount File"
+          footer={
+            <Box float="right">
+              <SpaceBetween direction="horizontal" size="xs">
+                <Button variant="link" onClick={() => setShowFileBrowser(false)}>
+                  Cancel
+                </Button>
+            </SpaceBetween>
+            </Box>
+          }
+        >
+          <SpaceBetween size="l">
+            <Box>
+              <Box variant="small" color="text-body-secondary" margin={{ bottom: "s" }}>
+                Current directory: <code>{browserPath || "~"}</code>
+              </Box>
+              {browserPath && (
+                <Button
+                  variant="link"
+                  iconName="arrow-left"
+                  onClick={() => {
+                    const parentPath = browserPath.split("/").slice(0, -1).join("/");
+                    loadBrowserDirectory(parentPath || "");
+                  }}
+                >
+                  Go Up
+                </Button>
+              )}
+            </Box>
+
+            {isLoadingBrowser ? (
+              <Box textAlign="center" padding="xl">
+                <Spinner size="large" />
+              </Box>
+            ) : (
+              <Box>
+                {browserItems.length === 0 ? (
+                  <Box textAlign="center" padding="xl" color="text-body-secondary">
+                    No items found
+                  </Box>
+                ) : (
+                  <SpaceBetween size="xs">
+                    {browserItems.map((item) => (
+                      <Button
+                        key={item.path}
+                        variant="link"
+                        iconName={item.type === "directory" ? "folder" : "file"}
+                        onClick={() => handleBrowserItemClick(item)}
+                        fullWidth
+                      >
+                        {item.name}
+                      </Button>
+                    ))}
+                  </SpaceBetween>
+                )}
+              </Box>
+            )}
+          </SpaceBetween>
+        </Modal>
+      )}
     </SpaceBetween>
   );
 }
