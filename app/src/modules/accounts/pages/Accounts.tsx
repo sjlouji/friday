@@ -272,15 +272,28 @@ export default function Accounts() {
           type="warning"
           dismissible
           onDismiss={() => setAccountErrors([])}
-          header="Beancount file errors"
+          header={`Beancount file errors (${accountErrors.length})`}
         >
-          <Box as="ul" padding={{ left: "l" }}>
+          <Box as="ul" padding={{ left: "l" }} margin={{ bottom: "xs" }}>
             {accountErrors.map((err, idx) => (
-              <li key={idx}>{err}</li>
+              <li key={idx}>
+                <Box fontWeight="bold" display="inline">
+                  {err}
+                </Box>
+              </li>
             ))}
           </Box>
           <Box variant="small" color="text-body-secondary" margin={{ top: "xs" }}>
             These errors may prevent accounts from loading correctly. Please fix them in your Beancount file.
+            <Box margin={{ top: "xs" }}>
+              <strong>Tip:</strong> Check the line number mentioned in each error and verify that:
+              <Box as="ul" padding={{ left: "l" }} margin={{ top: "xs" }}>
+                <li>Transactions balance (debits = credits)</li>
+                <li>Account names are properly formatted</li>
+                <li>Dates are in YYYY-MM-DD format</li>
+                <li>Amounts and currencies are correct</li>
+              </Box>
+            </Box>
           </Box>
         </Alert>
       )}
