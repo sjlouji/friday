@@ -226,15 +226,13 @@ export default function Settings() {
     try {
       if (!targetPath) {
         const selectedDirectory = await pickDirectory();
-        const fileName = prompt("Enter filename (e.g., ledger.beancount):", "ledger.beancount");
-        if (!fileName) {
-          return;
-        }
+        const fileName = "ledger.beancount";
         targetPath = `${selectedDirectory}/${fileName}`;
         setFilePath(targetPath);
       } else if (!isFullPath(targetPath)) {
         const selectedDirectory = await pickDirectory();
-        targetPath = `${selectedDirectory}/${targetPath}`;
+        const fileName = targetPath || "ledger.beancount";
+        targetPath = `${selectedDirectory}/${fileName}`;
         setFilePath(targetPath);
       }
 
