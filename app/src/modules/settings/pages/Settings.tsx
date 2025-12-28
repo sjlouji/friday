@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Header from "@cloudscape-design/components/header";
 import Container from "@cloudscape-design/components/container";
 import Form from "@cloudscape-design/components/form";
@@ -10,9 +10,11 @@ import BreadcrumbGroup from "@cloudscape-design/components/breadcrumb-group";
 import Alert from "@cloudscape-design/components/alert";
 import Box from "@cloudscape-design/components/box";
 import Tabs from "@cloudscape-design/components/tabs";
+import Spinner from "@cloudscape-design/components/spinner";
 import { api } from "@/lib/api";
 import { useSettings } from "@/hooks/useSettings";
 import { useBeancountStore } from "@/store/beancountStore";
+import { useAutoSave } from "@/hooks/useAutoSave";
 import AppearanceTab from "../components/AppearanceTab";
 import WorkspaceTab from "../components/WorkspaceTab";
 import BookkeepingTab from "../components/BookkeepingTab";
@@ -22,7 +24,6 @@ export default function Settings() {
   const { loadAll } = useBeancountStore();
   const [filePath, setFilePath] = useState(settings.beancountFilePath);
   const [activeTab, setActiveTab] = useState("appearance");
-  const [saveStatus, setSaveStatus] = useState<"success" | "error" | null>(null);
   const [createStatus, setCreateStatus] = useState<"success" | "error" | null>(null);
   const [createMessage, setCreateMessage] = useState("");
   const [isCreating, setIsCreating] = useState(false);
@@ -35,6 +36,34 @@ export default function Settings() {
   useEffect(() => {
     setFilePath(settings.beancountFilePath);
   }, [settings.beancountFilePath]);
+
+  const saveFilePath = useCallback(
+    async (path: string) => {
+      if (!path.trim()) {
+        return;
+      }
+
+      if (!path.includes("/") && !path.includes("\\")) {
+        return;
+      }
+
+      updateSettings({ beancountFilePath: path });
+
+      try {
+        await loadAll();
+      } catch (error: unknown) {
+        console.error("Failed to load data after saving file path:", error);
+        throw error;
+      }
+    },
+    [updateSettings, loadAll]
+  );
+
+  const { isSaving: isSavingFilePath, error: filePathError } = useAutoSave(
+    filePath,
+    saveFilePath,
+    1000
+  );
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -133,37 +162,41 @@ export default function Settings() {
     setFilePath(value);
   };
 
-  const handleSave = async () => {
-    if (!filePath.trim()) {
-      setSaveStatus("error");
-      return;
+  const handleCreateFile = async () => {
+    let targetPath = filePath.trim();
+
+    if (!targetPath) {
+      try {
+        if ("showDirectoryPicker" in window) {
+          const dirHandle = await (window as any).showDirectoryPicker({
+            mode: "readwrite",
+          });
+          const dirName = dirHandle.name;
+          const isWindows = navigator.platform.toLowerCase().includes("win");
+          const homeDir = isWindows ? "C:\\Users\\YourName" : "~";
+          targetPath = `${homeDir}/${dirName}/ledger.beancount`;
+        } else {
+          setCreateStatus("error");
+          setCreateMessage(
+            "Directory picker not supported. Please enter a file path manually."
+          );
+          return;
+        }
+      } catch (error: unknown) {
+        const err = error as { name?: string; message?: string };
+        if (err.name !== "AbortError") {
+          setCreateStatus("error");
+          setCreateMessage(err.message || "Failed to select directory");
+        }
+        return;
+      }
     }
 
-    if (!filePath.includes("/") && !filePath.includes("\\")) {
-      setSaveStatus("error");
-      alert(
+    if (!targetPath.includes("/") && !targetPath.includes("\\")) {
+      setCreateStatus("error");
+      setCreateMessage(
         "Please provide the full path to the file (e.g., /Users/username/Documents/ledger.beancount), not just the filename."
       );
-      return;
-    }
-
-    updateSettings({ beancountFilePath: filePath });
-    setSaveStatus("success");
-
-    try {
-      await loadAll();
-      setSaveStatus("success");
-    } catch (error: unknown) {
-      const err = error as { message?: string };
-      setSaveStatus("error");
-      console.error("Failed to load data after saving file path:", err);
-    }
-  };
-
-  const handleCreateFile = async () => {
-    if (!filePath.trim()) {
-      setCreateStatus("error");
-      setCreateMessage("Please provide a file path");
       return;
     }
 
@@ -172,11 +205,12 @@ export default function Settings() {
     setCreateMessage("");
 
     try {
-      const result = await api.files.create(filePath);
+      const result = await api.files.create(targetPath);
       setCreateStatus("success");
       setCreateMessage(result.message || "File created successfully!");
 
-      updateSettings({ beancountFilePath: filePath });
+      setFilePath(targetPath);
+      updateSettings({ beancountFilePath: targetPath });
 
       try {
         await loadAll();
@@ -205,25 +239,22 @@ export default function Settings() {
         variant="h1"
         description="Configure your Friday preferences"
         actions={
-          <Button variant="primary" iconName="settings" onClick={handleSave}>
-            Save Settings
-          </Button>
+          <SpaceBetween direction="horizontal" size="xs">
+            {isSavingFilePath && (
+              <Box>
+                <Spinner size="normal" />
+              </Box>
+            )}
+            {filePathError && (
+              <Alert type="error" dismissible>
+                Failed to save file path: {filePathError.message}
+              </Alert>
+            )}
+          </SpaceBetween>
         }
       >
         Settings
       </Header>
-
-      {saveStatus === "success" && (
-        <Alert type="success" dismissible onDismiss={() => setSaveStatus(null)}>
-          Settings saved successfully! Data is being loaded...
-        </Alert>
-      )}
-
-      {saveStatus === "error" && (
-        <Alert type="error" dismissible onDismiss={() => setSaveStatus(null)}>
-          Please provide a valid Beancount file path.
-        </Alert>
-      )}
 
       {createStatus === "success" && (
         <Alert type="success" dismissible onDismiss={() => setCreateStatus(null)}>
@@ -249,8 +280,7 @@ export default function Settings() {
               <strong>Selected file:</strong> {fileInfo.name}
             </Box>
             <Box variant="small" color="text-body-secondary">
-              A suggested path has been filled in the input field below. Please verify and adjust
-              the path if needed, then click "Save Settings" to use this file.
+              A suggested path has been filled in the input field below. The path will be saved automatically.
             </Box>
           </SpaceBetween>
         </Alert>
@@ -282,7 +312,7 @@ export default function Settings() {
                   variant="normal"
                   iconName={isCreating ? undefined : "add-plus"}
                   onClick={handleCreateFile}
-                  disabled={isCreating || !filePath.trim()}
+                  disabled={isCreating}
                 >
                   {isCreating ? "Creating..." : "Create New File"}
                 </Button>

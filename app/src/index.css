@@ -69,13 +69,20 @@ html.awsui-dark-mode .app-layout-wrapper {
   top: 0;
   background: var(--color-background-layout-main, #ffffff);
   z-index: 10;
-  padding-bottom: 8px;
-  margin-bottom: 8px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--color-border-divider-default, #e9ebed);
 }
 
 html[data-mode="dark"] .content-scroll-area > div:first-child,
 html.awsui-dark-mode .content-scroll-area > div:first-child {
   background: var(--color-background-layout-main, #1d1d1d) !important;
+  border-bottom-color: var(--color-border-divider-default, #414750);
+}
+
+/* Ensure content after breadcrumbs scrolls */
+.content-scroll-area > div:not(:first-child) {
+  padding-top: 0;
 }
 
 /* Tables should scroll within their containers - use max-height */
