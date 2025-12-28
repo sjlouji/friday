@@ -2,10 +2,13 @@ import { useLocation, useNavigate, Outlet } from "react-router-dom";
 import AppLayout from "@cloudscape-design/components/app-layout";
 import SideNavigation from "@cloudscape-design/components/side-navigation";
 import TopNavigation from "@cloudscape-design/components/top-navigation";
+import { useBeancountData } from "@/hooks/useBeancountData";
 
 export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
+  
+  useBeancountData();
 
   const navItems = [
     {

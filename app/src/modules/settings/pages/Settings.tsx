@@ -12,12 +12,14 @@ import Box from "@cloudscape-design/components/box";
 import Tabs from "@cloudscape-design/components/tabs";
 import { api } from "@/lib/api";
 import { useSettings } from "@/hooks/useSettings";
+import { useBeancountStore } from "@/store/beancountStore";
 import AppearanceTab from "../components/AppearanceTab";
 import WorkspaceTab from "../components/WorkspaceTab";
 import BookkeepingTab from "../components/BookkeepingTab";
 
 export default function Settings() {
   const { settings, updateSettings } = useSettings();
+  const { loadAll } = useBeancountStore();
   const [filePath, setFilePath] = useState(settings.beancountFilePath);
   const [activeTab, setActiveTab] = useState("appearance");
   const [saveStatus, setSaveStatus] = useState<"success" | "error" | null>(null);
@@ -148,9 +150,14 @@ export default function Settings() {
     updateSettings({ beancountFilePath: filePath });
     setSaveStatus("success");
 
-    setTimeout(() => {
-      window.location.reload();
-    }, 1000);
+    try {
+      await loadAll();
+      setSaveStatus("success");
+    } catch (error: unknown) {
+      const err = error as { message?: string };
+      setSaveStatus("error");
+      console.error("Failed to load data after saving file path:", err);
+    }
   };
 
   const handleCreateFile = async () => {
@@ -171,9 +178,11 @@ export default function Settings() {
 
       updateSettings({ beancountFilePath: filePath });
 
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
+      try {
+        await loadAll();
+      } catch (error: unknown) {
+        console.error("Failed to load data after creating file:", error);
+      }
     } catch (error: unknown) {
       const err = error as { message?: string };
       setCreateStatus("error");
@@ -206,7 +215,7 @@ export default function Settings() {
 
       {saveStatus === "success" && (
         <Alert type="success" dismissible onDismiss={() => setSaveStatus(null)}>
-          Settings saved successfully! Reloading...
+          Settings saved successfully! Data is being loaded...
         </Alert>
       )}
 

@@ -20,11 +20,9 @@ function getFilePath(): string {
       localStorage.removeItem(OLD_BEANCOUNT_FILE_KEY);
     }
   }
-  
+
   if (!path) {
-    throw new Error(
-      "Beancount file path not set. Please configure it in Settings."
-    );
+    throw new Error("Beancount file path not set. Please configure it in Settings.");
   }
   if (!path.includes("/") && !path.includes("\\")) {
     throw new Error(
@@ -34,15 +32,10 @@ function getFilePath(): string {
   return path;
 }
 
-async function fetchAPI<T>(
-  endpoint: string,
-  options?: RequestInit
-): Promise<T> {
+async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const filePath = getFilePath();
   const separator = endpoint.includes("?") ? "&" : "?";
-  const url = `${API_BASE_URL}${endpoint}${separator}file_path=${encodeURIComponent(
-    filePath
-  )}`;
+  const url = `${API_BASE_URL}${endpoint}${separator}file_path=${encodeURIComponent(filePath)}`;
 
   const response = await fetch(url, {
     ...options,
@@ -56,11 +49,7 @@ async function fetchAPI<T>(
     let errorDetail = response.statusText;
     try {
       const errorData = await response.json();
-      errorDetail =
-        errorData.detail ||
-        errorData.message ||
-        errorData.error ||
-        response.statusText;
+      errorDetail = errorData.detail || errorData.message || errorData.error || response.statusText;
     } catch {
       try {
         const errorText = await response.text();
@@ -97,9 +86,7 @@ export const api = {
           url += `&free_text=${encodeURIComponent(filters.freeText)}`;
         }
         if (filters.tokens && filters.tokens.length > 0) {
-          url += `&filter_tokens=${encodeURIComponent(
-            JSON.stringify(filters.tokens)
-          )}`;
+          url += `&filter_tokens=${encodeURIComponent(JSON.stringify(filters.tokens))}`;
           url += `&filter_operation=${filters.operation || "and"}`;
         }
       }
@@ -130,18 +117,14 @@ export const api = {
       const formData = new FormData();
       formData.append("file", file);
       const response = await fetch(
-        `${API_BASE_URL}/transactions/import-csv?file_path=${encodeURIComponent(
-          filePath
-        )}`,
+        `${API_BASE_URL}/transactions/import-csv?file_path=${encodeURIComponent(filePath)}`,
         {
           method: "POST",
           body: formData,
         }
       );
       if (!response.ok) {
-        const error = await response
-          .json()
-          .catch(() => ({ detail: response.statusText }));
+        const error = await response.json().catch(() => ({ detail: response.statusText }));
         throw new Error(error.detail || "Failed to import CSV file");
       }
       return response.json();
@@ -151,18 +134,14 @@ export const api = {
       const formData = new FormData();
       formData.append("file", file);
       const response = await fetch(
-        `${API_BASE_URL}/transactions/import-excel?file_path=${encodeURIComponent(
-          filePath
-        )}`,
+        `${API_BASE_URL}/transactions/import-excel?file_path=${encodeURIComponent(filePath)}`,
         {
           method: "POST",
           body: formData,
         }
       );
       if (!response.ok) {
-        const error = await response
-          .json()
-          .catch(() => ({ detail: response.statusText }));
+        const error = await response.json().catch(() => ({ detail: response.statusText }));
         throw new Error(error.detail || "Failed to import Excel file");
       }
       return response.json();
@@ -173,33 +152,24 @@ export const api = {
       try {
         const filePath = getFilePath();
         const response = await fetch(
-          `${API_BASE_URL}/transactions/preview?file_path=${encodeURIComponent(
-            filePath
-          )}`,
+          `${API_BASE_URL}/transactions/preview?file_path=${encodeURIComponent(filePath)}`,
           {
             method: "POST",
             body: formData,
           }
         );
         if (!response.ok) {
-          const error = await response
-            .json()
-            .catch(() => ({ detail: response.statusText }));
+          const error = await response.json().catch(() => ({ detail: response.statusText }));
           throw new Error(error.detail || "Failed to preview file");
         }
         return response.json();
       } catch (error: any) {
-        const response = await fetch(
-          `${API_BASE_URL}/transactions/preview`,
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
+        const response = await fetch(`${API_BASE_URL}/transactions/preview`, {
+          method: "POST",
+          body: formData,
+        });
         if (!response.ok) {
-          const error = await response
-            .json()
-            .catch(() => ({ detail: response.statusText }));
+          const error = await response.json().catch(() => ({ detail: response.statusText }));
           throw new Error(error.detail || "Failed to preview file");
         }
         return response.json();
@@ -229,9 +199,7 @@ export const api = {
         }
       );
       if (!response.ok) {
-        const error = await response
-          .json()
-          .catch(() => ({ detail: response.statusText }));
+        const error = await response.json().catch(() => ({ detail: response.statusText }));
         throw new Error(error.detail || "Failed to import file");
       }
       return response.json();
@@ -250,18 +218,14 @@ export const api = {
       const formData = new FormData();
       formData.append("file", file);
       const response = await fetch(
-        `${API_BASE_URL}/accounts/import-excel?file_path=${encodeURIComponent(
-          filePath
-        )}`,
+        `${API_BASE_URL}/accounts/import-excel?file_path=${encodeURIComponent(filePath)}`,
         {
           method: "POST",
           body: formData,
         }
       );
       if (!response.ok) {
-        const error = await response
-          .json()
-          .catch(() => ({ detail: response.statusText }));
+        const error = await response.json().catch(() => ({ detail: response.statusText }));
         throw new Error(error.detail || "Failed to import accounts");
       }
       return response.json();
@@ -283,9 +247,7 @@ export const api = {
   reports: {
     balanceSheet: () => fetchAPI("/reports/balance-sheet"),
     incomeStatement: (startDate: string, endDate: string) =>
-      fetchAPI(
-        `/reports/income-statement?start_date=${startDate}&end_date=${endDate}`
-      ),
+      fetchAPI(`/reports/income-statement?start_date=${startDate}&end_date=${endDate}`),
   },
 
   import: {
@@ -321,9 +283,7 @@ export const api = {
   files: {
     create: async (filePath: string) => {
       const response = await fetch(
-        `${API_BASE_URL}/files/create?file_path=${encodeURIComponent(
-          filePath
-        )}`,
+        `${API_BASE_URL}/files/create?file_path=${encodeURIComponent(filePath)}`,
         {
           method: "POST",
           headers: {
@@ -332,9 +292,7 @@ export const api = {
         }
       );
       if (!response.ok) {
-        const error = await response
-          .json()
-          .catch(() => ({ detail: response.statusText }));
+        const error = await response.json().catch(() => ({ detail: response.statusText }));
         throw new Error(error.detail || "Failed to create file");
       }
       return response.json();
@@ -356,8 +314,7 @@ export const api = {
           error = { detail: errorText || response.statusText };
         }
         throw new Error(
-          error.detail ||
-            `Failed to browse directory: ${response.status} ${response.statusText}`
+          error.detail || `Failed to browse directory: ${response.status} ${response.statusText}`
         );
       }
 
@@ -366,13 +323,10 @@ export const api = {
     getCommonPaths: async () => {
       const response = await fetch(`${API_BASE_URL}/files/common-paths`);
       if (!response.ok) {
-        const error = await response
-          .json()
-          .catch(() => ({ detail: response.statusText }));
+        const error = await response.json().catch(() => ({ detail: response.statusText }));
         throw new Error(error.detail || "Failed to get common paths");
       }
       return response.json();
     },
   },
 };
-
