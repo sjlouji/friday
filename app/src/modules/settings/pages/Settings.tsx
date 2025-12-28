@@ -135,17 +135,29 @@ export default function Settings() {
         let actualPath = "";
 
         try {
-          if ("getParent" in fileHandle && typeof fileHandle.getParent === "function") {
-            const dirHandle = await (fileHandle as any).getParent();
-            const dirName = dirHandle.name;
+          interface FileSystemHandleWithParent extends FileSystemFileHandle {
+            getParent?: () => Promise<FileSystemDirectoryHandle>;
+          }
+
+          const handleWithParent = fileHandle as FileSystemHandleWithParent;
+
+          if (handleWithParent.getParent && typeof handleWithParent.getParent === "function") {
+            const dirHandle = await handleWithParent.getParent();
 
             const pathParts: string[] = [];
-            let currentHandle: any = dirHandle;
+            let currentHandle: FileSystemDirectoryHandle | null = dirHandle;
 
             while (currentHandle && currentHandle.name !== undefined) {
               pathParts.unshift(currentHandle.name);
               try {
-                currentHandle = await currentHandle.getParent();
+                const parentHandle = currentHandle as FileSystemDirectoryHandle & {
+                  getParent?: () => Promise<FileSystemDirectoryHandle>;
+                };
+                if (parentHandle.getParent) {
+                  currentHandle = await parentHandle.getParent();
+                } else {
+                  break;
+                }
               } catch {
                 break;
               }
