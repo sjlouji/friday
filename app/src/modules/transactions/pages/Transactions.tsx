@@ -752,10 +752,10 @@ export default function Transactions() {
             pageSize={pageSize}
             pageSizeOptions={[10, 25, 50, 100]}
             ariaLabels={{
-              nextPageLabel: "Next page",
-              previousPageLabel: "Previous page",
+              nextPageLabel: t("transactions.nextPageLabel"),
+              previousPageLabel: t("transactions.previousPageLabel"),
               pageLabel: (pageNumber: number) =>
-                `Page ${pageNumber} of ${totalPages}`,
+                `${t("transactions.pageLabel")} ${pageNumber} ${t("common.of")} ${totalPages}`,
             }}
             onChange={({ detail }: any) => {
               setCurrentPageIndex(detail.currentPageIndex - 1);

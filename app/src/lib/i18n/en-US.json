@@ -26,7 +26,8 @@
     "noData": "No data available",
     "failedToSave": "Failed to save",
     "failedToDelete": "Failed to delete",
-    "failedToLoad": "Failed to load"
+    "failedToLoad": "Failed to load",
+    "of": "of"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -256,7 +257,13 @@
     "goToSettings": "Go to Settings and verify the Beancount file path",
     "useSelectFile": "Use the \"Select File\" button to choose the correct file",
     "manuallyEnterPath": "Or manually enter the correct full path to your Beancount file",
-    "makeSureFileExists": "Make sure the file exists at the specified location"
+    "makeSureFileExists": "Make sure the file exists at the specified location",
+    "accountNameMustUseColons": "Account name must use colon separators (e.g., Assets:Bank:Checking)",
+    "accountNamePartsCannotBeEmpty": "Account name parts cannot be empty (e.g., Assets::Checking is invalid)",
+    "accountNameDescription": "Account names must use colons and will be auto-capitalized (e.g., Assets:Bank:Checking)",
+    "openDate": "Open Date",
+    "closeDateOptional": "Close Date (optional)",
+    "errorCreatingAccount": "Error creating account"
   },
   "budget": {
     "title": "Budget",

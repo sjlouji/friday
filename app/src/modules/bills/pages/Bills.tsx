@@ -15,6 +15,7 @@ import { Bill } from "@/types/beancount";
 import BillModal from "../components/BillModal";
 
 export default function Bills() {
+  const { t } = useTranslation();
   const { accounts, transactions } = useBeancountStore();
   const [bills, setBills] = useState<Bill[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -95,7 +96,7 @@ export default function Bills() {
 
   const breadcrumbs = [
     { text: "Friday", href: "/" },
-    { text: "Bills", href: "/bills" },
+    { text: t("bills.title"), href: "/bills" },
   ];
 
   return (

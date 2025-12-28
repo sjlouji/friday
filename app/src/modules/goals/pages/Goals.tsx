@@ -13,8 +13,10 @@ import BreadcrumbGroup from "@cloudscape-design/components/breadcrumb-group";
 import StatusIndicator from "@cloudscape-design/components/status-indicator";
 import { SavingsGoal, DebtPayoff } from "@/types/beancount";
 import GoalModal from "../components/GoalModal";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function Goals() {
+  const { t } = useTranslation();
   const { accounts } = useBeancountStore();
   const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>([]);
   const [debtPayoffs, setDebtPayoffs] = useState<DebtPayoff[]>([]);
