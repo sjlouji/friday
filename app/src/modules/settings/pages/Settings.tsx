@@ -239,23 +239,17 @@ export default function Settings() {
           );
         }, 100);
         return;
-      } else if (!isFullPath(targetPath)) {
+      }
+
+      if (!isFullPath(targetPath)) {
         const selectedDirectory = await pickDirectory();
         targetPath = `${selectedDirectory}/${targetPath}`;
         setFilePath(targetPath);
       }
 
-      if (!isFullPath(targetPath)) {
-      setCreateStatus("error");
-        setCreateMessage(
-          "Please provide the full path (e.g., /Users/username/Documents/ledger.beancount)."
-        );
-      return;
-    }
-
-    setIsCreating(true);
-    setCreateStatus(null);
-    setCreateMessage("");
+      setIsCreating(true);
+      setCreateStatus(null);
+      setCreateMessage("");
 
       const result = await api.files.create(targetPath);
 
@@ -271,10 +265,17 @@ export default function Settings() {
         return;
       }
 
-      setCreateStatus("error");
-      setCreateMessage(
-        error?.message || "Failed to select directory. Please enter a full file path manually."
-      );
+      const errorMessage = error?.message || "Failed to create file. Please enter a full file path manually.";
+      
+      if (errorMessage.includes("already exists") || errorMessage.includes("FileExistsError")) {
+        setCreateStatus("error");
+        setCreateMessage(
+          `File already exists at this path. Please choose a different filename or clear the existing path first.`
+        );
+      } else {
+        setCreateStatus("error");
+        setCreateMessage(errorMessage);
+      }
 
       setTimeout(() => {
         filePathInputRef.current?.focus();
