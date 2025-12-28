@@ -297,14 +297,10 @@ export default function Settings() {
           {createMessage}
           {createMessage.includes("Directory picker is not supported") && (
             <Box variant="small" color="text-body-secondary" margin={{ top: "xs" }}>
-              <Box as="strong">Examples:</Box>
-              <Box as="ul" padding={{ left: "l" }} margin={{ top: "xs" }}>
-                <li>
-                  <code>/Users/username/Documents/ledger.beancount</code> (absolute path)
-                </li>
-                <li>
-                  <code>~/Documents/ledger.beancount</code> (home directory shortcut)
-                </li>
+              <Box fontWeight="bold">Examples:</Box>
+              <Box padding={{ left: "l" }} margin={{ top: "xs" }}>
+                <Box>• <code>/Users/username/Documents/ledger.beancount</code> (absolute path)</Box>
+                <Box>• <code>~/Documents/ledger.beancount</code> (home directory shortcut)</Box>
               </Box>
             </Box>
           )}
