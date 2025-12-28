@@ -30,9 +30,7 @@ import {
 export default function Portfolio() {
   const { t } = useTranslation();
   const { transactions, portfolios, loadAll } = useBeancountStore();
-  const [timeRange, setTimeRange] = useState<"1M" | "3M" | "6M" | "1Y" | "ALL">(
-    "1Y"
-  );
+  const [timeRange, setTimeRange] = useState<"1M" | "3M" | "6M" | "1Y" | "ALL">("1Y");
 
   useEffect(() => {
     loadAll();
@@ -40,13 +38,11 @@ export default function Portfolio() {
 
   const portfolioData = portfolios.map((portfolio) => {
     const totalCost = portfolio.positions.reduce(
-      (sum, pos) =>
-        sum + parseFloat(pos.cost.number) * parseFloat(pos.quantity),
+      (sum, pos) => sum + parseFloat(pos.cost.number) * parseFloat(pos.quantity),
       0
     );
     const totalValue = portfolio.positions.reduce(
-      (sum, pos) =>
-        sum + parseFloat(pos.value.number) * parseFloat(pos.quantity),
+      (sum, pos) => sum + parseFloat(pos.value.number) * parseFloat(pos.quantity),
       0
     );
     const gain = totalValue - totalCost;
@@ -74,46 +70,28 @@ export default function Portfolio() {
     value: pos.value,
   }));
 
-  const COLORS = [
-    "#0ea5e9",
-    "#3b82f6",
-    "#6366f1",
-    "#8b5cf6",
-    "#a855f7",
-    "#d946ef",
-    "#ec4899",
-  ];
+  const COLORS = ["#0ea5e9", "#3b82f6", "#6366f1", "#8b5cf6", "#a855f7", "#d946ef", "#ec4899"];
 
-  const totalPortfolioValue = portfolioData.reduce(
-    (sum, p) => sum + p.totalValue,
-    0
-  );
+  const totalPortfolioValue = portfolioData.reduce((sum, p) => sum + p.totalValue, 0);
   const totalCost = portfolioData.reduce((sum, p) => sum + p.totalCost, 0);
   const totalGain = portfolioData.reduce((sum, p) => sum + p.gain, 0);
   const totalGainPercent = totalCost > 0 ? (totalGain / totalCost) * 100 : 0;
 
   const holdingsByCommodity = useMemo(() => {
-    const grouped: Record<
-      string,
-      { quantity: number; cost: number; value: number }
-    > = {};
+    const grouped: Record<string, { quantity: number; cost: number; value: number }> = {};
     allPositions.forEach((pos) => {
       if (!grouped[pos.commodity]) {
         grouped[pos.commodity] = { quantity: 0, cost: 0, value: 0 };
       }
       grouped[pos.commodity].quantity += parseFloat(pos.quantity);
-      grouped[pos.commodity].cost +=
-        parseFloat(pos.cost.number) * parseFloat(pos.quantity);
+      grouped[pos.commodity].cost += parseFloat(pos.cost.number) * parseFloat(pos.quantity);
       grouped[pos.commodity].value += pos.value;
     });
     return grouped;
   }, [allPositions]);
 
   const holdingsByAccount = useMemo(() => {
-    const grouped: Record<
-      string,
-      { cost: number; value: number; gain: number }
-    > = {};
+    const grouped: Record<string, { cost: number; value: number; gain: number }> = {};
     portfolioData.forEach((p) => {
       grouped[p.account] = {
         cost: p.totalCost,
@@ -147,26 +125,14 @@ export default function Portfolio() {
       </Header>
 
       <Grid gridDefinition={[{ colspan: 4 }, { colspan: 4 }, { colspan: 4 }]}>
-        <Container
-          variant="stacked"
-          header={<Header variant="h2">Total Portfolio Value</Header>}
-        >
+        <Container variant="stacked" header={<Header variant="h2">Total Portfolio Value</Header>}>
           <Box variant="h1">{formatIndianCurrency(totalPortfolioValue)}</Box>
         </Container>
-        <Container
-          variant="stacked"
-          header={<Header variant="h2">Total Cost Basis</Header>}
-        >
+        <Container variant="stacked" header={<Header variant="h2">Total Cost Basis</Header>}>
           <Box variant="h1">{formatIndianCurrency(totalCost)}</Box>
         </Container>
-        <Container
-          variant="stacked"
-          header={<Header variant="h2">Total Gain/Loss</Header>}
-        >
-          <Box
-            variant="h1"
-            color={totalGain >= 0 ? "text-status-success" : "text-status-error"}
-          >
+        <Container variant="stacked" header={<Header variant="h2">Total Gain/Loss</Header>}>
+          <Box variant="h1" color={totalGain >= 0 ? "text-status-success" : "text-status-error"}>
             {totalGain >= 0 ? "+" : ""}
             {formatIndianCurrency(totalGain)}
           </Box>
@@ -178,10 +144,7 @@ export default function Portfolio() {
       </Grid>
 
       <Grid gridDefinition={[{ colspan: 6 }, { colspan: 6 }]}>
-        <Container
-          variant="stacked"
-          header={<Header variant="h2">Asset Allocation</Header>}
-        >
+        <Container variant="stacked" header={<Header variant="h2">Asset Allocation</Header>}>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -189,18 +152,13 @@ export default function Portfolio() {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) =>
-                  `${name} ${(percent * 100).toFixed(0)}%`
-                }
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"
               >
                 {chartData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip />
@@ -208,10 +166,7 @@ export default function Portfolio() {
           </ResponsiveContainer>
         </Container>
 
-        <Container
-          variant="stacked"
-          header={<Header variant="h2">Holdings Value</Header>}
-        >
+        <Container variant="stacked" header={<Header variant="h2">Holdings Value</Header>}>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -260,13 +215,7 @@ export default function Portfolio() {
                         id: "gain",
                         header: "Gain/Loss",
                         cell: (item) => (
-                          <Box
-                            color={
-                              item.gain >= 0
-                                ? "text-status-success"
-                                : "text-status-error"
-                            }
-                          >
+                          <Box color={item.gain >= 0 ? "text-status-success" : "text-status-error"}>
                             {item.gain >= 0 ? "+" : ""}
                             {formatIndianCurrency(item.gain)}
                           </Box>
@@ -276,9 +225,7 @@ export default function Portfolio() {
                         id: "return",
                         header: "Return %",
                         cell: (item) => (
-                          <StatusIndicator
-                            type={item.gainPercent >= 0 ? "success" : "error"}
-                          >
+                          <StatusIndicator type={item.gainPercent >= 0 ? "success" : "error"}>
                             {item.gainPercent >= 0 ? "+" : ""}
                             {item.gainPercent.toFixed(2)}%
                           </StatusIndicator>
@@ -295,10 +242,7 @@ export default function Portfolio() {
             label: "Holdings",
             id: "holdings",
             content: (
-              <Container
-                variant="stacked"
-                header={<Header variant="h2">All Holdings</Header>}
-              >
+              <Container variant="stacked" header={<Header variant="h2">All Holdings</Header>}>
                 {allPositions.length === 0 ? (
                   <Box textAlign="center" padding={{ vertical: "xl" }}>
                     No holdings data available
