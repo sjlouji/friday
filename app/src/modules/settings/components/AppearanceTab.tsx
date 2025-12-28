@@ -1,4 +1,3 @@
-import { useState } from "react";
 import Container from "@cloudscape-design/components/container";
 import Form from "@cloudscape-design/components/form";
 import FormField from "@cloudscape-design/components/form-field";
@@ -29,7 +28,7 @@ const LOCALE_TO_DATE_FORMAT: Record<string, string> = {
 };
 
 export default function AppearanceTab() {
-  const { appearance, updateAppearance, workspace, updateWorkspace, applyTheme, applyLanguage } =
+  const { appearance, updateAppearance, updateWorkspace, applyTheme, applyLanguage } =
     useSettings();
   const { t } = useTranslation();
 
