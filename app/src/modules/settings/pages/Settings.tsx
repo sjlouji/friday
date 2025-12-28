@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useFilePicker } from "use-file-picker";
 import Header from "@cloudscape-design/components/header";
 import Container from "@cloudscape-design/components/container";
 import Form from "@cloudscape-design/components/form";
@@ -11,11 +12,9 @@ import Alert from "@cloudscape-design/components/alert";
 import Box from "@cloudscape-design/components/box";
 import Tabs from "@cloudscape-design/components/tabs";
 import Spinner from "@cloudscape-design/components/spinner";
-import Modal from "@cloudscape-design/components/modal";
 import { useSettings } from "@/hooks/useSettings";
 import { useBeancountStore } from "@/store/beancountStore";
 import { useAutoSave } from "@/hooks/useAutoSave";
-import { api } from "@/lib/api";
 import AppearanceTab from "../components/AppearanceTab";
 import WorkspaceTab from "../components/WorkspaceTab";
 import BookkeepingTab from "../components/BookkeepingTab";
@@ -243,8 +242,8 @@ export default function Settings() {
       console.error("Error processing file selection:", error);
     } finally {
       setIsSelecting(false);
-    if (event.target) {
-      event.target.value = "";
+      if (event.target) {
+        event.target.value = "";
       }
     }
   };
@@ -406,7 +405,7 @@ export default function Settings() {
                 <Button variant="link" onClick={() => setShowFileBrowser(false)}>
                   Cancel
                 </Button>
-            </SpaceBetween>
+              </SpaceBetween>
             </Box>
           }
         >
