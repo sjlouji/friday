@@ -226,7 +226,7 @@ export default function Settings() {
     try {
       if (!targetPath) {
         const selectedDirectory = await pickDirectory();
-        setCreateStatus("error");
+      setCreateStatus("error");
         setCreateMessage(
           "Please enter a filename in the input field above (e.g., ledger.beancount), then click 'Create New File' again."
         );
@@ -238,8 +238,8 @@ export default function Settings() {
             selectedDirectory.length + 1
           );
         }, 100);
-        return;
-      }
+      return;
+    }
 
       if (!isFullPath(targetPath)) {
         const selectedDirectory = await pickDirectory();
@@ -247,11 +247,13 @@ export default function Settings() {
         setFilePath(targetPath);
       }
 
-      setIsCreating(true);
-      setCreateStatus(null);
-      setCreateMessage("");
+    setIsCreating(true);
+    setCreateStatus(null);
+    setCreateMessage("");
 
+      console.log("Creating file at path:", targetPath);
       const result = await api.files.create(targetPath);
+      console.log("File creation result:", result);
 
       setCreateStatus("success");
       setCreateMessage(result.message || "File created successfully!");
@@ -266,15 +268,22 @@ export default function Settings() {
       }
 
       console.error("Error creating file:", error);
+      console.error("Error type:", typeof error);
+      console.error("Error keys:", Object.keys(error || {}));
+      console.error("Full error object:", JSON.stringify(error, null, 2));
 
       let errorMessage = "Failed to create file. Please check the path and try again.";
-
+      
       if (error?.message) {
         errorMessage = error.message;
       } else if (error?.detail) {
         errorMessage = error.detail;
+      } else if (error?.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
       } else if (typeof error === "string") {
         errorMessage = error;
+      } else if (error?.toString) {
+        errorMessage = error.toString();
       }
 
       if (errorMessage.includes("already exists") || errorMessage.includes("FileExistsError")) {
@@ -299,7 +308,7 @@ export default function Settings() {
           `Directory does not exist. Please check the path and ensure the directory exists.`
         );
       } else {
-        setCreateStatus("error");
+      setCreateStatus("error");
         setCreateMessage(errorMessage);
       }
 
