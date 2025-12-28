@@ -284,16 +284,35 @@ export default function Accounts() {
             ))}
           </Box>
           <Box variant="small" color="text-body-secondary" margin={{ top: "xs" }}>
-            These errors may prevent accounts from loading correctly. Please fix them in your Beancount file.
-            <Box margin={{ top: "xs" }}>
-              <strong>Tip:</strong> Check the line number mentioned in each error and verify that:
-              <Box as="ul" padding={{ left: "l" }} margin={{ top: "xs" }}>
-                <li>Transactions balance (debits = credits)</li>
-                <li>Account names are properly formatted</li>
-                <li>Dates are in YYYY-MM-DD format</li>
-                <li>Amounts and currencies are correct</li>
-              </Box>
-            </Box>
+            {accountErrors.some((err) => err.includes("File not found")) ? (
+              <>
+                <Box fontWeight="bold" margin={{ bottom: "xs" }}>
+                  File not found error detected:
+                </Box>
+                <Box>
+                  The file path in Settings may be incorrect or the file doesn't exist. Please:
+                  <Box as="ul" padding={{ left: "l" }} margin={{ top: "xs" }}>
+                    <li>Go to Settings and verify the Beancount file path</li>
+                    <li>Use the "Select File" button to choose the correct file</li>
+                    <li>Or manually enter the correct full path to your Beancount file</li>
+                    <li>Make sure the file exists at the specified location</li>
+                  </Box>
+                </Box>
+              </>
+            ) : (
+              <>
+                These errors may prevent accounts from loading correctly. Please fix them in your Beancount file.
+                <Box margin={{ top: "xs" }}>
+                  <strong>Tip:</strong> Check the line number mentioned in each error and verify that:
+                  <Box as="ul" padding={{ left: "l" }} margin={{ top: "xs" }}>
+                    <li>Transactions balance (debits = credits)</li>
+                    <li>Account names are properly formatted</li>
+                    <li>Dates are in YYYY-MM-DD format</li>
+                    <li>Amounts and currencies are correct</li>
+                  </Box>
+                </Box>
+              </>
+            )}
           </Box>
         </Alert>
       )}

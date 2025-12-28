@@ -40,11 +40,20 @@ export default function Settings() {
         return;
       }
 
-      if (!path.includes("/") && !path.includes("\\")) {
+      const trimmedPath = path.trim();
+
+      if (!trimmedPath.includes("/") && !trimmedPath.includes("\\")) {
         return;
       }
 
-      updateSettings({ beancountFilePath: path });
+      if (trimmedPath.includes("T") && trimmedPath.match(/\d{4}-\d{2}-\d{2}T\d{2}[:_]\d{2}/)) {
+        console.warn(
+          "File path appears to contain a timestamp. This is likely invalid:",
+          trimmedPath
+        );
+      }
+
+      updateSettings({ beancountFilePath: trimmedPath });
 
       try {
         await loadAll();
