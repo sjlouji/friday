@@ -33,7 +33,6 @@ export default function Settings() {
   } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const filePathInputRef = useRef<HTMLInputElement>(null);
-  const directoryInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setFilePath(settings.beancountFilePath);
@@ -285,7 +284,7 @@ export default function Settings() {
             filePathInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
           }, 100);
         }
-        return;
+      return;
       }
     }
 
