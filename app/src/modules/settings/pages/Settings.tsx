@@ -178,9 +178,20 @@ export default function Settings() {
             mode: "readwrite",
           });
           const dirName = dirHandle.name;
-          const isWindows = navigator.platform.toLowerCase().includes("win");
-          const homeDir = isWindows ? "C:\\Users\\YourName" : "~";
-          targetPath = `${homeDir}/${dirName}/ledger.beancount`;
+
+          const platform = navigator.platform.toLowerCase();
+          let suggestedPath = "";
+
+          if (platform.includes("win")) {
+            suggestedPath = `~/${dirName}/ledger.beancount`;
+          } else if (platform.includes("mac")) {
+            suggestedPath = `~/Documents/${dirName}/ledger.beancount`;
+          } else {
+            suggestedPath = `~/${dirName}/ledger.beancount`;
+          }
+
+          setFilePath(suggestedPath);
+          targetPath = suggestedPath;
         } else {
           setCreateStatus("error");
           setCreateMessage(
