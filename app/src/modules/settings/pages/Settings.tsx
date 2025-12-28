@@ -11,7 +11,6 @@ import Alert from "@cloudscape-design/components/alert";
 import Box from "@cloudscape-design/components/box";
 import Tabs from "@cloudscape-design/components/tabs";
 import Spinner from "@cloudscape-design/components/spinner";
-import FileInput from "@cloudscape-design/components/file-input";
 import { useSettings } from "@/hooks/useSettings";
 import { useBeancountStore } from "@/store/beancountStore";
 import { useAutoSave } from "@/hooks/useAutoSave";
@@ -24,10 +23,6 @@ export default function Settings() {
   const { loadAll } = useBeancountStore();
   const [filePath, setFilePath] = useState(settings.beancountFilePath);
   const [activeTab, setActiveTab] = useState("appearance");
-  const [fileInfo, setFileInfo] = useState<{
-    name: string;
-    show: boolean;
-  } | null>(null);
   const filePathInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -178,7 +173,6 @@ export default function Settings() {
   const handleClearFilePath = () => {
     setFilePath("");
     updateSettings({ beancountFilePath: "" });
-    setFileInfo(null);
   };
 
   const breadcrumbs = [
