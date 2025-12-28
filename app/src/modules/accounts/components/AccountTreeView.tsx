@@ -29,7 +29,12 @@ export default function AccountTreeView({
   const [expandedItems, setExpandedItems] = React.useState<string[]>([]);
 
   const buildTree = React.useMemo(() => {
-    const root: Record<string, TreeNode> = {};
+    interface TreeBuilderNode {
+      node: TreeNode;
+      children: Record<string, TreeBuilderNode>;
+    }
+
+    const root: Record<string, TreeBuilderNode> = {};
 
     accounts.forEach((account) => {
       const parts = account.name.split(":");
@@ -42,26 +47,35 @@ export default function AccountTreeView({
 
         if (!current[part]) {
           current[part] = {
-            id: nodeId,
-            content: part,
-            iconName: isLeaf ? "file" : "folder",
-            nestedItems: [],
-            ...(isLeaf ? { account, balance: balances[account.name] } : {}),
+            node: {
+              id: nodeId,
+              content: part,
+              iconName: isLeaf ? "file" : "folder",
+              nestedItems: [],
+              ...(isLeaf ? { account, balance: balances[account.name] } : {}),
+            },
+            children: {},
           };
         }
 
-        if (isLeaf && current[part].account) {
-          current[part].account = account;
-          current[part].balance = balances[account.name];
+        if (isLeaf) {
+          current[part].node.account = account;
+          current[part].node.balance = balances[account.name];
         }
 
-        if (!current[part].nestedItems) {
-          current[part].nestedItems = [];
-        }
-
-        current = current[part].nestedItems as unknown as Record<string, TreeNode>;
+        current = current[part].children;
       });
     });
+
+    const convertToTreeNodes = (builderNodes: Record<string, TreeBuilderNode>): TreeNode[] => {
+      return Object.values(builderNodes).map((builderNode) => {
+        const nestedItems = convertToTreeNodes(builderNode.children);
+        return {
+          ...builderNode.node,
+          nestedItems: nestedItems.length > 0 ? nestedItems : undefined,
+        };
+      });
+    };
 
     const calculateBalances = (node: TreeNode): void => {
       if (node.nestedItems && node.nestedItems.length > 0) {
@@ -91,7 +105,7 @@ export default function AccountTreeView({
       }
     };
 
-    const rootNodes = Object.values(root);
+    const rootNodes = convertToTreeNodes(root);
     rootNodes.forEach((node) => calculateBalances(node));
 
     return rootNodes;
@@ -144,4 +158,5 @@ export default function AccountTreeView({
     />
   );
 }
+
 
