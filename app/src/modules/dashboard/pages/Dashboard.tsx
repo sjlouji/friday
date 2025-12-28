@@ -9,9 +9,11 @@ import SpaceBetween from '@cloudscape-design/components/space-between';
 import BreadcrumbGroup from '@cloudscape-design/components/breadcrumb-group';
 import Spinner from '@cloudscape-design/components/spinner';
 import { LineChart, Line, BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function Dashboard() {
   const { transactions, accounts, fetchDashboard, loadAll, loading } = useBeancountStore();
+  const { t } = useTranslation();
   const [dashboardData, setDashboardData] = useState<any>(null);
 
   useEffect(() => {
@@ -116,7 +118,7 @@ export default function Dashboard() {
 
   const breadcrumbs = [
     { text: 'Friday', href: '/' },
-    { text: 'Dashboard', href: '/' },
+    { text: t("dashboard.title"), href: '/' },
   ];
 
   if (loading && !dashboardData) {
@@ -128,30 +130,30 @@ export default function Dashboard() {
   }
 
   return (
-    <SpaceBetween size="l">
+    <SpaceBetween size="s">
       <BreadcrumbGroup items={breadcrumbs} />
 
-      <Header variant="h1" description="Overview of your finances">
-        Dashboard
+      <Header variant="h1" description={t("dashboard.description")}>
+        {t("dashboard.title")}
       </Header>
 
       <Grid gridDefinition={[{ colspan: 3 }, { colspan: 3 }, { colspan: 3 }, { colspan: 3 }]}>
-        <Container variant="stacked" header={<Header variant="h2">Net Worth</Header>}>
+        <Container variant="stacked" header={<Header variant="h2">{t("dashboard.netWorth")}</Header>}>
           <Box variant="h1" color="text-status-success">
             ${netWorth.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </Box>
         </Container>
-        <Container variant="stacked" header={<Header variant="h2">Total Assets</Header>}>
+        <Container variant="stacked" header={<Header variant="h2">{t("dashboard.totalAssets")}</Header>}>
           <Box variant="h1" color="text-status-success">
             ${totalAssets.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </Box>
         </Container>
-        <Container variant="stacked" header={<Header variant="h2">Monthly Income</Header>}>
+        <Container variant="stacked" header={<Header variant="h2">{t("dashboard.monthlyIncome")}</Header>}>
           <Box variant="h1" color="text-status-info">
             ${monthlyIncome.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </Box>
         </Container>
-        <Container variant="stacked" header={<Header variant="h2">Monthly Expenses</Header>}>
+        <Container variant="stacked" header={<Header variant="h2">{t("dashboard.monthlyExpenses")}</Header>}>
           <Box variant="h1" color="text-status-error">
             ${monthlyExpenses.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </Box>
@@ -159,46 +161,46 @@ export default function Dashboard() {
       </Grid>
 
       <Grid gridDefinition={[{ colspan: 6 }, { colspan: 6 }]}>
-        <Container variant="stacked" header={<Header variant="h2">Income vs Expenses</Header>}>
+        <Container variant="stacked" header={<Header variant="h2">{t("dashboard.incomeVsExpenses")}</Header>}>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={monthlyChartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="income" fill="#3b82f6" name="Income" />
-              <Bar dataKey="expenses" fill="#ef4444" name="Expenses" />
+              <Bar dataKey="income" fill="#3b82f6" name={t("dashboard.income")} />
+              <Bar dataKey="expenses" fill="#ef4444" name={t("dashboard.expenses")} />
             </BarChart>
           </ResponsiveContainer>
         </Container>
 
-        <Container variant="stacked" header={<Header variant="h2">Net Cash Flow</Header>}>
+        <Container variant="stacked" header={<Header variant="h2">{t("dashboard.netCashFlow")}</Header>}>
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={monthlyChartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
               <Tooltip />
-              <Area type="monotone" dataKey="net" stroke="#10b981" fill="#10b981" fillOpacity={0.6} name="Net" />
+              <Area type="monotone" dataKey="net" stroke="#10b981" fill="#10b981" fillOpacity={0.6} name={t("dashboard.net")} />
             </AreaChart>
           </ResponsiveContainer>
         </Container>
       </Grid>
 
       <Grid gridDefinition={[{ colspan: 6 }, { colspan: 6 }]}>
-        <Container variant="stacked" header={<Header variant="h2">Expenses Trend</Header>}>
+        <Container variant="stacked" header={<Header variant="h2">{t("dashboard.expensesTrend")}</Header>}>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={dailyChartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="day" />
               <YAxis />
               <Tooltip />
-              <Line type="monotone" dataKey="amount" stroke="#ef4444" name="Daily Expenses" />
+              <Line type="monotone" dataKey="amount" stroke="#ef4444" name={t("dashboard.dailyExpenses")} />
             </LineChart>
           </ResponsiveContainer>
         </Container>
 
-        <Container variant="stacked" header={<Header variant="h2">Expenses by Category</Header>}>
+        <Container variant="stacked" header={<Header variant="h2">{t("dashboard.expensesByCategory")}</Header>}>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -225,13 +227,13 @@ export default function Dashboard() {
         variant="stacked"
         header={
           <Header variant="h2" counter={`(${recentTransactions.length})`}>
-            Recent Transactions
+            {t("dashboard.recentTransactions")}
           </Header>
         }
       >
         {recentTransactions.length === 0 ? (
           <Box textAlign="center" padding={{ vertical: 'xl' }}>
-            No transactions yet
+            {t("dashboard.noTransactionsYet")}
           </Box>
         ) : (
           <SpaceBetween direction="vertical" size="s">

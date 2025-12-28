@@ -3,61 +3,63 @@ import AppLayout from "@cloudscape-design/components/app-layout";
 import SideNavigation from "@cloudscape-design/components/side-navigation";
 import TopNavigation from "@cloudscape-design/components/top-navigation";
 import { useBeancountData } from "@/hooks/useBeancountData";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   
   useBeancountData();
 
   const navItems = [
     {
       type: "section",
-      text: "Overview",
-      items: [{ type: "link", text: "Dashboard", href: "/" }],
+      text: t("navigation.overview"),
+      items: [{ type: "link", text: t("navigation.dashboard"), href: "/" }],
     },
     {
       type: "section",
-      text: "Transactions",
+      text: t("navigation.transactions"),
       items: [
-        { type: "link", text: "Transactions", href: "/transactions" },
-        { type: "link", text: "Recurring", href: "/recurring" },
-        { type: "link", text: "Accounts", href: "/accounts" },
+        { type: "link", text: t("navigation.transactions"), href: "/transactions" },
+        { type: "link", text: t("navigation.recurring"), href: "/recurring" },
+        { type: "link", text: t("navigation.accounts"), href: "/accounts" },
       ],
     },
     {
       type: "section",
-      text: "Assets & Liabilities",
+      text: t("navigation.assetsLiabilities"),
       items: [
-        { type: "link", text: "Assets", href: "/assets" },
-        { type: "link", text: "Debt", href: "/debt" },
-        { type: "link", text: "Investments", href: "/portfolio" },
+        { type: "link", text: t("navigation.assets"), href: "/assets" },
+        { type: "link", text: t("navigation.debt"), href: "/debt" },
+        { type: "link", text: t("navigation.investments"), href: "/portfolio" },
       ],
     },
     {
       type: "section",
-      text: "Planning & Budgeting",
+      text: t("navigation.planningBudgeting"),
       items: [
-        { type: "link", text: "Budget", href: "/budget" },
-        { type: "link", text: "Bills", href: "/bills" },
-        { type: "link", text: "Goals", href: "/goals" },
-        { type: "link", text: "Tax Planning", href: "/tax" },
+        { type: "link", text: t("navigation.budget"), href: "/budget" },
+        { type: "link", text: t("navigation.bills"), href: "/bills" },
+        { type: "link", text: t("navigation.goals"), href: "/goals" },
+        { type: "link", text: t("navigation.tax"), href: "/tax" },
       ],
     },
     {
       type: "section",
-      text: "Reports & Analysis",
+      text: t("navigation.reportsAnalysis"),
       items: [
-        { type: "link", text: "Reports", href: "/reports" },
-        { type: "link", text: "Portfolio", href: "/portfolio" },
+        { type: "link", text: t("navigation.reports"), href: "/reports" },
+        { type: "link", text: t("navigation.portfolio"), href: "/portfolio" },
       ],
     },
     {
       type: "section",
-      text: "Settings",
+      text: t("navigation.settings"),
       items: [
-        { type: "link", text: "Import", href: "/import" },
-        { type: "link", text: "Settings", href: "/settings" },
+        { type: "link", text: t("navigation.import"), href: "/import" },
+        { type: "link", text: t("navigation.settings"), href: "/settings" },
       ],
     },
   ];
@@ -90,7 +92,7 @@ export default function Layout() {
             {
               type: "button",
               iconName: "settings",
-              text: "Settings",
+              text: t("navigation.settings"),
               href: "/settings",
               onClick: (e) => {
                 e.preventDefault();
@@ -99,12 +101,12 @@ export default function Layout() {
             },
           ]}
           i18nStrings={{
-            searchIconAriaLabel: "Search",
-            searchDismissIconAriaLabel: "Close search",
-            overflowMenuTriggerText: "More",
-            overflowMenuTitleText: "All",
-            overflowMenuBackIconAriaLabel: "Back",
-            overflowMenuDismissIconAriaLabel: "Close menu",
+            searchIconAriaLabel: t("navigation.searchIconAriaLabel"),
+            searchDismissIconAriaLabel: t("navigation.searchDismissIconAriaLabel"),
+            overflowMenuTriggerText: t("navigation.overflowMenuTriggerText"),
+            overflowMenuTitleText: t("navigation.overflowMenuTitleText"),
+            overflowMenuBackIconAriaLabel: t("navigation.overflowMenuBackIconAriaLabel"),
+            overflowMenuDismissIconAriaLabel: t("navigation.overflowMenuDismissIconAriaLabel"),
           }}
         />
       </div>

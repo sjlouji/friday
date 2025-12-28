@@ -13,8 +13,10 @@ import BreadcrumbGroup from "@cloudscape-design/components/breadcrumb-group";
 import Tabs from "@cloudscape-design/components/tabs";
 import { api } from "@/lib/api";
 import TransactionMappingModal from "../components/TransactionMappingModal";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function Import() {
+  const { t } = useTranslation();
   const { importFile, exportFile, fetchTransactions } = useBeancountStore();
   const [importStatus, setImportStatus] = useState<"idle" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -203,7 +205,7 @@ export default function Import() {
   ];
 
   return (
-    <SpaceBetween size="l">
+    <SpaceBetween size="s">
       <BreadcrumbGroup items={breadcrumbs} />
 
       <Header variant="h1" description="Import beancount files or export your data">

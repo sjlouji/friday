@@ -26,6 +26,7 @@ import { Transaction } from "@/types/beancount";
 import { formatIndianCurrency } from "@/lib/utils/currency";
 
 export default function Tax() {
+  const { t } = useTranslation();
   const { transactions, accounts } = useBeancountStore();
 
   // Indian Financial Year: April 1 to March 31
@@ -180,11 +181,11 @@ export default function Tax() {
 
   const breadcrumbs = [
     { text: "Friday", href: "/" },
-    { text: "Tax Planning", href: "/tax" },
+    { text: t("tax.title"), href: "/tax" },
   ];
 
   return (
-    <SpaceBetween size="l">
+    <SpaceBetween size="s">
       <BreadcrumbGroup items={breadcrumbs} />
 
       <Header

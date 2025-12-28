@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Header from "@cloudscape-design/components/header";
 import Container from "@cloudscape-design/components/container";
 import Form from "@cloudscape-design/components/form";
@@ -10,9 +10,11 @@ import BreadcrumbGroup from "@cloudscape-design/components/breadcrumb-group";
 import Alert from "@cloudscape-design/components/alert";
 import Box from "@cloudscape-design/components/box";
 import Tabs from "@cloudscape-design/components/tabs";
-import { api } from "@/lib/api";
+import Spinner from "@cloudscape-design/components/spinner";
 import { useSettings } from "@/hooks/useSettings";
 import { useBeancountStore } from "@/store/beancountStore";
+import { useAutoSave } from "@/hooks/useAutoSave";
+import { useTranslation } from "@/hooks/useTranslation";
 import AppearanceTab from "../components/AppearanceTab";
 import WorkspaceTab from "../components/WorkspaceTab";
 import BookkeepingTab from "../components/BookkeepingTab";
@@ -20,241 +22,90 @@ import BookkeepingTab from "../components/BookkeepingTab";
 export default function Settings() {
   const { settings, updateSettings } = useSettings();
   const { loadAll } = useBeancountStore();
+  const { t } = useTranslation();
   const [filePath, setFilePath] = useState(settings.beancountFilePath);
   const [activeTab, setActiveTab] = useState("appearance");
-  const [saveStatus, setSaveStatus] = useState<"success" | "error" | null>(null);
-  const [createStatus, setCreateStatus] = useState<"success" | "error" | null>(null);
-  const [createMessage, setCreateMessage] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
-  const [fileInfo, setFileInfo] = useState<{
-    name: string;
-    show: boolean;
-  } | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const filePathInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setFilePath(settings.beancountFilePath);
   }, [settings.beancountFilePath]);
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) {
-      if (event.target) {
-        event.target.value = "";
+  const saveFilePath = useCallback(
+    async (path: string) => {
+      if (!path.trim()) {
+        return;
       }
-      return;
-    }
 
-    setIsUploading(true);
-    setFileInfo(null);
+      const trimmedPath = path.trim();
 
-    try {
-      const fileName = file.name;
-      const isWindows = navigator.platform.toLowerCase().includes("win");
-      const homeDir = isWindows ? "C:\\Users\\YourName" : "~";
-      const suggestedPath = `${homeDir}/Documents/${fileName}`;
-
-      setFilePath(suggestedPath);
-      setFileInfo({
-        name: fileName,
-        show: true,
-      });
-
-      setSaveStatus(null);
-      setCreateStatus(null);
-    } catch (error: unknown) {
-      const err = error as { message?: string };
-      setFileInfo({
-        name: file.name,
-        show: true,
-      });
-      setCreateStatus("error");
-      setCreateMessage(err.message || "Failed to process file");
-    } finally {
-      setIsUploading(false);
-      if (event.target) {
-        event.target.value = "";
+      if (!trimmedPath.includes("/") && !trimmedPath.includes("\\")) {
+        return;
       }
-    }
-  };
 
-  const handleSelectFileWithAPI = async () => {
-    if (!("showOpenFilePicker" in window)) {
-      const input = document.getElementById("file-input") as HTMLInputElement;
-      input?.click();
-      return;
-    }
-
-    try {
-      setIsUploading(true);
-      setFileInfo(null);
-
-      const fileHandles = await (
-        window as { showOpenFilePicker?: (options: unknown) => Promise<FileSystemFileHandle[]> }
-      ).showOpenFilePicker?.({
-        types: [
-          {
-            description: "Beancount files",
-            accept: {
-              "text/plain": [".beancount", ".bean"],
-            },
-          },
-        ],
-        multiple: false,
-      });
-
-      if (fileHandles && fileHandles.length > 0) {
-        const fileHandle = fileHandles[0];
-        const file = await fileHandle.getFile();
-        const fileName = file.name;
-
-        const isWindows = navigator.platform.toLowerCase().includes("win");
-        const homeDir = isWindows ? "C:\\Users\\YourName" : "~";
-        const suggestedPath = `${homeDir}/Documents/${fileName}`;
-
-        setFilePath(suggestedPath);
-        setFileInfo({
-          name: fileName,
-          show: true,
-        });
+      if (trimmedPath.includes("T") && trimmedPath.match(/\d{4}-\d{2}-\d{2}T\d{2}[:_]\d{2}/)) {
+        console.warn(
+          "File path appears to contain a timestamp. This is likely invalid:",
+          trimmedPath
+        );
       }
-    } catch (error: unknown) {
-      const err = error as { name?: string; message?: string };
-      if (err.name !== "AbortError") {
-        setCreateStatus("error");
-        setCreateMessage(err.message || "Failed to select file");
+
+      updateSettings({ beancountFilePath: trimmedPath });
+
+      try {
+        await loadAll();
+      } catch (error: unknown) {
+        console.error("Failed to load data after saving file path:", error);
+        throw error;
       }
-    } finally {
-      setIsUploading(false);
-    }
-  };
+    },
+    [updateSettings, loadAll]
+  );
+
+  const { isSaving: isSavingFilePath, error: filePathError } = useAutoSave(
+    filePath,
+    saveFilePath,
+    1000
+  );
 
   const handleFilePathChange = (value: string) => {
     setFilePath(value);
   };
 
-  const handleSave = async () => {
-    if (!filePath.trim()) {
-      setSaveStatus("error");
-      return;
-    }
-
-    if (!filePath.includes("/") && !filePath.includes("\\")) {
-      setSaveStatus("error");
-      alert(
-        "Please provide the full path to the file (e.g., /Users/username/Documents/ledger.beancount), not just the filename."
-      );
-      return;
-    }
-
-    updateSettings({ beancountFilePath: filePath });
-    setSaveStatus("success");
-
-    try {
-      await loadAll();
-      setSaveStatus("success");
-    } catch (error: unknown) {
-      const err = error as { message?: string };
-      setSaveStatus("error");
-      console.error("Failed to load data after saving file path:", err);
-    }
-  };
-
-  const handleCreateFile = async () => {
-    if (!filePath.trim()) {
-      setCreateStatus("error");
-      setCreateMessage("Please provide a file path");
-      return;
-    }
-
-    setIsCreating(true);
-    setCreateStatus(null);
-    setCreateMessage("");
-
-    try {
-      const result = await api.files.create(filePath);
-      setCreateStatus("success");
-      setCreateMessage(result.message || "File created successfully!");
-
-      updateSettings({ beancountFilePath: filePath });
-
-      try {
-        await loadAll();
-      } catch (error: unknown) {
-        console.error("Failed to load data after creating file:", error);
-      }
-    } catch (error: unknown) {
-      const err = error as { message?: string };
-      setCreateStatus("error");
-      setCreateMessage(err.message || "Failed to create file");
-    } finally {
-      setIsCreating(false);
-    }
+  const handleClearFilePath = () => {
+    setFilePath("");
+    updateSettings({ beancountFilePath: "" });
   };
 
   const breadcrumbs = [
     { text: "Friday", href: "/" },
-    { text: "Settings", href: "/settings" },
+    { text: t("settings.title"), href: "/settings" },
   ];
 
   return (
-    <SpaceBetween size="l">
+    <SpaceBetween size="s">
       <BreadcrumbGroup items={breadcrumbs} />
 
       <Header
         variant="h1"
-        description="Configure your Friday preferences"
+        description={t("settings.description")}
         actions={
-          <Button variant="primary" iconName="settings" onClick={handleSave}>
-            Save Settings
-          </Button>
+          <SpaceBetween direction="horizontal" size="xs">
+            {isSavingFilePath && (
+              <Box>
+                <Spinner size="normal" />
+              </Box>
+            )}
+            {filePathError && (
+              <Alert type="error" dismissible>
+                Failed to save file path: {filePathError.message}
+              </Alert>
+            )}
+          </SpaceBetween>
         }
       >
-        Settings
+        {t("settings.title")}
       </Header>
-
-      {saveStatus === "success" && (
-        <Alert type="success" dismissible onDismiss={() => setSaveStatus(null)}>
-          Settings saved successfully! Data is being loaded...
-        </Alert>
-      )}
-
-      {saveStatus === "error" && (
-        <Alert type="error" dismissible onDismiss={() => setSaveStatus(null)}>
-          Please provide a valid Beancount file path.
-        </Alert>
-      )}
-
-      {createStatus === "success" && (
-        <Alert type="success" dismissible onDismiss={() => setCreateStatus(null)}>
-          {createMessage}
-        </Alert>
-      )}
-
-      {createStatus === "error" && (
-        <Alert type="error" dismissible onDismiss={() => setCreateStatus(null)}>
-          {createMessage}
-        </Alert>
-      )}
-
-      {fileInfo?.show && (
-        <Alert
-          type="success"
-          dismissible
-          onDismiss={() => setFileInfo(null)}
-          header="File Selected"
-        >
-          <SpaceBetween direction="vertical" size="xs">
-            <Box>
-              <strong>Selected file:</strong> {fileInfo.name}
-            </Box>
-            <Box variant="small" color="text-body-secondary">
-              A suggested path has been filled in the input field below. Please verify and adjust
-              the path if needed, then click "Save Settings" to use this file.
-            </Box>
-          </SpaceBetween>
-        </Alert>
-      )}
 
       <Container
         variant="stacked"
@@ -262,46 +113,47 @@ export default function Settings() {
           <Header
             variant="h2"
             actions={
-              <SpaceBetween direction="horizontal" size="xs">
-                <input
-                  type="file"
-                  accept=".beancount,.bean"
-                  onChange={handleFileSelect}
-                  style={{ display: "none" }}
-                  id="file-input"
+              filePath ? (
+                <Button
+                  iconName="close"
+                  variant="icon"
+                  onClick={handleClearFilePath}
+                  ariaLabel={t("common.clear")}
                 />
-                <Button
-                  variant="normal"
-                  iconName="folder-open"
-                  onClick={handleSelectFileWithAPI}
-                  disabled={isUploading}
-                >
-                  {isUploading ? "Processing..." : "Select File"}
-                </Button>
-                <Button
-                  variant="normal"
-                  iconName={isCreating ? undefined : "add-plus"}
-                  onClick={handleCreateFile}
-                  disabled={isCreating || !filePath.trim()}
-                >
-                  {isCreating ? "Creating..." : "Create New File"}
-                </Button>
-              </SpaceBetween>
+              ) : undefined
             }
           >
-            Beancount File
+            {t("settings.beancountFile.title")}
           </Header>
         }
       >
         <Form>
           <FormField
-            label="Beancount File Path"
-            description="Enter the full path to your Beancount ledger file or use 'Select File' to browse for one."
+            label={t("settings.beancountFile.filePath")}
+            description={t("settings.beancountFile.filePathDescription")}
+            secondaryControl={
+              filePath ? (
+                <Button
+                  iconName="close"
+                  variant="icon"
+                  onClick={handleClearFilePath}
+                  ariaLabel={t("common.clear")}
+                />
+              ) : undefined
+            }
+            constraintText={
+              <Box variant="small" color="text-body-secondary">
+                {t("settings.beancountFile.filePathHint")}
+                <br />
+                {t("settings.beancountFile.filePathExample")}
+              </Box>
+            }
           >
             <Input
+              ref={filePathInputRef}
               value={filePath}
               onChange={(e) => handleFilePathChange(e.detail.value)}
-              placeholder="/Users/username/Documents/ledger.beancount"
+              placeholder="/Users/username/Documents/ledger.beancount or ~/Documents/ledger.beancount"
             />
           </FormField>
         </Form>
@@ -312,17 +164,17 @@ export default function Settings() {
         onChange={({ detail }) => setActiveTab(detail.activeTabId)}
         tabs={[
           {
-            label: "Appearance",
+            label: t("settings.appearance.title"),
             id: "appearance",
             content: <AppearanceTab />,
           },
           {
-            label: "Workspace",
+            label: t("settings.workspace.title"),
             id: "workspace",
             content: <WorkspaceTab />,
           },
           {
-            label: "Bookkeeping",
+            label: t("settings.bookkeeping.title"),
             id: "bookkeeping",
             content: <BookkeepingTab />,
           },

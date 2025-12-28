@@ -13,8 +13,10 @@ import BreadcrumbGroup from "@cloudscape-design/components/breadcrumb-group";
 import StatusIndicator from "@cloudscape-design/components/status-indicator";
 import { SavingsGoal, DebtPayoff } from "@/types/beancount";
 import GoalModal from "../components/GoalModal";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function Goals() {
+  const { t } = useTranslation();
   const { accounts } = useBeancountStore();
   const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>([]);
   const [debtPayoffs, setDebtPayoffs] = useState<DebtPayoff[]>([]);
@@ -63,7 +65,7 @@ export default function Goals() {
   };
 
   const handleDelete = (id: string, type: "savings" | "debt") => {
-    if (confirm("Are you sure you want to delete this goal?")) {
+    if (confirm(t("goals.confirmDelete"))) {
       if (type === "savings") {
         const newGoals = savingsGoals.filter((g) => g.id !== id);
         setSavingsGoals(newGoals);
@@ -115,12 +117,12 @@ export default function Goals() {
   ];
 
   return (
-    <SpaceBetween size="l">
+    <SpaceBetween size="s">
       <BreadcrumbGroup items={breadcrumbs} />
 
       <Header
         variant="h1"
-        description="Track savings goals and debt payoff plans"
+        description={t("goals.description")}
         actions={
           <SpaceBetween direction="horizontal" size="xs">
             <Button variant="primary" onClick={() => handleNew("savings")}>

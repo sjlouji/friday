@@ -7,6 +7,7 @@ import Input from "@cloudscape-design/components/input";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import Header from "@cloudscape-design/components/header";
 import { useSettings } from "@/hooks/useSettings";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const CURRENCIES = [
   { label: "INR - Indian Rupee (₹)", value: "INR" },
@@ -68,16 +69,17 @@ const FISCAL_YEAR_MONTHS = [
 
 export default function WorkspaceTab() {
   const { workspace, updateWorkspace } = useSettings();
+  const { t } = useTranslation();
 
   return (
     <SpaceBetween size="l">
       <Container
         variant="stacked"
-        header={<Header variant="h2">Currency Settings</Header>}
+        header={<Header variant="h2">{t("settings.workspace.currency")}</Header>}
       >
         <Form>
           <SpaceBetween direction="vertical" size="l">
-            <FormField label="Operating Currency">
+            <FormField label={t("settings.workspace.operatingCurrency")}>
               <Select
                 selectedOption={
                   CURRENCIES.find(
@@ -93,7 +95,7 @@ export default function WorkspaceTab() {
                 filteringType="auto"
               />
             </FormField>
-            <FormField label="Default Currency">
+            <FormField label={t("settings.workspace.defaultCurrency")}>
               <Select
                 selectedOption={
                   CURRENCIES.find(
@@ -109,7 +111,7 @@ export default function WorkspaceTab() {
                 filteringType="auto"
               />
             </FormField>
-            <FormField label="Conversion Currency">
+            <FormField label={t("settings.workspace.conversionCurrency")}>
               <Input
                 value={workspace.conversionCurrency}
                 onChange={(e) =>
@@ -126,11 +128,11 @@ export default function WorkspaceTab() {
 
       <Container
         variant="stacked"
-        header={<Header variant="h2">Date & Time</Header>}
+        header={<Header variant="h2">{t("settings.workspace.dateTime")}</Header>}
       >
         <Form>
           <SpaceBetween direction="vertical" size="l">
-            <FormField label="Date Format">
+            <FormField label={t("settings.workspace.dateFormat")}>
               <Select
                 selectedOption={{
                   label: workspace.dateFormat,
@@ -142,17 +144,17 @@ export default function WorkspaceTab() {
                   })
                 }
                 options={[
-                  { label: "DD/MM/YYYY (Indian)", value: "DD/MM/YYYY" },
-                  { label: "YYYY-MM-DD", value: "YYYY-MM-DD" },
-                  { label: "MM/DD/YYYY", value: "MM/DD/YYYY" },
-                  { label: "DD.MM.YYYY", value: "DD.MM.YYYY" },
+                  { label: t("settings.workspace.dateFormatDDMMYYYY"), value: "DD/MM/YYYY" },
+                  { label: t("settings.workspace.dateFormatYYYYMMDD"), value: "YYYY-MM-DD" },
+                  { label: t("settings.workspace.dateFormatMMDDYYYY"), value: "MM/DD/YYYY" },
+                  { label: t("settings.workspace.dateFormatDDMMYYYYDot"), value: "DD.MM.YYYY" },
                 ]}
               />
             </FormField>
-            <FormField label="Time Format">
+            <FormField label={t("settings.workspace.timeFormat")}>
               <Select
                 selectedOption={{
-                  label: workspace.timeFormat === "12h" ? "12 Hour" : "24 Hour",
+                  label: workspace.timeFormat === "12h" ? t("settings.workspace.timeFormat12h") : t("settings.workspace.timeFormat24h"),
                   value: workspace.timeFormat,
                 }}
                 onChange={(e) =>
@@ -161,12 +163,12 @@ export default function WorkspaceTab() {
                   })
                 }
                 options={[
-                  { label: "12 Hour", value: "12h" },
-                  { label: "24 Hour", value: "24h" },
+                  { label: t("settings.workspace.timeFormat12h"), value: "12h" },
+                  { label: t("settings.workspace.timeFormat24h"), value: "24h" },
                 ]}
               />
             </FormField>
-            <FormField label="Fiscal Year Start Month">
+            <FormField label={t("settings.workspace.fiscalYearStart")}>
               <Select
                 selectedOption={
                   FISCAL_YEAR_MONTHS.find(
@@ -183,9 +185,9 @@ export default function WorkspaceTab() {
                 options={FISCAL_YEAR_MONTHS}
               />
             </FormField>
-            <FormField label="Fiscal Year End">
+            <FormField label={t("settings.workspace.fiscalYearEnd")}>
               <SpaceBetween direction="horizontal" size="xs">
-                <FormField label="Month">
+                <FormField label={t("settings.workspace.month")}>
                   <Input
                     type="number"
                     value={workspace.fiscalYearEnd.month.toString()}
@@ -199,7 +201,7 @@ export default function WorkspaceTab() {
                     }
                   />
                 </FormField>
-                <FormField label="Day">
+                <FormField label={t("settings.workspace.day")}>
                   <Input
                     type="number"
                     value={workspace.fiscalYearEnd.day.toString()}
@@ -221,13 +223,13 @@ export default function WorkspaceTab() {
 
       <Container
         variant="stacked"
-        header={<Header variant="h2">File Settings</Header>}
+        header={<Header variant="h2">{t("settings.workspace.fileSettings")}</Header>}
       >
         <Form>
           <SpaceBetween direction="vertical" size="l">
             <FormField
-              label="Default File"
-              description="Default Beancount file to open"
+              label={t("settings.workspace.defaultFile")}
+              description={t("settings.workspace.defaultFileDescription")}
             >
               <Input
                 value={workspace.defaultFile || ""}
@@ -240,8 +242,8 @@ export default function WorkspaceTab() {
               />
             </FormField>
             <FormField
-              label="Default Page"
-              description="Default page to show when opening the application"
+              label={t("settings.workspace.defaultPage")}
+              description={t("settings.workspace.defaultPageDescription")}
             >
               <Input
                 value={workspace.defaultPage}
@@ -254,8 +256,8 @@ export default function WorkspaceTab() {
               />
             </FormField>
             <FormField
-              label="Auto Reload"
-              description="Automatically reload when file changes are detected"
+              label={t("settings.workspace.autoReload")}
+              description={t("settings.workspace.autoReloadDescription")}
             >
               <Toggle
                 checked={workspace.autoReload}
@@ -265,12 +267,12 @@ export default function WorkspaceTab() {
                   })
                 }
               >
-                Enable auto reload
+                {t("settings.workspace.autoReload")}
               </Toggle>
             </FormField>
             <FormField
-              label="Use External Editor"
-              description="Use external editor for editing Beancount files"
+              label={t("settings.workspace.useExternalEditor")}
+              description={t("settings.workspace.useExternalEditorDescription")}
             >
               <Toggle
                 checked={workspace.useExternalEditor}
@@ -280,7 +282,7 @@ export default function WorkspaceTab() {
                   })
                 }
               >
-                Enable external editor
+                {t("settings.workspace.useExternalEditor")}
               </Toggle>
             </FormField>
           </SpaceBetween>

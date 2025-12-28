@@ -15,6 +15,7 @@ import { Bill } from "@/types/beancount";
 import BillModal from "../components/BillModal";
 
 export default function Bills() {
+  const { t } = useTranslation();
   const { accounts, transactions } = useBeancountStore();
   const [bills, setBills] = useState<Bill[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -54,7 +55,7 @@ export default function Bills() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this bill?")) {
+    if (confirm(t("bills.confirmDelete"))) {
       saveBills(bills.filter((b) => b.id !== id));
     }
   };
@@ -95,11 +96,11 @@ export default function Bills() {
 
   const breadcrumbs = [
     { text: "Friday", href: "/" },
-    { text: "Bills", href: "/bills" },
+    { text: t("bills.title"), href: "/bills" },
   ];
 
   return (
-    <SpaceBetween size="l">
+    <SpaceBetween size="s">
       <BreadcrumbGroup items={breadcrumbs} />
 
       <Header

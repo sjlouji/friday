@@ -12,35 +12,10 @@ import Pagination from "@cloudscape-design/components/pagination";
 import CollectionPreferences from "@cloudscape-design/components/collection-preferences";
 import { Transaction } from "@/types/beancount";
 import TransactionModal from "../components/TransactionModal";
-
-const FILTERING_PROPERTIES = [
-  {
-    key: "payee",
-    propertyLabel: "Payee",
-    operators: [":", "!:", "=", "!="],
-    groupValuesLabel: "Payee values",
-  },
-  {
-    key: "narration",
-    propertyLabel: "Narration",
-    operators: [":", "!:", "=", "!="],
-    groupValuesLabel: "Narration values",
-  },
-  {
-    key: "account",
-    propertyLabel: "Account",
-    operators: [":", "!:", "=", "!="],
-    groupValuesLabel: "Account values",
-  },
-  {
-    key: "type",
-    propertyLabel: "Type",
-    operators: ["=", "!="],
-    groupValuesLabel: "Type values",
-  },
-];
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function Transactions() {
+  const { t } = useTranslation();
   const {
     transactions,
     deleteTransaction,
@@ -48,6 +23,33 @@ export default function Transactions() {
     loading,
     transactionsPagination,
   } = useBeancountStore();
+
+  const FILTERING_PROPERTIES = [
+    {
+      key: "payee",
+      propertyLabel: t("transactions.payee"),
+      operators: [":", "!:", "=", "!="],
+      groupValuesLabel: t("transactions.groupValuesText"),
+    },
+    {
+      key: "narration",
+      propertyLabel: t("transactions.narration"),
+      operators: [":", "!:", "=", "!="],
+      groupValuesLabel: t("transactions.groupValuesText"),
+    },
+    {
+      key: "account",
+      propertyLabel: t("transactions.account"),
+      operators: [":", "!:", "=", "!="],
+      groupValuesLabel: t("transactions.groupValuesText"),
+    },
+    {
+      key: "type",
+      propertyLabel: t("transactions.type"),
+      operators: ["=", "!="],
+      groupValuesLabel: t("transactions.groupValuesText"),
+    },
+  ];
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] =
     useState<Transaction | null>(null);
@@ -206,7 +208,7 @@ export default function Transactions() {
       } catch (error: any) {
         console.error("Error loading transactions:", error);
         alert(
-          `Failed to load transactions: ${error.message}\n\nPlease check that the Beancount file path is set correctly in Settings.`
+          `${t("transactions.failedToLoadTransactions")}: ${error.message}\n\n${t("transactions.checkBeancountFilePath")}`
         );
       }
     };
@@ -383,27 +385,27 @@ export default function Transactions() {
   ];
 
   return (
-    <SpaceBetween size="l">
+    <SpaceBetween size="s">
       <BreadcrumbGroup items={breadcrumbs} />
 
       <Header
         variant="h1"
-        description="Manage your financial transactions"
+        description={t("transactions.title")}
         actions={
           <Button variant="primary" onClick={handleNew}>
-            New Transaction
+            {t("transactions.newTransaction")}
           </Button>
         }
         counter={`(${totalCount})`}
       >
-        Transactions
+        {t("transactions.title")}
       </Header>
 
       <Table
         columnDefinitions={[
           {
             id: "date",
-            header: "Date",
+            header: t("transactions.date"),
             cell: (item) => item.date,
             sortingField: "date",
             minWidth: 120,
@@ -411,46 +413,46 @@ export default function Transactions() {
           },
           {
             id: "payee",
-            header: "Payee",
+            header: t("transactions.payee"),
             cell: (item) => item.payee,
             sortingField: "payee",
             minWidth: 150,
           },
           {
             id: "narration",
-            header: "Narration",
+            header: t("transactions.narration"),
             cell: (item) => item.narration,
             sortingField: "narration",
             minWidth: 200,
           },
           {
             id: "accounts",
-            header: "Accounts",
+            header: t("transactions.accounts"),
             cell: (item) => item.accounts,
             minWidth: 200,
           },
           {
             id: "amount",
-            header: "Amount",
+            header: t("transactions.amount"),
             cell: (item) => item.amount,
             minWidth: 150,
           },
           {
             id: "actions",
-            header: "Actions",
+            header: t("common.actions"),
             cell: (item) => (
               <SpaceBetween direction="horizontal" size="xs">
                 <Button
                   variant="inline-link"
                   onClick={() => handleEdit(item.transaction)}
                 >
-                  Edit
+                  {t("common.edit")}
                 </Button>
                 <Button
                   variant="inline-link"
                   onClick={() => handleDelete(item.transaction.id)}
                 >
-                  Delete
+                  {t("common.delete")}
                 </Button>
               </SpaceBetween>
             ),
@@ -703,41 +705,41 @@ export default function Transactions() {
             }}
             filteringProperties={FILTERING_PROPERTIES}
             i18nStrings={{
-              filteringAriaLabel: "Filter transactions",
-              dismissAriaLabel: "Dismiss",
-              filteringPlaceholder: "Search or filter transactions",
-              groupValuesText: "Values",
-              groupPropertiesText: "Properties",
-              operatorsText: "Operators",
-              operationAndText: "And",
-              operationOrText: "Or",
-              operatorLessText: "Less than",
-              operatorLessOrEqualText: "Less than or equal",
-              operatorGreaterText: "Greater than",
-              operatorGreaterOrEqualText: "Greater than or equal",
-              operatorContainsText: "Contains",
-              operatorDoesNotContainText: "Does not contain",
-              operatorEqualsText: "Equals",
-              operatorDoesNotEqualText: "Does not equal",
-              editTokenHeader: "Edit filter",
-              propertyText: "Property",
-              operatorText: "Operator",
-              valueText: "Value",
-              cancelActionText: "Cancel",
-              applyActionText: "Apply",
-              allPropertiesText: "All properties",
-              tokenLimitShowMore: "Show more",
-              tokenLimitShowFewer: "Show fewer",
-              clearFiltersText: "Clear filters",
+              filteringAriaLabel: t("transactions.filteringAriaLabel"),
+              dismissAriaLabel: t("transactions.dismissAriaLabel"),
+              filteringPlaceholder: t("transactions.filteringPlaceholder"),
+              groupValuesText: t("transactions.groupValuesText"),
+              groupPropertiesText: t("transactions.groupPropertiesText"),
+              operatorsText: t("transactions.operatorsText"),
+              operationAndText: t("transactions.operationAndText"),
+              operationOrText: t("transactions.operationOrText"),
+              operatorLessText: t("transactions.operatorLessText"),
+              operatorLessOrEqualText: t("transactions.operatorLessOrEqualText"),
+              operatorGreaterText: t("transactions.operatorGreaterText"),
+              operatorGreaterOrEqualText: t("transactions.operatorGreaterOrEqualText"),
+              operatorContainsText: t("transactions.operatorContainsText"),
+              operatorDoesNotContainText: t("transactions.operatorDoesNotContainText"),
+              operatorEqualsText: t("transactions.operatorEqualsText"),
+              operatorDoesNotEqualText: t("transactions.operatorDoesNotEqualText"),
+              editTokenHeader: t("transactions.editTokenHeader"),
+              propertyText: t("transactions.propertyText"),
+              operatorText: t("transactions.operatorText"),
+              valueText: t("transactions.valueText"),
+              cancelActionText: t("transactions.cancelActionText"),
+              applyActionText: t("transactions.applyActionText"),
+              allPropertiesText: t("transactions.allPropertiesText"),
+              tokenLimitShowMore: t("transactions.tokenLimitShowMore"),
+              tokenLimitShowFewer: t("transactions.tokenLimitShowFewer"),
+              clearFiltersText: t("transactions.clearFiltersText"),
               removeTokenButtonAriaLabel: (token) =>
-                `Remove token ${token.propertyKey} ${token.operator} ${token.value}`,
-              enteredTextLabel: (text) => `Use: "${text}"`,
+                t("transactions.removeTokenButtonAriaLabel"),
+              enteredTextLabel: (text) => `${t("transactions.enteredTextLabel")}: "${text}"`,
             }}
           />
         }
         empty={
           <Box textAlign="center" padding={{ vertical: "xl" }}>
-            No transactions found
+            {t("transactions.noTransactions")}
           </Box>
         }
       />
@@ -750,10 +752,10 @@ export default function Transactions() {
             pageSize={pageSize}
             pageSizeOptions={[10, 25, 50, 100]}
             ariaLabels={{
-              nextPageLabel: "Next page",
-              previousPageLabel: "Previous page",
+              nextPageLabel: t("transactions.nextPageLabel"),
+              previousPageLabel: t("transactions.previousPageLabel"),
               pageLabel: (pageNumber: number) =>
-                `Page ${pageNumber} of ${totalPages}`,
+                `${t("transactions.pageLabel")} ${pageNumber} ${t("common.of")} ${totalPages}`,
             }}
             onChange={({ detail }: any) => {
               setCurrentPageIndex(detail.currentPageIndex - 1);

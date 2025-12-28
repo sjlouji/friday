@@ -12,6 +12,7 @@ import Alert from "@cloudscape-design/components/alert";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import BreadcrumbGroup from "@cloudscape-design/components/breadcrumb-group";
 import BudgetModal from "../components/BudgetModal";
+import { useTranslation } from "@/hooks/useTranslation";
 import {
   BarChart,
   Bar,
@@ -23,6 +24,7 @@ import {
 } from "recharts";
 
 export default function Budget() {
+  const { t } = useTranslation();
   const { budgets, transactions } = useBeancountStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState(
@@ -77,16 +79,16 @@ export default function Budget() {
 
   const breadcrumbs = [
     { text: "Friday", href: "/" },
-    { text: "Budget", href: "/budget" },
+    { text: t("budget.title"), href: "/budget" },
   ];
 
   return (
-    <SpaceBetween size="l">
+    <SpaceBetween size="s">
       <BreadcrumbGroup items={breadcrumbs} />
 
       <Header
         variant="h1"
-        description="Track your spending against budgets"
+        description={t("budget.description")}
         actions={
           <SpaceBetween direction="horizontal" size="xs">
             <Input
@@ -95,12 +97,12 @@ export default function Budget() {
               onChange={(e) => setSelectedPeriod(e.detail.value)}
             />
             <Button variant="primary" onClick={() => setIsModalOpen(true)}>
-              New Budget
+              {t("budget.newBudget")}
             </Button>
           </SpaceBetween>
         }
       >
-        Budget
+        {t("budget.title")}
       </Header>
 
       <Grid gridDefinition={[{ colspan: 4 }, { colspan: 4 }, { colspan: 4 }]}>
@@ -165,7 +167,7 @@ export default function Budget() {
 
       <Container
         variant="stacked"
-        header={<Header variant="h2">Budget Details</Header>}
+        header={<Header variant="h2">{t("budget.budgetDetails")}</Header>}
       >
         {budgetStatus.length === 0 ? (
           <Box textAlign="center" padding={{ vertical: "xl" }}>

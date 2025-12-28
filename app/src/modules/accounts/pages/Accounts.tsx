@@ -17,6 +17,7 @@ import AccountModal from "../components/AccountModal";
 import AccountTree from "../components/AccountTree";
 import { formatIndianCurrency } from "@/lib/utils/currency";
 import { api } from "@/lib/api";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const accountTypeColors: Record<
   AccountType,
@@ -30,6 +31,7 @@ const accountTypeColors: Record<
 };
 
 export default function Accounts() {
+  const { t } = useTranslation();
   const {
     accounts,
     deleteAccount,
@@ -64,15 +66,7 @@ export default function Accounts() {
         
         // Check for errors in response
         if (response.errors && response.errors.length > 0) {
-          const formattedErrors = response.errors.map((err: any) => {
-            if (Array.isArray(err) && err.length >= 2) {
-              const errorInfo = err[1];
-              const lineInfo = err[0]?.lineno ? ` (line ${err[0].lineno})` : "";
-              return `${errorInfo}${lineInfo}`;
-            }
-            return String(err);
-          });
-          setAccountErrors(formattedErrors);
+          setAccountErrors(response.errors);
         } else {
           setAccountErrors([]);
         }
@@ -121,7 +115,7 @@ export default function Accounts() {
   };
 
   const handleDelete = (name: string) => {
-    if (confirm(`Are you sure you want to delete account "${name}"?`)) {
+    if (confirm(`${t("accounts.confirmDelete")} "${name}"?`)) {
       deleteAccount(name);
     }
   };
@@ -170,19 +164,19 @@ export default function Accounts() {
   ];
 
   return (
-    <SpaceBetween size="l">
+    <SpaceBetween size="s">
       <BreadcrumbGroup items={breadcrumbs} />
 
       <Header
         variant="h1"
-        description="Manage your chart of accounts"
+        description={t("accounts.description")}
         actions={
           <Button variant="primary" onClick={handleNew}>
-            New Account
+            {t("accounts.newAccount")}
           </Button>
         }
       >
-        Accounts
+        {t("accounts.title")}
       </Header>
 
       <Container
@@ -206,7 +200,7 @@ export default function Accounts() {
             {importErrors.length > 0 && (
               <Box margin={{ top: "s" }}>
                 <Box variant="small" fontWeight="bold">
-                  Warnings/Errors:
+                  {t("accounts.warningsErrors")}
                 </Box>
                 <Box variant="small" as="ul" padding={{ left: "l" }}>
                   {importErrors.map((err, idx) => (
@@ -233,30 +227,16 @@ export default function Accounts() {
           showFileLastModified
           showFileSize
           showFileThumbnail
-          constraintText="Upload Excel file with columns: Account Name, Type, Open Date, Currency (optional), Notes (optional)"
+          constraintText={t("accounts.uploadExcelFile")}
         />
         <Box margin={{ top: "m" }} variant="small" color="text-body-secondary">
-          <Box fontWeight="bold">Excel Format:</Box>
+          <Box fontWeight="bold">{t("accounts.excelFormat")}</Box>
           <Box as="ul" padding={{ left: "l" }}>
-            <li>
-              <strong>Account Name:</strong> Full account path (e.g.,
-              Assets:Bank:Checking)
-            </li>
-            <li>
-              <strong>Type:</strong> Assets, Liabilities, Equity, Income, or
-              Expenses
-            </li>
-            <li>
-              <strong>Open Date:</strong> Date in YYYY-MM-DD format (e.g.,
-              2024-01-01)
-            </li>
-            <li>
-              <strong>Currency:</strong> (Optional) Currency code, defaults to
-              INR
-            </li>
-            <li>
-              <strong>Notes:</strong> (Optional) Additional notes or description
-            </li>
+            <li>{t("accounts.excelAccountName")}</li>
+            <li>{t("accounts.excelType")}</li>
+            <li>{t("accounts.excelOpenDate")}</li>
+            <li>{t("accounts.excelCurrency")}</li>
+            <li>{t("accounts.excelNotes")}</li>
           </Box>
         </Box>
       </Container>
@@ -266,11 +246,11 @@ export default function Accounts() {
           type="error"
           dismissible
           onDismiss={() => {}}
-          header="Error loading accounts"
+          header={t("accounts.errorLoading")}
         >
           {error}
           <Box variant="small" color="text-body-secondary" margin={{ top: "xs" }}>
-            Please check that the Beancount file path is set correctly in Settings.
+            {t("accounts.checkBeancountFilePath")}
           </Box>
         </Alert>
       )}
@@ -280,30 +260,61 @@ export default function Accounts() {
           type="warning"
           dismissible
           onDismiss={() => setAccountErrors([])}
-          header="Beancount file errors"
+          header={`${t("accounts.beancountFileErrors")} (${accountErrors.length})`}
         >
-          <Box as="ul" padding={{ left: "l" }}>
+          <Box as="ul" padding={{ left: "l" }} margin={{ bottom: "xs" }}>
             {accountErrors.map((err, idx) => (
-              <li key={idx}>{err}</li>
+              <li key={idx}>
+                <Box fontWeight="bold" display="inline">
+                  {err}
+                </Box>
+              </li>
             ))}
           </Box>
           <Box variant="small" color="text-body-secondary" margin={{ top: "xs" }}>
-            These errors may prevent accounts from loading correctly. Please fix them in your Beancount file.
+            {accountErrors.some((err) => err.includes("File not found")) ? (
+              <>
+                <Box fontWeight="bold" margin={{ bottom: "xs" }}>
+                  {t("accounts.fileNotFoundError")}
+                </Box>
+                <Box>
+                  {t("accounts.fileNotFoundInstructions")}
+                  <Box as="ul" padding={{ left: "l" }} margin={{ top: "xs" }}>
+                    <li>{t("accounts.goToSettings")}</li>
+                    <li>{t("accounts.useSelectFile")}</li>
+                    <li>{t("accounts.manuallyEnterPath")}</li>
+                    <li>{t("accounts.makeSureFileExists")}</li>
+                  </Box>
+                </Box>
+              </>
+            ) : (
+              <>
+                {t("accounts.errorsMayPreventLoading")}
+                <Box margin={{ top: "xs" }}>
+                  <strong>{t("accounts.tip")}:</strong> {t("accounts.checkLineNumber")}
+                  <Box as="ul" padding={{ left: "l" }} margin={{ top: "xs" }}>
+                    <li>{t("accounts.transactionsBalance")}</li>
+                    <li>{t("accounts.accountNamesFormatted")}</li>
+                    <li>{t("accounts.datesInFormat")}</li>
+                    <li>{t("accounts.amountsCorrect")}</li>
+                  </Box>
+                </Box>
+              </>
+            )}
           </Box>
         </Alert>
       )}
 
       {loading && (
         <Box textAlign="center" padding="xl">
-          <Box>Loading accounts...</Box>
+          <Box>{t("accounts.loadingAccounts")}</Box>
         </Box>
       )}
 
       {!loading && !error && accounts.length === 0 && (
         <Box textAlign="center" padding="xl">
           <Box color="text-body-secondary">
-            No accounts found. Make sure your Beancount file has account
-            definitions (e.g., "2024-01-01 open Assets:Checking").
+            {t("accounts.noAccountsFound")}
           </Box>
         </Box>
       )}
@@ -312,20 +323,20 @@ export default function Accounts() {
         <Tabs
           tabs={[
             {
-              label: "Tree View",
+              label: t("accounts.treeView"),
               id: "tree",
               content: (
                 <Container
                   variant="stacked"
                   header={
                     <Header variant="h2">
-                      Account Hierarchy
+                      {t("accounts.accountHierarchy")}
                       <Box
                         variant="small"
                         color="text-body-secondary"
                         margin={{ top: "xs" }}
                       >
-                        Expand/collapse to view parent-child relationships
+                        {t("accounts.expandCollapse")}
                       </Box>
                     </Header>
                   }
@@ -393,7 +404,7 @@ export default function Accounts() {
                                 },
                                 {
                                   id: "balance",
-                                  header: "Balance",
+                                  header: t("accounts.balance"),
                                   content: (item) => {
                                     const balance = accountBalances[item.name];
                                     if (balance) {
@@ -407,7 +418,7 @@ export default function Accounts() {
                                 },
                                 {
                                   id: "closed",
-                                  header: "Status",
+                                  header: t("accounts.status"),
                                   content: (item) =>
                                     item.closeDate
                                       ? `Closed: ${new Date(

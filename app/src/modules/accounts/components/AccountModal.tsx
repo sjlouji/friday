@@ -11,6 +11,7 @@ import Box from "@cloudscape-design/components/box";
 import Alert from "@cloudscape-design/components/alert";
 import Spinner from "@cloudscape-design/components/spinner";
 import { Account, AccountType } from "@/types/beancount";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface AccountModalProps {
   account: Account | null;
@@ -19,6 +20,7 @@ interface AccountModalProps {
 
 export default function AccountModal({ account, onClose }: AccountModalProps) {
   const { addAccount, updateAccount, loading } = useBeancountStore();
+  const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: account?.name || "",
@@ -33,9 +35,7 @@ export default function AccountModal({ account, onClose }: AccountModalProps) {
 
     // Validate account name format
     if (!formData.name || !formData.name.includes(":")) {
-      setError(
-        "Account name must use colon separators (e.g., Assets:Bank:Checking)"
-      );
+      setError(t("accounts.accountNameMustUseColons"));
       return;
     }
 
@@ -43,9 +43,7 @@ export default function AccountModal({ account, onClose }: AccountModalProps) {
     const parts = formData.name.split(":");
     for (const part of parts) {
       if (!part.trim()) {
-        setError(
-          "Account name parts cannot be empty (e.g., Assets::Checking is invalid)"
-        );
+        setError(t("accounts.accountNamePartsCannotBeEmpty"));
         return;
       }
     }
@@ -65,7 +63,7 @@ export default function AccountModal({ account, onClose }: AccountModalProps) {
       }
       onClose();
     } catch (err: any) {
-      const errorMessage = err.message || "Failed to save account";
+      const errorMessage = err.message || t("common.failedToSave");
       setError(errorMessage);
     }
   };
@@ -74,15 +72,15 @@ export default function AccountModal({ account, onClose }: AccountModalProps) {
     <Modal
       visible={true}
       onDismiss={onClose}
-      header={account ? "Edit Account" : "New Account"}
+      header={account ? t("accounts.editAccount") : t("accounts.newAccount")}
       footer={
         <Box float="right">
           <SpaceBetween direction="horizontal" size="xs">
             <Button variant="link" onClick={onClose} disabled={loading}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button variant="primary" onClick={handleSubmit} disabled={loading}>
-              {loading ? <Spinner /> : account ? "Update" : "Create"} Account
+              {loading ? <Spinner /> : account ? t("common.update") : t("common.create")} {t("accounts.title")}
             </Button>
           </SpaceBetween>
         </Box>
@@ -95,15 +93,15 @@ export default function AccountModal({ account, onClose }: AccountModalProps) {
               type="error"
               dismissible
               onDismiss={() => setError(null)}
-              header="Error creating account"
+              header={t("accounts.errorCreatingAccount")}
             >
               {error}
             </Alert>
           )}
 
           <FormField
-            label="Account Name"
-            description="Account names must use colons and will be auto-capitalized (e.g., Assets:Bank:Checking)"
+            label={t("accounts.accountName")}
+            description={t("accounts.accountNameDescription")}
           >
             <Input
               value={formData.name}
@@ -114,7 +112,7 @@ export default function AccountModal({ account, onClose }: AccountModalProps) {
             />
           </FormField>
 
-          <FormField label="Account Type">
+          <FormField label={t("accounts.accountType")}>
             <Select
               selectedOption={{ label: formData.type, value: formData.type }}
               onChange={(e) =>
@@ -141,7 +139,7 @@ export default function AccountModal({ account, onClose }: AccountModalProps) {
             />
           </FormField>
 
-          <FormField label="Open Date">
+          <FormField label={t("accounts.openDate")}>
             <Input
               type="date"
               value={formData.openDate}
@@ -151,7 +149,7 @@ export default function AccountModal({ account, onClose }: AccountModalProps) {
             />
           </FormField>
 
-          <FormField label="Close Date (optional)">
+          <FormField label={t("accounts.closeDateOptional")}>
             <Input
               type="date"
               value={formData.closeDate}

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import Container from "@cloudscape-design/components/container";
 import Form from "@cloudscape-design/components/form";
 import FormField from "@cloudscape-design/components/form-field";
@@ -8,115 +7,95 @@ import Input from "@cloudscape-design/components/input";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import Header from "@cloudscape-design/components/header";
 import { useSettings } from "@/hooks/useSettings";
-
-const LANGUAGES = [
-  { label: "English", value: "en" },
-  { label: "Español (Spanish)", value: "es" },
-  { label: "Français (French)", value: "fr" },
-  { label: "Deutsch (German)", value: "de" },
-  { label: "中文 (Chinese)", value: "zh" },
-  { label: "日本語 (Japanese)", value: "ja" },
-  { label: "한국어 (Korean)", value: "ko" },
-  { label: "Português (Portuguese)", value: "pt" },
-  { label: "Italiano (Italian)", value: "it" },
-  { label: "Русский (Russian)", value: "ru" },
-  { label: "العربية (Arabic)", value: "ar" },
-  { label: "हिन्दी (Hindi)", value: "hi" },
-];
+import { useTranslation } from "@/hooks/useTranslation";
 
 const LOCALES = [
   { label: "English (US)", value: "en-US" },
   { label: "English (UK)", value: "en-GB" },
   { label: "English (India)", value: "en-IN" },
-  { label: "Español", value: "es-ES" },
-  { label: "Français", value: "fr-FR" },
-  { label: "Deutsch", value: "de-DE" },
-  { label: "中文", value: "zh-CN" },
-  { label: "日本語", value: "ja-JP" },
-  { label: "한국어", value: "ko-KR" },
-  { label: "Português", value: "pt-BR" },
-  { label: "Italiano", value: "it-IT" },
-  { label: "Русский", value: "ru-RU" },
-  { label: "العربية", value: "ar-SA" },
-  { label: "हिन्दी", value: "hi-IN" },
 ];
 
+const LOCALE_TO_CURRENCY: Record<string, string> = {
+  "en-US": "USD",
+  "en-GB": "GBP",
+  "en-IN": "INR",
+};
+
+const LOCALE_TO_DATE_FORMAT: Record<string, string> = {
+  "en-US": "MM/DD/YYYY",
+  "en-GB": "DD/MM/YYYY",
+  "en-IN": "DD/MM/YYYY",
+};
+
 export default function AppearanceTab() {
-  const { appearance, updateAppearance, applyTheme, applyLanguage } = useSettings();
+  const { appearance, updateAppearance, updateWorkspace, applyTheme, applyLanguage } =
+    useSettings();
+  const { t } = useTranslation();
 
   const handleThemeChange = (theme: string) => {
     updateAppearance({ theme: theme as "light" | "dark" | "auto" });
     applyTheme(theme as "light" | "dark" | "auto");
   };
 
-  const handleLanguageChange = (language: string) => {
-    updateAppearance({ language });
-    applyLanguage(language);
+  const handleLocaleChange = (locale: string) => {
+    updateAppearance({ locale, language: "en" });
+    applyLanguage("en");
+
+    const currency = LOCALE_TO_CURRENCY[locale];
+    const dateFormat = LOCALE_TO_DATE_FORMAT[locale];
+
+    if (currency) {
+      updateWorkspace({
+        defaultCurrency: currency,
+        operatingCurrency: currency,
+      });
+    }
+
+    if (dateFormat) {
+      updateWorkspace({
+        dateFormat,
+      });
+    }
   };
 
   return (
     <SpaceBetween size="l">
       <Container
         variant="stacked"
-        header={<Header variant="h2">Language & Locale</Header>}
+        header={<Header variant="h2">{t("settings.appearance.title")}</Header>}
       >
         <Form>
-          <SpaceBetween direction="vertical" size="l">
-            <FormField label="Language">
-              <Select
-                selectedOption={
-                  LANGUAGES.find((l) => l.value === appearance.language) ||
-                  LANGUAGES[0]
-                }
-                onChange={(e) =>
-                  handleLanguageChange(e.detail.selectedOption.value || "en")
-                }
-                options={LANGUAGES}
-                filteringType="auto"
-              />
-            </FormField>
-            <FormField label="Locale">
-              <Select
-                selectedOption={
-                  LOCALES.find((l) => l.value === appearance.locale) ||
-                  LOCALES[0]
-                }
-                onChange={(e) =>
-                  updateAppearance({
-                    locale: e.detail.selectedOption.value || "en-US",
-                  })
-                }
-                options={LOCALES}
-                filteringType="auto"
-              />
-            </FormField>
-          </SpaceBetween>
+          <FormField label={t("settings.appearance.locale")}>
+            <Select
+              selectedOption={LOCALES.find((l) => l.value === appearance.locale) || LOCALES[0]}
+              onChange={(e) => handleLocaleChange(e.detail.selectedOption.value || "en-US")}
+              options={LOCALES}
+            />
+          </FormField>
         </Form>
       </Container>
 
       <Container
         variant="stacked"
-        header={<Header variant="h2">Theme</Header>}
+        header={<Header variant="h2">{t("settings.appearance.theme")}</Header>}
       >
         <Form>
-          <FormField label="Theme">
+          <FormField label={t("settings.appearance.theme")}>
             <Select
               selectedOption={{
                 label:
                   appearance.theme === "light"
-                    ? "Light"
+                    ? t("settings.appearance.themeLight")
                     : appearance.theme === "dark"
-                    ? "Dark"
-                    : "Auto (System)",
+                      ? t("settings.appearance.themeDark")
+                      : t("settings.appearance.themeAuto"),
                 value: appearance.theme,
               }}
-              onChange={(e) =>
-                handleThemeChange(e.detail.selectedOption.value || "light")
-              }
+              onChange={(e) => handleThemeChange(e.detail.selectedOption.value || "light")}
               options={[
-                { label: "Light", value: "light" },
-                { label: "Dark", value: "dark" },
-                { label: "Auto (System)", value: "auto" },
+                { label: t("settings.appearance.themeLight"), value: "light" },
+                { label: t("settings.appearance.themeDark"), value: "dark" },
+                { label: t("settings.appearance.themeAuto"), value: "auto" },
               ]}
             />
           </FormField>
@@ -125,7 +104,7 @@ export default function AppearanceTab() {
 
       <Container
         variant="stacked"
-        header={<Header variant="h2">Table Preferences</Header>}
+        header={<Header variant="h2">{t("settings.appearance.tablePreferences")}</Header>}
       >
         <Form>
           <SpaceBetween size="l">
@@ -143,8 +122,7 @@ export default function AppearanceTab() {
                     tablePreferences: {
                       ...appearance.tablePreferences,
                       contentDensity:
-                        (e.detail.selectedOption.value as "compact" | "comfortable") ||
-                        "compact",
+                        (e.detail.selectedOption.value as "compact" | "comfortable") || "compact",
                     },
                   })
                 }
@@ -155,10 +133,7 @@ export default function AppearanceTab() {
               />
             </FormField>
 
-            <FormField
-              label="Wrap Lines"
-              description="Enable text wrapping in table cells"
-            >
+            <FormField label="Wrap Lines" description="Enable text wrapping in table cells">
               <Toggle
                 checked={appearance.tablePreferences.wrapLines}
                 onChange={(e) =>
@@ -234,10 +209,7 @@ export default function AppearanceTab() {
         </Form>
       </Container>
 
-      <Container
-        variant="stacked"
-        header={<Header variant="h2">Display Options</Header>}
-      >
+      <Container variant="stacked" header={<Header variant="h2">Display Options</Header>}>
         <Form>
           <SpaceBetween size="l">
             <FormField
@@ -255,10 +227,7 @@ export default function AppearanceTab() {
               />
             </FormField>
 
-            <FormField
-              label="Currency Column"
-              description="Column position for currency display"
-            >
+            <FormField label="Currency Column" description="Column position for currency display">
               <Input
                 type="number"
                 value={appearance.currencyColumn.toString()}
@@ -365,10 +334,7 @@ export default function AppearanceTab() {
               />
             </FormField>
 
-            <FormField
-              label="Upcoming Events"
-              description="Number of upcoming events to display"
-            >
+            <FormField label="Upcoming Events" description="Number of upcoming events to display">
               <Input
                 type="number"
                 value={appearance.upcomingEvents.toString()}
@@ -389,8 +355,7 @@ export default function AppearanceTab() {
                 value={appearance.uptodateIndicatorGreyLookbackDays.toString()}
                 onChange={(e) =>
                   updateAppearance({
-                    uptodateIndicatorGreyLookbackDays:
-                      parseInt(e.detail.value) || 60,
+                    uptodateIndicatorGreyLookbackDays: parseInt(e.detail.value) || 60,
                   })
                 }
               />
@@ -401,4 +366,3 @@ export default function AppearanceTab() {
     </SpaceBetween>
   );
 }
-

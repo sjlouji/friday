@@ -63,19 +63,59 @@ html.awsui-dark-mode .app-layout-wrapper {
   background-color: #1d1d1d !important;
 }
 
-/* Breadcrumbs should be fixed at top of content area */
-.content-scroll-area > div:first-child {
-  position: sticky;
-  top: 0;
-  background: var(--color-background-layout-main, #ffffff);
-  z-index: 10;
-  padding-bottom: 8px;
-  margin-bottom: 8px;
+/* Content scroll area should be a flex container */
+.content-scroll-area {
+  display: flex;
+  flex-direction: column;
+  position: relative;
 }
 
-html[data-mode="dark"] .content-scroll-area > div:first-child,
-html.awsui-dark-mode .content-scroll-area > div:first-child {
+/* Breadcrumbs wrapper - make the first child element sticky */
+/* Target any first child that contains a breadcrumb group */
+/* Account for the 16px padding of content-scroll-area */
+.content-scroll-area > *:first-child {
+  position: sticky !important;
+  top: -16px !important;
+  background: var(--color-background-layout-main, #ffffff) !important;
+  z-index: 10 !important;
+  padding-top: 16px !important;
+  padding-bottom: 8px !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  margin-left: -16px !important;
+  margin-right: -16px !important;
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+  border-bottom: 1px solid var(--color-border-divider-default, #e9ebed) !important;
+}
+
+html[data-mode="dark"] .content-scroll-area > *:first-child,
+html.awsui-dark-mode .content-scroll-area > *:first-child {
   background: var(--color-background-layout-main, #1d1d1d) !important;
+  border-bottom-color: var(--color-border-divider-default, #414750) !important;
+}
+
+/* Reduce spacing in SpaceBetween when it's the sticky wrapper */
+.content-scroll-area > *:first-child[class*="awsui-space-between"] {
+  gap: 4px !important;
+}
+
+/* Breadcrumb group itself - minimal spacing */
+.content-scroll-area [data-awsui-breadcrumb-group],
+.content-scroll-area .awsui-breadcrumb-group {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Reduce spacing between breadcrumbs and header - target Header component */
+.content-scroll-area > *:first-child > *:nth-child(2) {
+  margin-top: 4px !important;
+}
+
+/* Make sure content after breadcrumbs wrapper can scroll */
+.content-scroll-area > *:not(:first-child) {
+  flex: 1;
+  min-height: 0;
 }
 
 /* Tables should scroll within their containers - use max-height */
