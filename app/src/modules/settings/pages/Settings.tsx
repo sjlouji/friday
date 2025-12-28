@@ -66,106 +66,6 @@ export default function Settings() {
     1000
   );
 
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-
-  const handleFileChange = async ({ detail }: { detail: { value: File[] } }) => {
-    console.log(detail);
-    const files = detail.value;
-    setSelectedFiles(files);
-
-    if (files.length > 0) {
-      const file = files[0];
-      const fileName = file.name;
-
-      setFileInfo({
-        name: fileName,
-        show: true,
-      });
-
-      let fullPath = "";
-
-      if ("showOpenFilePicker" in window) {
-        try {
-          const fileHandles = await (
-            window as { showOpenFilePicker?: (options: unknown) => Promise<FileSystemFileHandle[]> }
-          ).showOpenFilePicker?.({
-            types: [
-              {
-                description: "Beancount files",
-                accept: {
-                  "text/plain": [".beancount", ".bean"],
-                },
-              },
-            ],
-            multiple: false,
-          });
-
-          if (fileHandles && fileHandles.length > 0) {
-            const fileHandle = fileHandles[0];
-
-            try {
-              interface FileHandleWithParent extends FileSystemFileHandle {
-                getParent?: () => Promise<FileSystemDirectoryHandle>;
-              }
-              interface DirHandleWithParent extends FileSystemDirectoryHandle {
-                getParent?: () => Promise<FileSystemDirectoryHandle>;
-              }
-
-              const handleWithParent = fileHandle as FileHandleWithParent;
-              if (handleWithParent.getParent) {
-                const dirHandle = await handleWithParent.getParent();
-                const pathParts: string[] = [dirHandle.name];
-                let currentHandle: DirHandleWithParent = dirHandle as DirHandleWithParent;
-                let depth = 0;
-                const maxDepth = 30;
-
-                while (depth < maxDepth && currentHandle) {
-                  try {
-                    if (currentHandle.getParent) {
-                      const parent = await currentHandle.getParent();
-                      if (parent && parent.name) {
-                        pathParts.unshift(parent.name);
-                        currentHandle = parent;
-                        depth++;
-                      } else {
-                        break;
-                      }
-                    } else {
-                      break;
-                    }
-                  } catch {
-                    break;
-                  }
-                }
-
-                if (pathParts.length > 0) {
-                  const isWindows = navigator.platform.toLowerCase().includes("win");
-                  if (isWindows) {
-                    fullPath = pathParts.join("\\") + "\\" + fileName;
-                  } else {
-                    fullPath = "/" + pathParts.join("/") + "/" + fileName;
-                  }
-                }
-              }
-            } catch (pathError) {
-              console.warn("Could not determine full file path:", pathError);
-            }
-          }
-        } catch (error) {
-          console.warn("File System Access API not available:", error);
-        }
-      }
-
-      if (!fullPath) {
-        const isWindows = navigator.platform.toLowerCase().includes("win");
-        const homeDir = isWindows ? "C:\\Users\\YourName" : "~";
-        fullPath = `${homeDir}/${fileName}`;
-      }
-
-      setFilePath(fullPath);
-    }
-  };
-
   const handleFilePathChange = (value: string) => {
     setFilePath(value);
   };
@@ -205,26 +105,6 @@ export default function Settings() {
         Settings
       </Header>
 
-      {fileInfo?.show && (
-        <Alert
-          type="success"
-          dismissible
-          onDismiss={() => setFileInfo(null)}
-          header="File Selected"
-        >
-          <SpaceBetween direction="vertical" size="xs">
-            <Box>
-              <strong>Selected file:</strong> {fileInfo.name}
-            </Box>
-            <Box variant="small" color="text-body-secondary">
-              {filePath
-                ? "The file path has been filled in the input field below. Please verify it's correct and adjust if needed."
-                : "Please enter the full path to this file in the input field below (e.g., /Users/username/Documents/ledger.beancount)."}
-            </Box>
-          </SpaceBetween>
-        </Alert>
-      )}
-
       <Container
         variant="stacked"
         header={
@@ -246,43 +126,37 @@ export default function Settings() {
         }
       >
         <Form>
-          <SpaceBetween size="l">
-            <FormField
-              label="Select Beancount File"
-              description="Choose your Beancount ledger file. The file path will be automatically detected."
-            >
-              <FileInput
-                onChange={handleFileChange}
-                value={selectedFiles}
-                accept=".beancount,.bean"
-                multiple={false}
-              >
-                Choose file
-              </FileInput>
-            </FormField>
-
-            <FormField
-              label="Beancount File Path"
-              description="The full path to your Beancount file. You can also manually enter or edit the path."
-              constraintText={
-                <Box variant="small" color="text-body-secondary">
-                  To create a new Beancount file, create it manually using a text editor and then
-                  select it here.
-                  <br />
-                  Example: Create a file named <code>ledger.beancount</code> in your Documents
-                  folder, then enter the path <code>~/Documents/ledger.beancount</code> or use the
-                  file picker above.
-                </Box>
-              }
-            >
-              <Input
-                ref={filePathInputRef}
-                value={filePath}
-                onChange={(e) => handleFilePathChange(e.detail.value)}
-                placeholder="/Users/username/Documents/ledger.beancount or ~/Documents/ledger.beancount"
-              />
-            </FormField>
-          </SpaceBetween>
+          <FormField
+            label="Beancount File Path"
+            description="Enter the full path to your Beancount ledger file."
+            secondaryControl={
+              filePath ? (
+                <Button
+                  iconName="close"
+                  variant="icon"
+                  onClick={handleClearFilePath}
+                  ariaLabel="Clear file path"
+                />
+              ) : undefined
+            }
+            constraintText={
+              <Box variant="small" color="text-body-secondary">
+                To create a new Beancount file, create it manually using a text editor and then
+                enter its path here.
+                <br />
+                Example: Create a file named <code>ledger.beancount</code> in your Documents folder,
+                then enter the path <code>~/Documents/ledger.beancount</code> or{" "}
+                <code>/Users/username/Documents/ledger.beancount</code>.
+              </Box>
+            }
+          >
+            <Input
+              ref={filePathInputRef}
+              value={filePath}
+              onChange={(e) => handleFilePathChange(e.detail.value)}
+              placeholder="/Users/username/Documents/ledger.beancount or ~/Documents/ledger.beancount"
+            />
+          </FormField>
         </Form>
       </Container>
 
