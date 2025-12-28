@@ -63,26 +63,44 @@ html.awsui-dark-mode .app-layout-wrapper {
   background-color: #1d1d1d !important;
 }
 
-/* Breadcrumbs should be fixed at top of content area */
-.content-scroll-area > div:first-child {
-  position: sticky;
-  top: 0;
-  background: var(--color-background-layout-main, #ffffff);
-  z-index: 10;
-  padding-bottom: 16px;
-  margin-bottom: 16px;
-  border-bottom: 1px solid var(--color-border-divider-default, #e9ebed);
+/* Content scroll area should be a flex container */
+.content-scroll-area {
+  display: flex;
+  flex-direction: column;
+  position: relative;
 }
 
-html[data-mode="dark"] .content-scroll-area > div:first-child,
-html.awsui-dark-mode .content-scroll-area > div:first-child {
+/* Breadcrumbs should be sticky at top of content area */
+/* Target breadcrumb group directly and make it sticky */
+.content-scroll-area [data-awsui-breadcrumb-group],
+.content-scroll-area .awsui-breadcrumb-group {
+  position: sticky !important;
+  top: 0 !important;
+  background: var(--color-background-layout-main, #ffffff) !important;
+  z-index: 10 !important;
+  padding: 16px 0 !important;
+  margin-bottom: 16px !important;
+  border-bottom: 1px solid var(--color-border-divider-default, #e9ebed) !important;
+}
+
+html[data-mode="dark"] .content-scroll-area [data-awsui-breadcrumb-group],
+html[data-mode="dark"] .content-scroll-area .awsui-breadcrumb-group,
+html.awsui-dark-mode .content-scroll-area [data-awsui-breadcrumb-group],
+html.awsui-dark-mode .content-scroll-area .awsui-breadcrumb-group {
   background: var(--color-background-layout-main, #1d1d1d) !important;
-  border-bottom-color: var(--color-border-divider-default, #414750);
+  border-bottom-color: var(--color-border-divider-default, #414750) !important;
 }
 
-/* Ensure content after breadcrumbs scrolls */
-.content-scroll-area > div:not(:first-child) {
-  padding-top: 0;
+/* Ensure the SpaceBetween wrapper that contains breadcrumbs allows proper layout */
+.content-scroll-area > div:first-child {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Make sure content after breadcrumbs can scroll */
+.content-scroll-area > div:first-child > *:not([data-awsui-breadcrumb-group]):not(.awsui-breadcrumb-group) {
+  flex: 1;
+  min-height: 0;
 }
 
 /* Tables should scroll within their containers - use max-height */
