@@ -11,7 +11,7 @@ import Alert from "@cloudscape-design/components/alert";
 import Box from "@cloudscape-design/components/box";
 import Tabs from "@cloudscape-design/components/tabs";
 import Spinner from "@cloudscape-design/components/spinner";
-import { api } from "@/lib/api";
+import Link from "@cloudscape-design/components/link";
 import { useSettings } from "@/hooks/useSettings";
 import { useBeancountStore } from "@/store/beancountStore";
 import { useAutoSave } from "@/hooks/useAutoSave";
@@ -24,14 +24,11 @@ export default function Settings() {
   const { loadAll } = useBeancountStore();
   const [filePath, setFilePath] = useState(settings.beancountFilePath);
   const [activeTab, setActiveTab] = useState("appearance");
-  const [createStatus, setCreateStatus] = useState<"success" | "error" | null>(null);
-  const [createMessage, setCreateMessage] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
   const [fileInfo, setFileInfo] = useState<{
     name: string;
     show: boolean;
   } | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [isSelecting, setIsSelecting] = useState(false);
   const filePathInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -75,7 +72,7 @@ export default function Settings() {
       return;
     }
 
-    setIsUploading(true);
+    setIsSelecting(true);
     setFileInfo(null);
 
     try {
@@ -89,25 +86,17 @@ export default function Settings() {
         name: fileName,
         show: true,
       });
-
-      setCreateStatus(null);
     } catch (error: unknown) {
-      const err = error as { message?: string };
-      setFileInfo({
-        name: file.name,
-        show: true,
-      });
-      setCreateStatus("error");
-      setCreateMessage(err.message || "Failed to process file");
+      console.error("Error processing file selection:", error);
     } finally {
-      setIsUploading(false);
+      setIsSelecting(false);
       if (event.target) {
         event.target.value = "";
       }
     }
   };
 
-  const handleSelectFileWithAPI = async () => {
+  const handleSelectFile = async () => {
     if (!("showOpenFilePicker" in window)) {
       const input = document.getElementById("file-input") as HTMLInputElement;
       input?.click();
@@ -115,7 +104,7 @@ export default function Settings() {
     }
 
     try {
-      setIsUploading(true);
+      setIsSelecting(true);
       setFileInfo(null);
 
       const fileHandles = await (
@@ -150,11 +139,10 @@ export default function Settings() {
     } catch (error: unknown) {
       const err = error as { name?: string; message?: string };
       if (err.name !== "AbortError") {
-        setCreateStatus("error");
-        setCreateMessage(err.message || "Failed to select file");
+        console.error("Error selecting file:", err);
       }
     } finally {
-      setIsUploading(false);
+      setIsSelecting(false);
     }
   };
 
@@ -166,162 +154,6 @@ export default function Settings() {
     setFilePath("");
     updateSettings({ beancountFilePath: "" });
     setFileInfo(null);
-  };
-
-  const isFullPath = (path: string): boolean => {
-    return path.includes("/") || path.includes("\\");
-  };
-
-  const pickDirectory = async (): Promise<string> => {
-    if ("showDirectoryPicker" in window) {
-      const dirHandle = await (window as any).showDirectoryPicker({
-        mode: "readwrite",
-      });
-      const dirName = dirHandle.name;
-      return `~/${dirName}`;
-    } else {
-      return new Promise<string>((resolve, reject) => {
-        const input = document.createElement("input");
-        input.type = "file";
-        input.webkitdirectory = true;
-        input.style.display = "none";
-        document.body.appendChild(input);
-
-        const handleChange = async (event: Event) => {
-          const target = event.target as HTMLInputElement;
-          const files = target.files;
-
-          if (files && files.length > 0) {
-            const firstFile = files[0];
-            const relativePath = (firstFile as any).webkitRelativePath || "";
-            const dirName = relativePath.split("/")[0] || "";
-            const directoryPath = `~/${dirName}`;
-
-            document.body.removeChild(input);
-            resolve(directoryPath);
-          } else {
-            document.body.removeChild(input);
-            reject(new Error("No directory selected"));
-          }
-        };
-
-        const handleCancel = () => {
-          document.body.removeChild(input);
-          reject(new Error("Directory selection cancelled"));
-        };
-
-        input.addEventListener("change", handleChange);
-        input.addEventListener("cancel", handleCancel);
-
-        setTimeout(() => {
-          input.click();
-        }, 0);
-      });
-    }
-  };
-
-  const handleCreateFile = async () => {
-    let targetPath = filePath.trim();
-
-    try {
-      if (!targetPath) {
-        const selectedDirectory = await pickDirectory();
-      setCreateStatus("error");
-        setCreateMessage(
-          "Please enter a filename in the input field above (e.g., ledger.beancount), then click 'Create New File' again."
-        );
-        setFilePath(selectedDirectory + "/");
-        setTimeout(() => {
-          filePathInputRef.current?.focus();
-          filePathInputRef.current?.setSelectionRange(
-            selectedDirectory.length + 1,
-            selectedDirectory.length + 1
-          );
-        }, 100);
-      return;
-    }
-
-      if (!isFullPath(targetPath)) {
-        const selectedDirectory = await pickDirectory();
-        targetPath = `${selectedDirectory}/${targetPath}`;
-        setFilePath(targetPath);
-      }
-
-    setIsCreating(true);
-    setCreateStatus(null);
-    setCreateMessage("");
-
-      console.log("Creating file at path:", targetPath);
-      const result = await api.files.create(targetPath);
-      console.log("File creation result:", result);
-
-      setCreateStatus("success");
-      setCreateMessage(result.message || "File created successfully!");
-
-      setFilePath(targetPath);
-      updateSettings({ beancountFilePath: targetPath });
-
-      loadAll().catch((err) => console.error("Failed to load data after creating file:", err));
-    } catch (error: any) {
-      if (error?.name === "AbortError" || error?.message === "Directory selection cancelled") {
-        return;
-      }
-
-      console.error("Error creating file:", error);
-      console.error("Error type:", typeof error);
-      console.error("Error keys:", Object.keys(error || {}));
-      console.error("Full error object:", JSON.stringify(error, null, 2));
-
-      let errorMessage = "Failed to create file. Please check the path and try again.";
-      
-      if (error?.message) {
-        errorMessage = error.message;
-      } else if (error?.detail) {
-        errorMessage = error.detail;
-      } else if (error?.response?.data?.detail) {
-        errorMessage = error.response.data.detail;
-      } else if (typeof error === "string") {
-        errorMessage = error;
-      } else if (error?.toString) {
-        errorMessage = error.toString();
-      }
-
-      if (errorMessage.includes("already exists") || errorMessage.includes("FileExistsError")) {
-        setCreateStatus("error");
-        setCreateMessage(
-          `File already exists at this path. Please choose a different filename or clear the existing path first.`
-        );
-      } else if (
-        errorMessage.includes("Permission denied") ||
-        errorMessage.includes("permission")
-      ) {
-        setCreateStatus("error");
-        setCreateMessage(
-          `Permission denied. Please check that you have write access to the directory.`
-        );
-      } else if (
-        errorMessage.includes("No such file or directory") ||
-        errorMessage.includes("directory")
-      ) {
-        setCreateStatus("error");
-        setCreateMessage(
-          `Directory does not exist. Please check the path and ensure the directory exists.`
-        );
-      } else {
-      setCreateStatus("error");
-        setCreateMessage(errorMessage);
-      }
-
-      setTimeout(() => {
-        filePathInputRef.current?.focus();
-        filePathInputRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      }, 100);
-    } finally {
-      setIsCreating(false);
-    }
   };
 
   const breadcrumbs = [
@@ -353,48 +185,6 @@ export default function Settings() {
       >
         Settings
       </Header>
-
-      {createStatus === "success" && (
-        <Alert type="success" dismissible onDismiss={() => setCreateStatus(null)}>
-          {createMessage}
-        </Alert>
-      )}
-
-      {createStatus === "error" && (
-        <Alert
-          type="error"
-          dismissible
-          onDismiss={() => setCreateStatus(null)}
-          action={
-            createMessage.includes("Directory picker is not supported") ? (
-              <Button
-                variant="link"
-                onClick={() => {
-                  filePathInputRef.current?.focus();
-                  filePathInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-                }}
-              >
-                Go to input field
-              </Button>
-            ) : undefined
-          }
-        >
-          {createMessage}
-          {createMessage.includes("Directory picker is not supported") && (
-            <Box variant="small" color="text-body-secondary" margin={{ top: "xs" }}>
-              <Box fontWeight="bold">Examples:</Box>
-              <Box padding={{ left: "l" }} margin={{ top: "xs" }}>
-                <Box>
-                  • <code>/Users/username/Documents/ledger.beancount</code> (absolute path)
-                </Box>
-                <Box>
-                  • <code>~/Documents/ledger.beancount</code> (home directory shortcut)
-                </Box>
-              </Box>
-            </Box>
-          )}
-        </Alert>
-      )}
 
       {fileInfo?.show && (
         <Alert
@@ -432,18 +222,10 @@ export default function Settings() {
                 <Button
                   variant="normal"
                   iconName="folder-open"
-                  onClick={handleSelectFileWithAPI}
-                  disabled={isUploading}
+                  onClick={handleSelectFile}
+                  disabled={isSelecting}
                 >
-                  {isUploading ? "Processing..." : "Select File"}
-                </Button>
-                <Button
-                  variant="normal"
-                  iconName={isCreating ? undefined : "add-plus"}
-                  onClick={handleCreateFile}
-                  disabled={isCreating}
-                >
-                  {isCreating ? "Creating..." : "Create New File"}
+                  {isSelecting ? "Selecting..." : "Select File"}
                 </Button>
               </SpaceBetween>
             }
@@ -465,6 +247,14 @@ export default function Settings() {
                   ariaLabel="Clear file path"
                 />
               ) : undefined
+            }
+            constraintText={
+              <Box variant="small" color="text-body-secondary">
+                To create a new Beancount file, create it manually using a text editor and then select it here.
+                <br />
+                Example: Create a file named <code>ledger.beancount</code> in your Documents folder, then enter the path{" "}
+                <code>~/Documents/ledger.beancount</code> or use the "Select File" button.
+              </Box>
             }
           >
             <Input
