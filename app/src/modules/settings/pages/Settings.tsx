@@ -71,6 +71,8 @@ export default function Settings() {
     1000
   );
 
+  const [isSelecting, setIsSelecting] = useState(false);
+
   const { openFilePicker, plainFiles, loading } = useFilePicker({
     accept: [".beancount", ".bean"],
     multiple: false,
@@ -94,8 +96,99 @@ export default function Settings() {
     }
   }, [plainFiles]);
 
-  const handleSelectFile = () => {
-    openFilePicker();
+  const handleSelectFile = async () => {
+    if ("showOpenFilePicker" in window) {
+      try {
+        setIsSelecting(true);
+        setFileInfo(null);
+
+        const fileHandles = await (window as any).showOpenFilePicker({
+          types: [
+            {
+              description: "Beancount files",
+              accept: {
+                "text/plain": [".beancount", ".bean"],
+              },
+            },
+          ],
+          multiple: false,
+        });
+
+        if (fileHandles && fileHandles.length > 0) {
+          const fileHandle = fileHandles[0];
+          const file = await fileHandle.getFile();
+          const fileName = file.name;
+
+          let fullPath = "";
+
+          try {
+            if (fileHandle.getParent) {
+              const dirHandle = await fileHandle.getParent();
+              const pathParts: string[] = [dirHandle.name];
+              let currentHandle = dirHandle;
+              let depth = 0;
+              const maxDepth = 20;
+
+              while (depth < maxDepth) {
+                try {
+                  if (currentHandle.getParent) {
+                    const parent = await currentHandle.getParent();
+                    if (parent && parent.name) {
+                      pathParts.unshift(parent.name);
+                      currentHandle = parent;
+                      depth++;
+                    } else {
+                      break;
+                    }
+                  } else {
+                    break;
+                  }
+                } catch {
+                  break;
+                }
+              }
+
+              if (pathParts.length > 0) {
+                const isWindows = navigator.platform.toLowerCase().includes("win");
+                if (isWindows) {
+                  fullPath = pathParts.join("\\") + "\\" + fileName;
+                } else {
+                  fullPath = "/" + pathParts.join("/") + "/" + fileName;
+                }
+              }
+            }
+          } catch (pathError) {
+            console.warn("Could not determine full file path:", pathError);
+          }
+
+          if (fullPath) {
+            setFilePath(fullPath);
+            setFileInfo({
+              name: fileName,
+              show: true,
+            });
+          } else {
+            const isWindows = navigator.platform.toLowerCase().includes("win");
+            const homeDir = isWindows ? "C:\\Users\\YourName" : "~";
+            const suggestedPath = `${homeDir}/${fileName}`;
+            setFilePath(suggestedPath);
+            setFileInfo({
+              name: fileName,
+              show: true,
+            });
+          }
+        }
+      } catch (error: any) {
+        if (error?.name !== "AbortError") {
+          console.warn("File System Access API failed, falling back to file picker:", error);
+          openFilePicker();
+        }
+      } finally {
+        setIsSelecting(false);
+      }
+    } else {
+      openFilePicker();
+    }
   };
 
   const handleFilePathChange = (value: string) => {
@@ -168,9 +261,9 @@ export default function Settings() {
                 variant="normal"
                 iconName="folder-open"
                 onClick={handleSelectFile}
-                disabled={loading}
+                disabled={loading || isSelecting}
               >
-                {loading ? "Selecting..." : "Select File"}
+                {loading || isSelecting ? "Selecting..." : "Select File"}
               </Button>
             }
           >
