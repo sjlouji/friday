@@ -71,27 +71,28 @@ export default function Settings() {
     1000
   );
 
-  const { openFilePicker, filesContent, loading } = useFilePicker({
+  const { openFilePicker, plainFiles, loading } = useFilePicker({
     accept: [".beancount", ".bean"],
     multiple: false,
-    onFilesSelected: ({ plainFiles }) => {
-      if (plainFiles.length > 0) {
-        const file = plainFiles[0];
-        const fileName = file.name;
-
-        setFileInfo({
-          name: fileName,
-          show: true,
-        });
-
-        const isWindows = navigator.platform.toLowerCase().includes("win");
-        const homeDir = isWindows ? "C:\\Users\\YourName" : "~";
-        const suggestedPath = `${homeDir}/${fileName}`;
-
-        setFilePath(suggestedPath);
-      }
-    },
   });
+
+  useEffect(() => {
+    if (plainFiles.length > 0) {
+      const file = plainFiles[0];
+      const fileName = file.name;
+
+      setFileInfo({
+        name: fileName,
+        show: true,
+      });
+
+      const isWindows = navigator.platform.toLowerCase().includes("win");
+      const homeDir = isWindows ? "C:\\Users\\YourName" : "~";
+      const suggestedPath = `${homeDir}/${fileName}`;
+
+      setFilePath(suggestedPath);
+    }
+  }, [plainFiles]);
 
   const handleSelectFile = () => {
     openFilePicker();
@@ -163,14 +164,14 @@ export default function Settings() {
           <Header
             variant="h2"
             actions={
-              <Button
-                variant="normal"
-                iconName="folder-open"
+                <Button
+                  variant="normal"
+                  iconName="folder-open"
                 onClick={handleSelectFile}
                 disabled={loading}
               >
                 {loading ? "Processing..." : "Select File"}
-              </Button>
+                </Button>
             }
           >
             Beancount File
