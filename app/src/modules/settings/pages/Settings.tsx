@@ -163,8 +163,9 @@ export default function Settings() {
             show: true,
           });
         }
-      } catch (error: any) {
-        if (error?.name !== "AbortError") {
+      } catch (error: unknown) {
+        const err = error as { name?: string; message?: string };
+        if (err.name !== "AbortError") {
           console.error("Error selecting file:", error);
         }
       } finally {
