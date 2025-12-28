@@ -33,6 +33,7 @@ export default function Settings() {
   } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const filePathInputRef = useRef<HTMLInputElement>(null);
+  const directoryInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setFilePath(settings.beancountFilePath);
@@ -193,27 +194,83 @@ export default function Settings() {
           setFilePath(suggestedPath);
           targetPath = suggestedPath;
         } else {
-          setCreateStatus("error");
-          const userAgent = navigator.userAgent.toLowerCase();
-          let browserName = "your browser";
-          if (userAgent.includes("chrome") && !userAgent.includes("edg")) {
-            browserName = "Chrome";
-          } else if (userAgent.includes("safari") && !userAgent.includes("chrome")) {
-            browserName = "Safari";
-          } else if (userAgent.includes("firefox")) {
-            browserName = "Firefox";
-          } else if (userAgent.includes("edg")) {
-            browserName = "Edge";
+          return new Promise<void>((resolve, reject) => {
+            const input = document.createElement("input");
+            input.type = "file";
+            input.webkitdirectory = true;
+            input.style.display = "none";
+            document.body.appendChild(input);
+
+            const handleChange = async (event: Event) => {
+              const target = event.target as HTMLInputElement;
+              const files = target.files;
+
+              if (files && files.length > 0) {
+                const firstFile = files[0];
+                const filePath = firstFile.webkitRelativePath || firstFile.name;
+                const directoryPath = filePath.substring(0, filePath.lastIndexOf("/") + 1);
+                const dirName = directoryPath.split("/")[0] || "Documents";
+
+                const platform = navigator.platform.toLowerCase();
+                let suggestedPath = "";
+
+                if (platform.includes("win")) {
+                  suggestedPath = `~/${dirName}/ledger.beancount`;
+                } else if (platform.includes("mac")) {
+                  suggestedPath = `~/Documents/${dirName}/ledger.beancount`;
+                } else {
+                  suggestedPath = `~/${dirName}/ledger.beancount`;
+                }
+
+                setFilePath(suggestedPath);
+                document.body.removeChild(input);
+                resolve();
+              } else {
+                document.body.removeChild(input);
+                reject(new Error("No directory selected"));
+              }
+            };
+
+            input.addEventListener("change", handleChange);
+            input.addEventListener("cancel", () => {
+              document.body.removeChild(input);
+              reject(new Error("Directory selection cancelled"));
+            });
+
+            input.click();
+          })
+            .then(() => {
+              const platform = navigator.platform.toLowerCase();
+              let suggestedPath = filePath;
+
+              if (platform.includes("win")) {
+                suggestedPath = `~/${suggestedPath.split("/")[0]}/ledger.beancount`;
+              } else if (platform.includes("mac")) {
+                suggestedPath = `~/Documents/${suggestedPath.split("/")[0]}/ledger.beancount`;
+              } else {
+                suggestedPath = `~/${suggestedPath.split("/")[0]}/ledger.beancount`;
+              }
+
+              targetPath = suggestedPath;
+            })
+            .catch((error: unknown) => {
+              const err = error as { name?: string; message?: string };
+              if (err.message !== "Directory selection cancelled") {
+                setCreateStatus("error");
+                setCreateMessage(
+                  err.message ||
+                    "Failed to select directory. Please enter a full file path manually in the input field above."
+                );
+                setTimeout(() => {
+                  filePathInputRef.current?.focus();
+                  filePathInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+                }, 100);
+              }
+            });
+
+          if (!targetPath) {
+            return;
           }
-          
-          setCreateMessage(
-            `Directory picker is not supported in ${browserName}. This feature requires Chrome or Edge browser. Please use Chrome/Edge for folder selection, or enter a full file path manually in the input field below.`
-          );
-          setTimeout(() => {
-            filePathInputRef.current?.focus();
-            filePathInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-          }, 100);
-          return;
         }
       } catch (error: unknown) {
         const err = error as { name?: string; message?: string };
@@ -223,6 +280,10 @@ export default function Settings() {
             err.message ||
               "Failed to select directory. Please enter a full file path manually in the input field above."
           );
+          setTimeout(() => {
+            filePathInputRef.current?.focus();
+            filePathInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+          }, 100);
         }
         return;
       }
