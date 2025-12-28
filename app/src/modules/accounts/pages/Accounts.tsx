@@ -9,7 +9,6 @@ import BreadcrumbGroup from "@cloudscape-design/components/breadcrumb-group";
 import Tabs from "@cloudscape-design/components/tabs";
 import FileUpload from "@cloudscape-design/components/file-upload";
 import Alert from "@cloudscape-design/components/alert";
-import Flashbar from "@cloudscape-design/components/flashbar";
 import { Account } from "@/types/beancount";
 import AccountModal from "../components/AccountModal";
 import AccountTreeView from "../components/AccountTreeView";
@@ -43,8 +42,6 @@ export default function Accounts() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        console.log("Accounts page: Loading accounts...");
-        
         // Fetch accounts through the store
         await fetchAccounts();
         
@@ -77,8 +74,6 @@ export default function Accounts() {
       balancesMap[balance.account] = balance.amount;
     });
     setAccountBalances(balancesMap);
-    console.log("Accounts page: Accounts from store:", accounts);
-    console.log("Accounts page: Account balances updated:", balancesMap);
   }, [balances, accounts]);
 
 
