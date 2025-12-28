@@ -247,6 +247,8 @@
     "excelNotes": "Notes: (Optional) Additional notes or description",
     "warningsErrors": "Warnings/Errors:",
     "treeView": "Tree View",
+    "tableView": "Table View",
+    "allAccounts": "All Accounts",
     "byType": "By Type",
     "accountHierarchy": "Account Hierarchy",
     "expandCollapse": "Expand/collapse to view parent-child relationships",

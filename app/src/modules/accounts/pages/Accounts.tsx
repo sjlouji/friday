@@ -3,32 +3,19 @@ import { useBeancountStore } from "@/store/beancountStore";
 import Header from "@cloudscape-design/components/header";
 import Container from "@cloudscape-design/components/container";
 import Button from "@cloudscape-design/components/button";
-import Cards from "@cloudscape-design/components/cards";
 import Box from "@cloudscape-design/components/box";
-import Badge from "@cloudscape-design/components/badge";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import BreadcrumbGroup from "@cloudscape-design/components/breadcrumb-group";
 import Tabs from "@cloudscape-design/components/tabs";
 import FileUpload from "@cloudscape-design/components/file-upload";
 import Alert from "@cloudscape-design/components/alert";
 import Flashbar from "@cloudscape-design/components/flashbar";
-import { Account, AccountType } from "@/types/beancount";
+import { Account } from "@/types/beancount";
 import AccountModal from "../components/AccountModal";
-import AccountTree from "../components/AccountTree";
-import { formatIndianCurrency } from "@/lib/utils/currency";
+import AccountTreeView from "../components/AccountTreeView";
+import AccountTableView from "../components/AccountTableView";
 import { api } from "@/lib/api";
 import { useTranslation } from "@/hooks/useTranslation";
-
-const accountTypeColors: Record<
-  AccountType,
-  "blue" | "red" | "green" | "grey"
-> = {
-  Assets: "green",
-  Liabilities: "red",
-  Equity: "blue",
-  Income: "blue",
-  Expenses: "grey",
-};
 
 export default function Accounts() {
   const { t } = useTranslation();
@@ -94,20 +81,6 @@ export default function Accounts() {
     console.log("Accounts page: Account balances updated:", balancesMap);
   }, [balances, accounts]);
 
-  const accountsByType = accounts.reduce((acc, account) => {
-    if (!acc[account.type]) {
-      acc[account.type] = [];
-    }
-    acc[account.type].push(account);
-    return acc;
-  }, {} as Record<AccountType, Account[]>);
-
-  console.log(
-    "Accounts page render - accounts:",
-    accounts,
-    "accountsByType:",
-    accountsByType
-  );
 
   const handleEdit = (account: Account) => {
     setEditingAccount(account);
@@ -342,7 +315,7 @@ export default function Accounts() {
                   }
                 >
                   {accounts.length > 0 ? (
-                    <AccountTree
+                    <AccountTreeView
                       accounts={accounts}
                       balances={accountBalances}
                       onEdit={handleEdit}
@@ -350,114 +323,30 @@ export default function Accounts() {
                     />
                   ) : (
                     <Box textAlign="center" padding={{ vertical: "xl" }}>
-                      No accounts found
+                      {t("accounts.noAccountsFound")}
                     </Box>
                   )}
                 </Container>
               ),
             },
             {
-              label: "By Type",
-              id: "by-type",
+              label: t("accounts.tableView"),
+              id: "table",
               content: (
-                <SpaceBetween size="l">
-                  {(
-                    [
-                      "Assets",
-                      "Liabilities",
-                      "Equity",
-                      "Income",
-                      "Expenses",
-                    ] as AccountType[]
-                  ).map((type) => {
-                    const typeAccounts = accountsByType[type] || [];
-                    return (
-                      <Container
-                        key={type}
-                        variant="stacked"
-                        header={
-                          <Header
-                            variant="h2"
-                            counter={`(${typeAccounts.length})`}
-                            actions={
-                              <Badge color={accountTypeColors[type]}>
-                                {typeAccounts.length} accounts
-                              </Badge>
-                            }
-                          >
-                            {type}
-                          </Header>
-                        }
-                      >
-                        {typeAccounts.length > 0 ? (
-                          <Cards
-                            cardDefinition={{
-                              header: (item) => item.name,
-                              sections: [
-                                {
-                                  id: "date",
-                                  header: "Opened",
-                                  content: (item) =>
-                                    new Date(
-                                      item.openDate
-                                    ).toLocaleDateString(),
-                                },
-                                {
-                                  id: "balance",
-                                  header: t("accounts.balance"),
-                                  content: (item) => {
-                                    const balance = accountBalances[item.name];
-                                    if (balance) {
-                                      return formatIndianCurrency(
-                                        parseFloat(balance.number),
-                                        balance.currency
-                                      );
-                                    }
-                                    return "N/A";
-                                  },
-                                },
-                                {
-                                  id: "closed",
-                                  header: t("accounts.status"),
-                                  content: (item) =>
-                                    item.closeDate
-                                      ? `Closed: ${new Date(
-                                          item.closeDate
-                                        ).toLocaleDateString()}`
-                                      : "Open",
-                                },
-                              ],
-                            }}
-                            cardsPerRow={[{ cards: 3 }]}
-                            items={typeAccounts.map((account) => ({
-                              ...account,
-                              actions: (
-                                <SpaceBetween direction="horizontal" size="xs">
-                                  <Button
-                                    variant="inline-link"
-                                    onClick={() => handleEdit(account)}
-                                  >
-                                    Edit
-                                  </Button>
-                                  <Button
-                                    variant="inline-link"
-                                    onClick={() => handleDelete(account.name)}
-                                  >
-                                    Delete
-                                  </Button>
-                                </SpaceBetween>
-                              ),
-                            }))}
-                          />
-                        ) : (
-                          <Box textAlign="center" padding={{ vertical: "xl" }}>
-                            No {type.toLowerCase()} accounts yet
-                          </Box>
-                        )}
-                      </Container>
-                    );
-                  })}
-                </SpaceBetween>
+                <Container variant="stacked">
+                  {accounts.length > 0 ? (
+                    <AccountTableView
+                      accounts={accounts}
+                      balances={accountBalances}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                    />
+                  ) : (
+                    <Box textAlign="center" padding={{ vertical: "xl" }}>
+                      {t("accounts.noAccountsFound")}
+                    </Box>
+                  )}
+                </Container>
               ),
             },
           ]}
