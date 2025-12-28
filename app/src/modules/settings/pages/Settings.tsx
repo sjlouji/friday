@@ -193,7 +193,7 @@ export default function Settings() {
           setFilePath(suggestedPath);
           targetPath = suggestedPath;
         } else {
-          return new Promise<void>((resolve, reject) => {
+          const selectedPath = await new Promise<string>((resolve, reject) => {
             const input = document.createElement("input");
             input.type = "file";
             input.webkitdirectory = true;
@@ -206,9 +206,8 @@ export default function Settings() {
 
               if (files && files.length > 0) {
                 const firstFile = files[0];
-                const filePath = firstFile.webkitRelativePath || firstFile.name;
-                const directoryPath = filePath.substring(0, filePath.lastIndexOf("/") + 1);
-                const dirName = directoryPath.split("/")[0] || "Documents";
+                const relativePath = (firstFile as any).webkitRelativePath || "";
+                const dirName = relativePath.split("/")[0] || "Documents";
 
                 const platform = navigator.platform.toLowerCase();
                 let suggestedPath = "";
@@ -221,58 +220,35 @@ export default function Settings() {
                   suggestedPath = `~/${dirName}/ledger.beancount`;
                 }
 
-                setFilePath(suggestedPath);
                 document.body.removeChild(input);
-                resolve();
+                resolve(suggestedPath);
               } else {
                 document.body.removeChild(input);
                 reject(new Error("No directory selected"));
               }
             };
 
-            input.addEventListener("change", handleChange);
-            input.addEventListener("cancel", () => {
+            const handleCancel = () => {
               document.body.removeChild(input);
               reject(new Error("Directory selection cancelled"));
-            });
+            };
 
-            input.click();
-          })
-            .then(() => {
-              const platform = navigator.platform.toLowerCase();
-              let suggestedPath = filePath;
+            input.addEventListener("change", handleChange);
+            input.addEventListener("cancel", handleCancel);
 
-              if (platform.includes("win")) {
-                suggestedPath = `~/${suggestedPath.split("/")[0]}/ledger.beancount`;
-              } else if (platform.includes("mac")) {
-                suggestedPath = `~/Documents/${suggestedPath.split("/")[0]}/ledger.beancount`;
-              } else {
-                suggestedPath = `~/${suggestedPath.split("/")[0]}/ledger.beancount`;
-              }
+            setTimeout(() => {
+              input.click();
+            }, 0);
+          });
 
-              targetPath = suggestedPath;
-            })
-            .catch((error: unknown) => {
-              const err = error as { name?: string; message?: string };
-              if (err.message !== "Directory selection cancelled") {
-                setCreateStatus("error");
-                setCreateMessage(
-                  err.message ||
-                    "Failed to select directory. Please enter a full file path manually in the input field above."
-                );
-                setTimeout(() => {
-                  filePathInputRef.current?.focus();
-                  filePathInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-                }, 100);
-              }
-            });
-
-          if (!targetPath) {
-            return;
-          }
+          setFilePath(selectedPath);
+          targetPath = selectedPath;
         }
       } catch (error: unknown) {
         const err = error as { name?: string; message?: string };
+        if (err.message === "Directory selection cancelled") {
+          return;
+        }
         if (err.name !== "AbortError") {
           setCreateStatus("error");
           setCreateMessage(
@@ -284,7 +260,7 @@ export default function Settings() {
             filePathInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
           }, 100);
         }
-      return;
+        return;
       }
     }
 
