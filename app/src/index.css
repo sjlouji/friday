@@ -78,8 +78,8 @@ html.awsui-dark-mode .app-layout-wrapper {
   top: 0 !important;
   background: var(--color-background-layout-main, #ffffff) !important;
   z-index: 10 !important;
-  padding: 16px 0 !important;
-  margin-bottom: 16px !important;
+  padding: 8px 0 !important;
+  margin-bottom: 8px !important;
   border-bottom: 1px solid var(--color-border-divider-default, #e9ebed) !important;
 }
 
