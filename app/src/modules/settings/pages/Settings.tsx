@@ -194,8 +194,20 @@ export default function Settings() {
           targetPath = suggestedPath;
         } else {
           setCreateStatus("error");
+          const userAgent = navigator.userAgent.toLowerCase();
+          let browserName = "your browser";
+          if (userAgent.includes("chrome") && !userAgent.includes("edg")) {
+            browserName = "Chrome";
+          } else if (userAgent.includes("safari") && !userAgent.includes("chrome")) {
+            browserName = "Safari";
+          } else if (userAgent.includes("firefox")) {
+            browserName = "Firefox";
+          } else if (userAgent.includes("edg")) {
+            browserName = "Edge";
+          }
+          
           setCreateMessage(
-            "Directory picker is not supported in your browser. Please enter a full file path manually in the input field below."
+            `Directory picker is not supported in ${browserName}. This feature requires Chrome or Edge browser. Please use Chrome/Edge for folder selection, or enter a full file path manually in the input field below.`
           );
           setTimeout(() => {
             filePathInputRef.current?.focus();
