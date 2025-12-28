@@ -178,19 +178,7 @@ export default function Settings() {
         mode: "readwrite",
       });
       const dirName = dirHandle.name;
-
-      const platform = navigator.platform.toLowerCase();
-      let suggestedPath = "";
-
-      if (platform.includes("win")) {
-        suggestedPath = `~/${dirName}/ledger.beancount`;
-      } else if (platform.includes("mac")) {
-        suggestedPath = `~/Documents/${dirName}/ledger.beancount`;
-      } else {
-        suggestedPath = `~/${dirName}/ledger.beancount`;
-      }
-
-      return suggestedPath;
+      return `~/${dirName}/ledger.beancount`;
     } else {
       return new Promise<string>((resolve, reject) => {
         const input = document.createElement("input");
@@ -206,18 +194,8 @@ export default function Settings() {
           if (files && files.length > 0) {
             const firstFile = files[0];
             const relativePath = (firstFile as any).webkitRelativePath || "";
-            const dirName = relativePath.split("/")[0] || "Documents";
-
-            const platform = navigator.platform.toLowerCase();
-            let suggestedPath = "";
-
-            if (platform.includes("win")) {
-              suggestedPath = `~/${dirName}/ledger.beancount`;
-            } else if (platform.includes("mac")) {
-              suggestedPath = `~/Documents/${dirName}/ledger.beancount`;
-            } else {
-              suggestedPath = `~/${dirName}/ledger.beancount`;
-            }
+            const dirName = relativePath.split("/")[0] || "ledger";
+            const suggestedPath = `~/${dirName}/ledger.beancount`;
 
             document.body.removeChild(input);
             resolve(suggestedPath);
