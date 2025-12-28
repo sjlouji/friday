@@ -164,14 +164,14 @@ export default function Settings() {
           <Header
             variant="h2"
             actions={
-                <Button
-                  variant="normal"
-                  iconName="folder-open"
+              <Button
+                variant="normal"
+                iconName="folder-open"
                 onClick={handleSelectFile}
                 disabled={loading}
               >
-                {loading ? "Processing..." : "Select File"}
-                </Button>
+                {loading ? "Selecting..." : "Select File"}
+              </Button>
             }
           >
             Beancount File
