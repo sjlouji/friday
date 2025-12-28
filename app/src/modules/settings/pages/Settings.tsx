@@ -74,6 +74,7 @@ export default function Settings() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   const handleFileChange = async ({ detail }: { detail: { value: File[] } }) => {
+    console.log(detail);
     const files = detail.value;
     setSelectedFiles(files);
 
@@ -90,7 +91,9 @@ export default function Settings() {
 
       if ("showOpenFilePicker" in window) {
         try {
-          const fileHandles = await (window as any).showOpenFilePicker({
+          const fileHandles = await (
+            window as { showOpenFilePicker?: (options: unknown) => Promise<FileSystemFileHandle[]> }
+          ).showOpenFilePicker?.({
             types: [
               {
                 description: "Beancount files",
@@ -106,10 +109,18 @@ export default function Settings() {
             const fileHandle = fileHandles[0];
 
             try {
-              if (fileHandle.getParent) {
-                const dirHandle = await fileHandle.getParent();
+              interface FileHandleWithParent extends FileSystemFileHandle {
+                getParent?: () => Promise<FileSystemDirectoryHandle>;
+              }
+              interface DirHandleWithParent extends FileSystemDirectoryHandle {
+                getParent?: () => Promise<FileSystemDirectoryHandle>;
+              }
+
+              const handleWithParent = fileHandle as FileHandleWithParent;
+              if (handleWithParent.getParent) {
+                const dirHandle = await handleWithParent.getParent();
                 const pathParts: string[] = [dirHandle.name];
-                let currentHandle: any = dirHandle;
+                let currentHandle: DirHandleWithParent = dirHandle as DirHandleWithParent;
                 let depth = 0;
                 const maxDepth = 30;
 
@@ -264,8 +275,9 @@ export default function Settings() {
                   To create a new Beancount file, create it manually using a text editor and then
                   select it here.
                   <br />
-                  Example: Create a file named <code>ledger.beancount</code> in your Documents folder,
-                  then enter the path <code>~/Documents/ledger.beancount</code> or use the file picker above.
+                  Example: Create a file named <code>ledger.beancount</code> in your Documents
+                  folder, then enter the path <code>~/Documents/ledger.beancount</code> or use the
+                  file picker above.
                 </Box>
               }
             >
