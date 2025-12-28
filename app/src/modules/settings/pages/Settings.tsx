@@ -102,7 +102,9 @@ export default function Settings() {
         setIsSelecting(true);
         setFileInfo(null);
 
-        const fileHandles = await (window as any).showOpenFilePicker({
+        const fileHandles = await (
+          window as { showOpenFilePicker?: (options: unknown) => Promise<FileSystemFileHandle[]> }
+        ).showOpenFilePicker?.({
           types: [
             {
               description: "Beancount files",
@@ -178,8 +180,9 @@ export default function Settings() {
             });
           }
         }
-      } catch (error: any) {
-        if (error?.name !== "AbortError") {
+      } catch (error: unknown) {
+        const err = error as { name?: string; message?: string };
+        if (err.name !== "AbortError") {
           console.warn("File System Access API failed, falling back to file picker:", error);
           openFilePicker();
         }
