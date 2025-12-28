@@ -7,7 +7,6 @@ import Box from "@cloudscape-design/components/box";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import BreadcrumbGroup from "@cloudscape-design/components/breadcrumb-group";
 import Tabs from "@cloudscape-design/components/tabs";
-import FileUpload from "@cloudscape-design/components/file-upload";
 import Alert from "@cloudscape-design/components/alert";
 import { Account } from "@/types/beancount";
 import AccountModal from "../components/AccountModal";
