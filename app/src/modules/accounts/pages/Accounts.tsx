@@ -151,9 +151,28 @@ export default function Accounts() {
         header={
           <Header
             variant="h2"
-            description="Upload an Excel file with columns: Account Name, Type, Open Date, Currency (optional), Notes (optional)"
+            actions={
+              <Button
+                iconName="upload"
+                onClick={() => {
+                  const input = document.createElement("input");
+                  input.type = "file";
+                  input.accept = ".xlsx,.xls";
+                  input.onchange = async (e) => {
+                    const file = (e.target as HTMLInputElement).files?.[0];
+                    if (file) {
+                      await handleExcelImport([file]);
+                    }
+                  };
+                  input.click();
+                }}
+              >
+                {t("accounts.bulkUpload")}
+              </Button>
+            }
+            description={t("accounts.importDescription")}
           >
-            Import Accounts from Excel
+            {t("accounts.importFromExcel")}
           </Header>
         }
       >
@@ -187,16 +206,7 @@ export default function Accounts() {
             {importMessage}
           </Alert>
         )}
-        <FileUpload
-          value={[]}
-          onChange={(e) => handleExcelImport(e.detail.value)}
-          accept=".xlsx,.xls"
-          showFileLastModified
-          showFileSize
-          showFileThumbnail
-          constraintText={t("accounts.uploadExcelFile")}
-        />
-        <Box margin={{ top: "m" }} variant="small" color="text-body-secondary">
+        <Box variant="small" color="text-body-secondary">
           <Box fontWeight="bold">{t("accounts.excelFormat")}</Box>
           <Box as="ul" padding={{ left: "l" }}>
             <li>{t("accounts.excelAccountName")}</li>
