@@ -178,7 +178,7 @@ export default function Settings() {
         mode: "readwrite",
       });
       const dirName = dirHandle.name;
-      return `~/${dirName}/ledger.beancount`;
+      return `~/${dirName}`;
     } else {
       return new Promise<string>((resolve, reject) => {
         const input = document.createElement("input");
@@ -194,11 +194,11 @@ export default function Settings() {
           if (files && files.length > 0) {
             const firstFile = files[0];
             const relativePath = (firstFile as any).webkitRelativePath || "";
-            const dirName = relativePath.split("/")[0] || "ledger";
-            const suggestedPath = `~/${dirName}/ledger.beancount`;
+            const dirName = relativePath.split("/")[0] || "";
+            const directoryPath = `~/${dirName}`;
 
             document.body.removeChild(input);
-            resolve(suggestedPath);
+            resolve(directoryPath);
           } else {
             document.body.removeChild(input);
             reject(new Error("No directory selected"));
@@ -225,21 +225,30 @@ export default function Settings() {
 
     try {
       if (!targetPath) {
-        targetPath = await pickDirectory();
+        const selectedDirectory = await pickDirectory();
+        const fileName = prompt("Enter filename (e.g., ledger.beancount):", "ledger.beancount");
+        if (!fileName) {
+          return;
+        }
+        targetPath = `${selectedDirectory}/${fileName}`;
+        setFilePath(targetPath);
+      } else if (!isFullPath(targetPath)) {
+        const selectedDirectory = await pickDirectory();
+        targetPath = `${selectedDirectory}/${targetPath}`;
         setFilePath(targetPath);
       }
 
       if (!isFullPath(targetPath)) {
-        setCreateStatus("error");
+      setCreateStatus("error");
         setCreateMessage(
           "Please provide the full path (e.g., /Users/username/Documents/ledger.beancount)."
         );
-        return;
-      }
+      return;
+    }
 
-      setIsCreating(true);
-      setCreateStatus(null);
-      setCreateMessage("");
+    setIsCreating(true);
+    setCreateStatus(null);
+    setCreateMessage("");
 
       const result = await api.files.create(targetPath);
 
