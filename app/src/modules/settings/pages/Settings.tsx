@@ -85,15 +85,13 @@ export default function Settings() {
 
     try {
       const fileName = file.name;
-      const isWindows = navigator.platform.toLowerCase().includes("win");
-      const homeDir = isWindows ? "C:\\Users\\YourName" : "~";
-      const suggestedPath = `${homeDir}/Documents/${fileName}`;
 
-      setFilePath(suggestedPath);
       setFileInfo({
         name: fileName,
         show: true,
       });
+
+      setFilePath("");
     } catch (error: unknown) {
       console.error("Error processing file selection:", error);
     } finally {
@@ -134,11 +132,42 @@ export default function Settings() {
         const file = await fileHandle.getFile();
         const fileName = file.name;
 
-        const isWindows = navigator.platform.toLowerCase().includes("win");
-        const homeDir = isWindows ? "C:\\Users\\YourName" : "~";
-        const suggestedPath = `${homeDir}/Documents/${fileName}`;
+        let actualPath = "";
 
-        setFilePath(suggestedPath);
+        try {
+          if ("getParent" in fileHandle && typeof fileHandle.getParent === "function") {
+            const dirHandle = await (fileHandle as any).getParent();
+            const dirName = dirHandle.name;
+
+            const pathParts: string[] = [];
+            let currentHandle: any = dirHandle;
+
+            while (currentHandle && currentHandle.name !== undefined) {
+              pathParts.unshift(currentHandle.name);
+              try {
+                currentHandle = await currentHandle.getParent();
+              } catch {
+                break;
+              }
+            }
+
+            if (pathParts.length > 0) {
+              const isWindows = navigator.platform.toLowerCase().includes("win");
+              const separator = isWindows ? "\\" : "/";
+              const fullPath = pathParts.join(separator) + separator + fileName;
+              actualPath = isWindows ? fullPath : `~/${fullPath}`;
+            }
+          }
+        } catch (pathError) {
+          console.warn("Could not determine full file path:", pathError);
+        }
+
+        if (!actualPath) {
+          setFilePath("");
+        } else {
+          setFilePath(actualPath);
+        }
+
         setFileInfo({
           name: fileName,
           show: true,
@@ -206,8 +235,9 @@ export default function Settings() {
               <strong>Selected file:</strong> {fileInfo.name}
             </Box>
             <Box variant="small" color="text-body-secondary">
-              A suggested path has been filled in the input field below. The path will be saved
-              automatically.
+              {filePath
+                ? "The file path has been filled in the input field below. Please verify it's correct and adjust if needed."
+                : "Please enter the full path to this file in the input field below (e.g., /Users/username/Documents/ledger.beancount)."}
             </Box>
           </SpaceBetween>
         </Alert>
