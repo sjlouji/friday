@@ -71,10 +71,99 @@ export default function Settings() {
     1000
   );
 
-  const handleSelectFile = () => {
-    const input = document.getElementById("file-input") as HTMLInputElement;
-    if (input) {
-      input.click();
+  const handleSelectFile = async () => {
+    if ("showOpenFilePicker" in window) {
+      try {
+        setIsSelecting(true);
+        setFileInfo(null);
+
+        const fileHandles = await (window as any).showOpenFilePicker({
+          types: [
+            {
+              description: "Beancount files",
+              accept: {
+                "text/plain": [".beancount", ".bean"],
+              },
+            },
+          ],
+          multiple: false,
+        });
+
+        if (fileHandles && fileHandles.length > 0) {
+          const fileHandle = fileHandles[0];
+          const file = await fileHandle.getFile();
+          const fileName = file.name;
+
+          let filePath = "";
+
+          try {
+            if (fileHandle.getParent) {
+              const dirHandle = await fileHandle.getParent();
+              const dirName = dirHandle.name;
+
+              const pathParts: string[] = [dirName];
+              let currentHandle = dirHandle;
+              let depth = 0;
+              const maxDepth = 20;
+
+              while (depth < maxDepth) {
+                try {
+                  if (currentHandle.getParent) {
+                    const parent = await currentHandle.getParent();
+                    if (parent && parent.name) {
+                      pathParts.unshift(parent.name);
+                      currentHandle = parent;
+                      depth++;
+                    } else {
+                      break;
+                    }
+                  } else {
+                    break;
+                  }
+                } catch {
+                  break;
+                }
+              }
+
+              if (pathParts.length > 0) {
+                const isWindows = navigator.platform.toLowerCase().includes("win");
+                if (isWindows) {
+                  const fullPath = pathParts.join("\\") + "\\" + fileName;
+                  filePath = fullPath;
+                } else {
+                  const fullPath = "/" + pathParts.join("/") + "/" + fileName;
+                  filePath = fullPath;
+                }
+              }
+            }
+          } catch (pathError) {
+            console.warn("Could not determine full file path:", pathError);
+          }
+
+          if (!filePath) {
+            const isWindows = navigator.platform.toLowerCase().includes("win");
+            const homeDir = isWindows ? "C:\\Users\\YourName" : "~";
+            filePath = `${homeDir}/${fileName}`;
+          }
+
+          setFilePath(filePath);
+          setFileInfo({
+            name: fileName,
+            show: true,
+          });
+        }
+      } catch (error: any) {
+        if (error?.name !== "AbortError") {
+          console.error("Error selecting file:", error);
+        }
+      } finally {
+        setIsSelecting(false);
+      }
+    } else {
+      const input = document.getElementById("file-input") as HTMLInputElement;
+      if (input) {
+        input.click();
+      }
     }
   };
 
