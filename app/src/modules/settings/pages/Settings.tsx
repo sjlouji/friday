@@ -161,6 +161,12 @@ export default function Settings() {
     setFilePath(value);
   };
 
+  const handleClearFilePath = () => {
+    setFilePath("");
+    updateSettings({ beancountFilePath: "" });
+    setFileInfo(null);
+  };
+
   const handleCreateFile = async () => {
     let targetPath = filePath.trim();
 
@@ -176,14 +182,19 @@ export default function Settings() {
           targetPath = `${homeDir}/${dirName}/ledger.beancount`;
         } else {
           setCreateStatus("error");
-          setCreateMessage("Directory picker not supported. Please enter a file path manually.");
+          setCreateMessage(
+            "Directory picker is not supported in your browser. Please enter a full file path manually in the input field above (e.g., /Users/username/Documents/ledger.beancount or ~/Documents/ledger.beancount)."
+          );
           return;
         }
       } catch (error: unknown) {
         const err = error as { name?: string; message?: string };
         if (err.name !== "AbortError") {
           setCreateStatus("error");
-          setCreateMessage(err.message || "Failed to select directory");
+          setCreateMessage(
+            err.message ||
+              "Failed to select directory. Please enter a full file path manually in the input field above."
+          );
         }
         return;
       }
@@ -325,11 +336,21 @@ export default function Settings() {
           <FormField
             label="Beancount File Path"
             description="Enter the full path to your Beancount ledger file or use 'Select File' to browse for one."
+            secondaryControl={
+              filePath ? (
+                <Button
+                  iconName="close"
+                  variant="icon"
+                  onClick={handleClearFilePath}
+                  ariaLabel="Clear file path"
+                />
+              ) : undefined
+            }
           >
             <Input
               value={filePath}
               onChange={(e) => handleFilePathChange(e.detail.value)}
-              placeholder="/Users/username/Documents/ledger.beancount"
+              placeholder="/Users/username/Documents/ledger.beancount or ~/Documents/ledger.beancount"
             />
           </FormField>
         </Form>
