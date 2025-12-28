@@ -9,49 +9,51 @@ import SpaceBetween from "@cloudscape-design/components/space-between";
 import Header from "@cloudscape-design/components/header";
 import { useSettings } from "@/hooks/useSettings";
 
-const LANGUAGES = [
-  { label: "English", value: "en" },
-  { label: "Español (Spanish)", value: "es" },
-  { label: "Français (French)", value: "fr" },
-  { label: "Deutsch (German)", value: "de" },
-  { label: "中文 (Chinese)", value: "zh" },
-  { label: "日本語 (Japanese)", value: "ja" },
-  { label: "한국어 (Korean)", value: "ko" },
-  { label: "Português (Portuguese)", value: "pt" },
-  { label: "Italiano (Italian)", value: "it" },
-  { label: "Русский (Russian)", value: "ru" },
-  { label: "العربية (Arabic)", value: "ar" },
-  { label: "हिन्दी (Hindi)", value: "hi" },
-];
-
 const LOCALES = [
   { label: "English (US)", value: "en-US" },
   { label: "English (UK)", value: "en-GB" },
   { label: "English (India)", value: "en-IN" },
-  { label: "Español", value: "es-ES" },
-  { label: "Français", value: "fr-FR" },
-  { label: "Deutsch", value: "de-DE" },
-  { label: "中文", value: "zh-CN" },
-  { label: "日本語", value: "ja-JP" },
-  { label: "한국어", value: "ko-KR" },
-  { label: "Português", value: "pt-BR" },
-  { label: "Italiano", value: "it-IT" },
-  { label: "Русский", value: "ru-RU" },
-  { label: "العربية", value: "ar-SA" },
-  { label: "हिन्दी", value: "hi-IN" },
 ];
 
+const LOCALE_TO_CURRENCY: Record<string, string> = {
+  "en-US": "USD",
+  "en-GB": "GBP",
+  "en-IN": "INR",
+};
+
+const LOCALE_TO_DATE_FORMAT: Record<string, string> = {
+  "en-US": "MM/DD/YYYY",
+  "en-GB": "DD/MM/YYYY",
+  "en-IN": "DD/MM/YYYY",
+};
+
 export default function AppearanceTab() {
-  const { appearance, updateAppearance, applyTheme, applyLanguage } = useSettings();
+  const { appearance, updateAppearance, workspace, updateWorkspace, applyTheme, applyLanguage } = useSettings();
 
   const handleThemeChange = (theme: string) => {
     updateAppearance({ theme: theme as "light" | "dark" | "auto" });
     applyTheme(theme as "light" | "dark" | "auto");
   };
 
-  const handleLanguageChange = (language: string) => {
-    updateAppearance({ language });
-    applyLanguage(language);
+  const handleLocaleChange = (locale: string) => {
+    updateAppearance({ locale, language: "en" });
+    applyLanguage("en");
+
+    const currency = LOCALE_TO_CURRENCY[locale];
+    const dateFormat = LOCALE_TO_DATE_FORMAT[locale];
+
+    if (currency) {
+      updateWorkspace({
+        defaultCurrency: currency,
+        operatingCurrency: currency,
+      });
+    }
+
+    if (dateFormat) {
+      updateWorkspace({
+        dateFormat,
+      });
+    }
   };
 
   return (
@@ -61,36 +63,18 @@ export default function AppearanceTab() {
         header={<Header variant="h2">Language & Locale</Header>}
       >
         <Form>
-          <SpaceBetween direction="vertical" size="l">
-            <FormField label="Language">
-              <Select
-                selectedOption={
-                  LANGUAGES.find((l) => l.value === appearance.language) ||
-                  LANGUAGES[0]
-                }
-                onChange={(e) =>
-                  handleLanguageChange(e.detail.selectedOption.value || "en")
-                }
-                options={LANGUAGES}
-                filteringType="auto"
-              />
-            </FormField>
-            <FormField label="Locale">
-              <Select
-                selectedOption={
-                  LOCALES.find((l) => l.value === appearance.locale) ||
-                  LOCALES[0]
-                }
-                onChange={(e) =>
-                  updateAppearance({
-                    locale: e.detail.selectedOption.value || "en-US",
-                  })
-                }
-                options={LOCALES}
-                filteringType="auto"
-              />
-            </FormField>
-          </SpaceBetween>
+          <FormField label="Locale">
+            <Select
+              selectedOption={
+                LOCALES.find((l) => l.value === appearance.locale) ||
+                LOCALES[0]
+              }
+              onChange={(e) =>
+                handleLocaleChange(e.detail.selectedOption.value || "en-US")
+              }
+              options={LOCALES}
+            />
+          </FormField>
         </Form>
       </Container>
 

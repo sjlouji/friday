@@ -64,7 +64,7 @@ html.awsui-dark-mode .app-layout-wrapper {
 }
 
 /* Breadcrumbs should be fixed at top of content area */
-.content-scroll-area > div:first-child {
+.content-scroll-area > div:first-child > div:first-child {
   position: sticky;
   top: 0;
   background: var(--color-background-layout-main, #ffffff);
@@ -74,14 +74,14 @@ html.awsui-dark-mode .app-layout-wrapper {
   border-bottom: 1px solid var(--color-border-divider-default, #e9ebed);
 }
 
-html[data-mode="dark"] .content-scroll-area > div:first-child,
-html.awsui-dark-mode .content-scroll-area > div:first-child {
+html[data-mode="dark"] .content-scroll-area > div:first-child > div:first-child,
+html.awsui-dark-mode .content-scroll-area > div:first-child > div:first-child {
   background: var(--color-background-layout-main, #1d1d1d) !important;
   border-bottom-color: var(--color-border-divider-default, #414750);
 }
 
 /* Ensure content after breadcrumbs scrolls */
-.content-scroll-area > div:not(:first-child) {
+.content-scroll-area > div:first-child > div:not(:first-child) {
   padding-top: 0;
 }
 
