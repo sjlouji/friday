@@ -87,6 +87,34 @@ def beancount_to_dict(entry, index=None):
     return None
 
 
+def format_beancount_error(error) -> str:
+    """Format a Beancount error tuple into a readable string
+    
+    Beancount errors are typically tuples: (source, message, entry)
+    where source has filename and lineno attributes
+    """
+    if isinstance(error, (list, tuple)) and len(error) >= 2:
+        source = error[0]
+        message = error[1]
+        
+        # Extract line number from source if available
+        line_no = None
+        if hasattr(source, 'lineno'):
+            line_no = source.lineno
+        elif isinstance(source, dict) and 'lineno' in source:
+            line_no = source['lineno']
+        
+        # Format the error message
+        if line_no is not None:
+            return f"{message} (line {line_no})"
+        else:
+            return str(message)
+    elif isinstance(error, str):
+        return error
+    else:
+        return str(error)
+
+
 def load_beancount_file(filepath: str) -> Tuple[List[Dict], List[Dict], List[Dict], List[Dict], List[str]]:
     """Load and parse beancount file
     
@@ -109,6 +137,9 @@ def load_beancount_file(filepath: str) -> Tuple[List[Dict], List[Dict], List[Dic
         
         entries, errors, options_map = loader.load_file(expanded_path)
         
+        # Format errors for better readability
+        formatted_errors = [format_beancount_error(err) for err in errors] if errors else []
+        
         transactions = []
         accounts = []
         balances = []
@@ -130,14 +161,14 @@ def load_beancount_file(filepath: str) -> Tuple[List[Dict], List[Dict], List[Dic
                     elif isinstance(entry, Price):
                         prices.append(entry_dict)
             except Exception as e:
-                errors.append(f"Error processing entry {index}: {str(e)}")
+                formatted_errors.append(f"Error processing entry {index}: {str(e)}")
                 continue
         
         for account in accounts:
             if account["name"] in account_close_dates:
                 account["closeDate"] = account_close_dates[account["name"]]
         
-        return transactions, accounts, balances, prices, errors
+        return transactions, accounts, balances, prices, formatted_errors
     except Exception as e:
         import traceback
         error_msg = f"Failed to load beancount file: {str(e)}\n{traceback.format_exc()}"

@@ -64,15 +64,7 @@ export default function Accounts() {
         
         // Check for errors in response
         if (response.errors && response.errors.length > 0) {
-          const formattedErrors = response.errors.map((err: any) => {
-            if (Array.isArray(err) && err.length >= 2) {
-              const errorInfo = err[1];
-              const lineInfo = err[0]?.lineno ? ` (line ${err[0].lineno})` : "";
-              return `${errorInfo}${lineInfo}`;
-            }
-            return String(err);
-          });
-          setAccountErrors(formattedErrors);
+          setAccountErrors(response.errors);
         } else {
           setAccountErrors([]);
         }

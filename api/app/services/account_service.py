@@ -66,18 +66,10 @@ class AccountService:
         _, accounts, _, _, errors = load_beancount_file(file_path)
         
         if errors:
-            formatted_errors = []
-            for error in errors:
-                if isinstance(error, (list, tuple)) and len(error) >= 2:
-                    error_info = error[1] if len(error) > 1 else str(error)
-                    formatted_errors.append(error_info)
-                else:
-                    formatted_errors.append(str(error))
-            
             return {
                 "accounts": accounts,
-                "errors": formatted_errors,
-                "message": f"Account created but there were {len(formatted_errors)} error(s)"
+                "errors": errors,
+                "message": f"Account created but there were {len(errors)} error(s) in the file"
             }
         
         return {"accounts": accounts, "errors": []}
