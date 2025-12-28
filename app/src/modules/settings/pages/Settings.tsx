@@ -135,49 +135,62 @@ export default function Settings() {
         let actualPath = "";
 
         try {
-          interface FileSystemHandleWithParent extends FileSystemFileHandle {
-            getParent?: () => Promise<FileSystemDirectoryHandle>;
-          }
+          if ("getParent" in fileHandle) {
+            const handleWithParent = fileHandle as FileSystemFileHandle & {
+              getParent?: () => Promise<FileSystemDirectoryHandle>;
+            };
 
-          const handleWithParent = fileHandle as FileSystemHandleWithParent;
+            if (handleWithParent.getParent && typeof handleWithParent.getParent === "function") {
+              const dirHandle = await handleWithParent.getParent();
+              const dirName = dirHandle.name;
 
-          if (handleWithParent.getParent && typeof handleWithParent.getParent === "function") {
-            const dirHandle = await handleWithParent.getParent();
+              const pathParts: string[] = [dirName];
+              let currentHandle: FileSystemDirectoryHandle | null = dirHandle;
 
-            const pathParts: string[] = [];
-            let currentHandle: FileSystemDirectoryHandle | null = dirHandle;
+              let depth = 0;
+              const maxDepth = 10;
 
-            while (currentHandle && currentHandle.name !== undefined) {
-              pathParts.unshift(currentHandle.name);
-              try {
-                const parentHandle = currentHandle as FileSystemDirectoryHandle & {
-                  getParent?: () => Promise<FileSystemDirectoryHandle>;
-                };
-                if (parentHandle.getParent) {
-                  currentHandle = await parentHandle.getParent();
-                } else {
+              while (currentHandle && depth < maxDepth) {
+                try {
+                  const parentHandle = currentHandle as FileSystemDirectoryHandle & {
+                    getParent?: () => Promise<FileSystemDirectoryHandle>;
+                  };
+                  if (parentHandle.getParent) {
+                    const parent = await parentHandle.getParent();
+                    if (parent && parent.name) {
+                      pathParts.unshift(parent.name);
+                      currentHandle = parent;
+                      depth++;
+                    } else {
+                      break;
+                    }
+                  } else {
+                    break;
+                  }
+                } catch {
                   break;
                 }
-              } catch {
-                break;
               }
-            }
 
-            if (pathParts.length > 0) {
-              const isWindows = navigator.platform.toLowerCase().includes("win");
-              const separator = isWindows ? "\\" : "/";
-              const fullPath = pathParts.join(separator) + separator + fileName;
-              actualPath = isWindows ? fullPath : `~/${fullPath}`;
+              if (pathParts.length > 0) {
+                const isWindows = navigator.platform.toLowerCase().includes("win");
+                const separator = isWindows ? "\\" : "/";
+                const fullPath = pathParts.join(separator) + separator + fileName;
+                actualPath = isWindows ? fullPath : `~/${fullPath}`;
+              }
             }
           }
         } catch (pathError) {
           console.warn("Could not determine full file path:", pathError);
         }
 
-        if (!actualPath) {
-          setFilePath("");
-        } else {
+        if (actualPath) {
           setFilePath(actualPath);
+        } else {
+          const isWindows = navigator.platform.toLowerCase().includes("win");
+          const homeDir = isWindows ? "C:\\Users\\YourName" : "~";
+          const suggestedPath = `${homeDir}/${fileName}`;
+          setFilePath(suggestedPath);
         }
 
         setFileInfo({
