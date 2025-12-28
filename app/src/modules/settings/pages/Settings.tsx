@@ -11,7 +11,6 @@ import Alert from "@cloudscape-design/components/alert";
 import Box from "@cloudscape-design/components/box";
 import Tabs from "@cloudscape-design/components/tabs";
 import Spinner from "@cloudscape-design/components/spinner";
-import Link from "@cloudscape-design/components/link";
 import { useSettings } from "@/hooks/useSettings";
 import { useBeancountStore } from "@/store/beancountStore";
 import { useAutoSave } from "@/hooks/useAutoSave";
@@ -250,10 +249,12 @@ export default function Settings() {
             }
             constraintText={
               <Box variant="small" color="text-body-secondary">
-                To create a new Beancount file, create it manually using a text editor and then select it here.
+                To create a new Beancount file, create it manually using a text editor and then
+                select it here.
                 <br />
-                Example: Create a file named <code>ledger.beancount</code> in your Documents folder, then enter the path{" "}
-                <code>~/Documents/ledger.beancount</code> or use the "Select File" button.
+                Example: Create a file named <code>ledger.beancount</code> in your Documents folder,
+                then enter the path <code>~/Documents/ledger.beancount</code> or use the "Select
+                File" button.
               </Box>
             }
           >
