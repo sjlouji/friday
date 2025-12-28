@@ -89,7 +89,6 @@ export default function Settings() {
         show: true,
       });
 
-      setSaveStatus(null);
       setCreateStatus(null);
     } catch (error: unknown) {
       const err = error as { message?: string };
