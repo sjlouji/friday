@@ -176,9 +176,7 @@ export default function Settings() {
           targetPath = `${homeDir}/${dirName}/ledger.beancount`;
         } else {
           setCreateStatus("error");
-          setCreateMessage(
-            "Directory picker not supported. Please enter a file path manually."
-          );
+          setCreateMessage("Directory picker not supported. Please enter a file path manually.");
           return;
         }
       } catch (error: unknown) {
@@ -279,7 +277,8 @@ export default function Settings() {
               <strong>Selected file:</strong> {fileInfo.name}
             </Box>
             <Box variant="small" color="text-body-secondary">
-              A suggested path has been filled in the input field below. The path will be saved automatically.
+              A suggested path has been filled in the input field below. The path will be saved
+              automatically.
             </Box>
           </SpaceBetween>
         </Alert>
