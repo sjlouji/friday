@@ -133,13 +133,18 @@ export default function Settings() {
             if (handleWithParent.getParent && typeof handleWithParent.getParent === "function") {
               const dirHandle = await handleWithParent.getParent();
               const pathParts: string[] = [dirHandle.name];
-              let currentHandle = dirHandle;
+
+              interface DirHandleWithParent extends FileSystemDirectoryHandle {
+                getParent?: () => Promise<FileSystemDirectoryHandle>;
+              }
+
+              let currentHandle: DirHandleWithParent = dirHandle as DirHandleWithParent;
               let depth = 0;
               const maxDepth = 20;
 
               while (depth < maxDepth) {
                 try {
-                  if (currentHandle.getParent) {
+                  if (currentHandle.getParent && typeof currentHandle.getParent === "function") {
                     const parent = await currentHandle.getParent();
                     if (parent && parent.name) {
                       pathParts.unshift(parent.name);
