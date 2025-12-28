@@ -11,6 +11,7 @@ import BreadcrumbGroup from "@cloudscape-design/components/breadcrumb-group";
 import Grid from "@cloudscape-design/components/grid";
 import KeyValuePairs from "@cloudscape-design/components/key-value-pairs";
 import Tabs from "@cloudscape-design/components/tabs";
+import { useTranslation } from "@/hooks/useTranslation";
 import {
   PieChart,
   Pie,
@@ -29,6 +30,7 @@ import {
 import { formatIndianCurrency } from "@/lib/utils/currency";
 
 export default function Assets() {
+  const { t } = useTranslation();
   const { accounts, balances, transactions, loadAll } = useBeancountStore();
   const [timeRange, setTimeRange] = useState<"1M" | "3M" | "6M" | "1Y" | "ALL">("1Y");
   const [groupBy, setGroupBy] = useState<"account" | "type" | "currency">("account");
@@ -139,7 +141,7 @@ export default function Assets() {
 
   const breadcrumbs = [
     { text: "Friday", href: "/" },
-    { text: "Assets", href: "/assets" },
+    { text: t("assets.title"), href: "/assets" },
   ];
 
   return (

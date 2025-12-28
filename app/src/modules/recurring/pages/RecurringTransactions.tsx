@@ -19,8 +19,10 @@ import BreadcrumbGroup from "@cloudscape-design/components/breadcrumb-group";
 import StatusIndicator from "@cloudscape-design/components/status-indicator";
 import { RecurringTransaction, Transaction } from "@/types/beancount";
 import RecurringTransactionModal from "../components/RecurringTransactionModal";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function RecurringTransactions() {
+  const { t } = useTranslation();
   const { addTransaction } = useBeancountStore();
   const [recurringTransactions, setRecurringTransactions] = useState<
     RecurringTransaction[]
@@ -99,9 +101,7 @@ export default function RecurringTransactions() {
   };
 
   const handleDelete = (id: string) => {
-    if (
-      confirm("Are you sure you want to delete this recurring transaction?")
-    ) {
+    if (confirm(t("recurring.confirmDelete"))) {
       const newList = recurringTransactions.filter((rt) => rt.id !== id);
       setRecurringTransactions(newList);
       localStorage.setItem("recurring-transactions", JSON.stringify(newList));
@@ -154,7 +154,7 @@ export default function RecurringTransactions() {
 
   const breadcrumbs = [
     { text: "Friday", href: "/" },
-    { text: "Recurring Transactions", href: "/recurring" },
+    { text: t("recurring.title"), href: "/recurring" },
   ];
 
   return (
@@ -187,12 +187,12 @@ export default function RecurringTransactions() {
             columnDefinitions={[
               {
                 id: "name",
-                header: "Name",
+                header: t("common.name"),
                 cell: (item) => item.name,
               },
               {
                 id: "transaction",
-                header: "Transaction",
+                header: t("transactions.title"),
                 cell: (item) =>
                   `${item.transaction.payee || ""} ${
                     item.transaction.narration
@@ -200,12 +200,12 @@ export default function RecurringTransactions() {
               },
               {
                 id: "frequency",
-                header: "Frequency",
+                header: t("recurring.frequency"),
                 cell: (item) => item.frequency,
               },
               {
                 id: "nextExecution",
-                header: "Next Execution",
+                header: t("recurring.nextDate"),
                 cell: (item) =>
                   item.nextExecution && item.nextExecution !== "-"
                     ? format(new Date(item.nextExecution), "MMM dd, yyyy")
@@ -213,7 +213,7 @@ export default function RecurringTransactions() {
               },
               {
                 id: "enabled",
-                header: "Enabled",
+                header: t("recurring.enabled"),
                 cell: (item) => (
                   <Toggle
                     checked={item.enabled}
@@ -223,7 +223,7 @@ export default function RecurringTransactions() {
               },
               {
                 id: "actions",
-                header: "Actions",
+                header: t("common.actions"),
                 cell: (item) => (
                   <SpaceBetween direction="horizontal" size="xs">
                     {item.enabled &&
@@ -233,20 +233,20 @@ export default function RecurringTransactions() {
                           variant="inline-link"
                           onClick={() => handleExecute(item)}
                         >
-                          Execute Now
+                          {t("recurring.execute")}
                         </Button>
                       )}
                     <Button
                       variant="inline-link"
                       onClick={() => handleEdit(item)}
                     >
-                      Edit
+                      {t("common.edit")}
                     </Button>
                     <Button
                       variant="inline-link"
                       onClick={() => handleDelete(item.id)}
                     >
-                      Delete
+                      {t("common.delete")}
                     </Button>
                   </SpaceBetween>
                 ),

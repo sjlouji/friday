@@ -55,7 +55,7 @@ export default function Bills() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this bill?")) {
+    if (confirm(t("bills.confirmDelete"))) {
       saveBills(bills.filter((b) => b.id !== id));
     }
   };

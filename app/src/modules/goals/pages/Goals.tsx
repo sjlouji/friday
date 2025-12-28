@@ -65,7 +65,7 @@ export default function Goals() {
   };
 
   const handleDelete = (id: string, type: "savings" | "debt") => {
-    if (confirm("Are you sure you want to delete this goal?")) {
+    if (confirm(t("goals.confirmDelete"))) {
       if (type === "savings") {
         const newGoals = savingsGoals.filter((g) => g.id !== id);
         setSavingsGoals(newGoals);
@@ -122,7 +122,7 @@ export default function Goals() {
 
       <Header
         variant="h1"
-        description="Track savings goals and debt payoff plans"
+        description={t("goals.description")}
         actions={
           <SpaceBetween direction="horizontal" size="xs">
             <Button variant="primary" onClick={() => handleNew("savings")}>

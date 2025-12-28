@@ -11,6 +11,7 @@ import Table from "@cloudscape-design/components/table";
 import Select from "@cloudscape-design/components/select";
 import Tabs from "@cloudscape-design/components/tabs";
 import KeyValuePairs from "@cloudscape-design/components/key-value-pairs";
+import { useTranslation } from "@/hooks/useTranslation";
 import { format, subMonths } from "date-fns";
 import { formatIndianCurrency } from "@/lib/utils/currency";
 import {
@@ -27,6 +28,7 @@ import {
 } from "recharts";
 
 export default function Portfolio() {
+  const { t } = useTranslation();
   const { transactions, portfolios, loadAll } = useBeancountStore();
   const [timeRange, setTimeRange] = useState<"1M" | "3M" | "6M" | "1Y" | "ALL">(
     "1Y"
@@ -133,15 +135,15 @@ export default function Portfolio() {
 
   const breadcrumbs = [
     { text: "Friday", href: "/" },
-    { text: "Portfolio", href: "/portfolio" },
+    { text: t("portfolio.title"), href: "/portfolio" },
   ];
 
   return (
     <SpaceBetween size="l">
       <BreadcrumbGroup items={breadcrumbs} />
 
-      <Header variant="h1" description="Track your investments and holdings">
-        Portfolio
+      <Header variant="h1" description={t("portfolio.description")}>
+        {t("portfolio.title")}
       </Header>
 
       <Grid gridDefinition={[{ colspan: 4 }, { colspan: 4 }, { colspan: 4 }]}>

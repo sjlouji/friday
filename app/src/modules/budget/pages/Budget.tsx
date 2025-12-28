@@ -167,7 +167,7 @@ export default function Budget() {
 
       <Container
         variant="stacked"
-        header={<Header variant="h2">Budget Details</Header>}
+        header={<Header variant="h2">{t("budget.budgetDetails")}</Header>}
       >
         {budgetStatus.length === 0 ? (
           <Box textAlign="center" padding={{ vertical: "xl" }}>

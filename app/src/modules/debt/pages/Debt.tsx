@@ -13,6 +13,7 @@ import KeyValuePairs from "@cloudscape-design/components/key-value-pairs";
 import Tabs from "@cloudscape-design/components/tabs";
 import StatusIndicator from "@cloudscape-design/components/status-indicator";
 import ProgressBar from "@cloudscape-design/components/progress-bar";
+import { useTranslation } from "@/hooks/useTranslation";
 import {
   BarChart,
   Bar,
@@ -27,6 +28,7 @@ import {
 import { formatIndianCurrency } from "@/lib/utils/currency";
 
 export default function Debt() {
+  const { t } = useTranslation();
   const { accounts, balances, transactions, loadAll } = useBeancountStore();
   const [timeRange, setTimeRange] = useState<"1M" | "3M" | "6M" | "1Y" | "ALL">("1Y");
 
@@ -138,7 +140,7 @@ export default function Debt() {
 
   const breadcrumbs = [
     { text: "Friday", href: "/" },
-    { text: "Debt", href: "/debt" },
+    { text: t("debt.title"), href: "/debt" },
   ];
 
   return (
@@ -147,7 +149,7 @@ export default function Debt() {
 
       <Header
         variant="h1"
-        description="Track and manage your debts and liabilities"
+        description={t("debt.description")}
         actions={
           <Select
             selectedOption={{

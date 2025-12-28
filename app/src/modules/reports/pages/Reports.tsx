@@ -11,6 +11,7 @@ import Box from "@cloudscape-design/components/box";
 import Grid from "@cloudscape-design/components/grid";
 import KeyValuePairs from "@cloudscape-design/components/key-value-pairs";
 import BreadcrumbGroup from "@cloudscape-design/components/breadcrumb-group";
+import { useTranslation } from "@/hooks/useTranslation";
 import {
   LineChart,
   Line,
@@ -25,6 +26,7 @@ import {
 } from "recharts";
 
 export default function Reports() {
+  const { t } = useTranslation();
   const { fetchBalanceSheet, fetchIncomeStatement, loadAll, transactions } =
     useBeancountStore();
   const [reportType, setReportType] = useState<
@@ -113,15 +115,15 @@ export default function Reports() {
 
   const breadcrumbs = [
     { text: "Friday", href: "/" },
-    { text: "Reports", href: "/reports" },
+    { text: t("reports.title"), href: "/reports" },
   ];
 
   return (
     <SpaceBetween size="l">
       <BreadcrumbGroup items={breadcrumbs} />
 
-      <Header variant="h1" description="Financial reports and analysis">
-        Reports
+      <Header variant="h1" description={t("reports.description")}>
+        {t("reports.title")}
       </Header>
 
       <Container
