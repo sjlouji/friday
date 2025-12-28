@@ -24,4 +24,3 @@ export function useTranslation() {
 
   return { t, locale, translations };
 }
-

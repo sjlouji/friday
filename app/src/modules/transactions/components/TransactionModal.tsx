@@ -11,6 +11,7 @@ import Box from '@cloudscape-design/components/box';
 import Alert from '@cloudscape-design/components/alert';
 import Spinner from '@cloudscape-design/components/spinner';
 import { Transaction, Posting } from '@/types/beancount';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface TransactionModalProps {
   transaction: Transaction | null;
@@ -19,6 +20,7 @@ interface TransactionModalProps {
 
 export default function TransactionModal({ transaction, onClose }: TransactionModalProps) {
   const { addTransaction, updateTransaction, accounts, loading } = useBeancountStore();
+  const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     date: transaction?.date || new Date().toISOString().split('T')[0],
@@ -54,7 +56,7 @@ export default function TransactionModal({ transaction, onClose }: TransactionMo
       }
       onClose();
     } catch (err: any) {
-      setError(err.message || 'Failed to save transaction');
+      setError(err.message || t("common.failedToSave"));
     }
   };
 
@@ -97,15 +99,15 @@ export default function TransactionModal({ transaction, onClose }: TransactionMo
     <Modal
       visible={true}
       onDismiss={onClose}
-      header={transaction ? 'Edit Transaction' : 'New Transaction'}
+      header={transaction ? t("transactions.editTransaction") : t("transactions.newTransaction")}
       footer={
         <Box float="right">
           <SpaceBetween direction="horizontal" size="xs">
             <Button variant="link" onClick={onClose} disabled={loading}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button variant="primary" onClick={handleSubmit} disabled={loading}>
-              {loading ? <Spinner /> : transaction ? 'Update' : 'Create'} Transaction
+              {loading ? <Spinner /> : transaction ? t("transactions.updateTransaction") : t("transactions.createTransaction")}
             </Button>
           </SpaceBetween>
         </Box>
@@ -119,7 +121,7 @@ export default function TransactionModal({ transaction, onClose }: TransactionMo
             </Alert>
           )}
 
-          <FormField label="Date">
+          <FormField label={t("transactions.date")}>
             <Input
               type="date"
               value={formData.date}
@@ -127,31 +129,31 @@ export default function TransactionModal({ transaction, onClose }: TransactionMo
             />
           </FormField>
 
-          <FormField label="Flag">
+          <FormField label={t("transactions.flag")}>
             <Select
-              selectedOption={{ label: formData.flag === '*' ? '* (Cleared)' : formData.flag === '!' ? '! (Pending)' : '? (Uncertain)', value: formData.flag }}
+              selectedOption={{ label: formData.flag === '*' ? t("transactions.flagCleared") : formData.flag === '!' ? t("transactions.flagPending") : t("transactions.flagUncertain"), value: formData.flag }}
               onChange={(e) => setFormData({ ...formData, flag: e.detail.selectedOption.value || '*' })}
               options={[
-                { label: '* (Cleared)', value: '*' },
-                { label: '! (Pending)', value: '!' },
-                { label: '? (Uncertain)', value: '?' },
+                { label: t("transactions.flagCleared"), value: '*' },
+                { label: t("transactions.flagPending"), value: '!' },
+                { label: t("transactions.flagUncertain"), value: '?' },
               ]}
             />
           </FormField>
 
-          <FormField label="Payee">
+          <FormField label={t("transactions.payee")}>
             <Input
               value={formData.payee}
               onChange={(e) => setFormData({ ...formData, payee: e.detail.value })}
-              placeholder="Who did you pay?"
+              placeholder={t("transactions.payeePlaceholder")}
             />
           </FormField>
 
-          <FormField label="Narration">
+          <FormField label={t("transactions.narration")}>
             <Input
               value={formData.narration}
               onChange={(e) => setFormData({ ...formData, narration: e.detail.value })}
-              placeholder="What was this transaction for?"
+              placeholder={t("transactions.narrationPlaceholder")}
             />
           </FormField>
 
@@ -159,9 +161,9 @@ export default function TransactionModal({ transaction, onClose }: TransactionMo
             <SpaceBetween direction="vertical" size="m">
               <Box>
                 <SpaceBetween direction="horizontal" size="xs">
-                  <Box variant="h3">Postings</Box>
+                  <Box variant="h3">{t("transactions.postings")}</Box>
                   <Button variant="link" onClick={addPosting} disabled={loading}>
-                    + Add Posting
+                    + {t("transactions.addPosting")}
                   </Button>
                 </SpaceBetween>
               </Box>
@@ -170,19 +172,19 @@ export default function TransactionModal({ transaction, onClose }: TransactionMo
                   <SpaceBetween direction="vertical" size="s">
                     <Box>
                       <SpaceBetween direction="horizontal" size="xs">
-                        <Box variant="small">Posting {index + 1}</Box>
+                        <Box variant="small">{t("transactions.posting")} {index + 1}</Box>
                         {formData.postings.length > 2 && (
                           <Button
                             variant="link"
                             onClick={() => removePosting(index)}
                             disabled={loading}
                           >
-                            Remove
+                            {t("common.remove")}
                           </Button>
                         )}
                       </SpaceBetween>
                     </Box>
-                    <FormField label="Account">
+                    <FormField label={t("transactions.account")}>
                       <Select
                         selectedOption={
                           accounts.find((a) => a.name === posting.account)
@@ -203,11 +205,11 @@ export default function TransactionModal({ transaction, onClose }: TransactionMo
                           value: a.name,
                         }))}
                         filteringType="auto"
-                        placeholder="Select account"
+                        placeholder={t("common.selectAccount")}
                       />
                     </FormField>
                     <SpaceBetween direction="horizontal" size="xs">
-                      <FormField label="Amount" stretch={true}>
+                      <FormField label={t("transactions.amount")} stretch={true}>
                         <Input
                           type="number"
                           step="0.01"
@@ -216,7 +218,7 @@ export default function TransactionModal({ transaction, onClose }: TransactionMo
                           placeholder="0.00"
                         />
                       </FormField>
-                      <FormField label="Currency">
+                      <FormField label={t("transactions.currency")}>
                         <Input
                           value={posting.amount?.currency || 'USD'}
                           onChange={(e) => updatePosting(index, 'currency', e.detail.value)}
