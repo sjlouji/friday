@@ -77,7 +77,9 @@ export default function Settings() {
         setIsSelecting(true);
         setFileInfo(null);
 
-        const fileHandles = await (window as any).showOpenFilePicker({
+        const fileHandles = await (
+          window as { showOpenFilePicker?: (options: unknown) => Promise<FileSystemFileHandle[]> }
+        ).showOpenFilePicker?.({
           types: [
             {
               description: "Beancount files",
@@ -97,19 +99,28 @@ export default function Settings() {
           let filePath = "";
 
           try {
-            if (fileHandle.getParent) {
-              const dirHandle = await fileHandle.getParent();
+            interface FileHandleWithParent extends FileSystemFileHandle {
+              getParent?: () => Promise<FileSystemDirectoryHandle>;
+            }
+
+            const handleWithParent = fileHandle as FileHandleWithParent;
+
+            if (handleWithParent.getParent && typeof handleWithParent.getParent === "function") {
+              const dirHandle = await handleWithParent.getParent();
               const dirName = dirHandle.name;
 
               const pathParts: string[] = [dirName];
-              let currentHandle = dirHandle;
+              let currentHandle: FileSystemDirectoryHandle | null = dirHandle;
               let depth = 0;
               const maxDepth = 20;
 
-              while (depth < maxDepth) {
+              while (currentHandle && depth < maxDepth) {
                 try {
-                  if (currentHandle.getParent) {
-                    const parent = await currentHandle.getParent();
+                  const dirHandleWithParent = currentHandle as FileSystemDirectoryHandle & {
+                    getParent?: () => Promise<FileSystemDirectoryHandle>;
+                  };
+                  if (dirHandleWithParent.getParent) {
+                    const parent = await dirHandleWithParent.getParent();
                     if (parent && parent.name) {
                       pathParts.unshift(parent.name);
                       currentHandle = parent;
