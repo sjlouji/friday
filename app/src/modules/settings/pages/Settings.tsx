@@ -71,6 +71,13 @@ export default function Settings() {
     1000
   );
 
+  const handleSelectFile = () => {
+    const input = document.getElementById("file-input") as HTMLInputElement;
+    if (input) {
+      input.click();
+    }
+  };
+
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) {
@@ -91,7 +98,11 @@ export default function Settings() {
         show: true,
       });
 
-      setFilePath("");
+      const isWindows = navigator.platform.toLowerCase().includes("win");
+      const homeDir = isWindows ? "C:\\Users\\YourName" : "~";
+      const suggestedPath = `${homeDir}/${fileName}`;
+
+      setFilePath(suggestedPath);
     } catch (error: unknown) {
       console.error("Error processing file selection:", error);
     } finally {
@@ -99,112 +110,6 @@ export default function Settings() {
       if (event.target) {
         event.target.value = "";
       }
-    }
-  };
-
-  const handleSelectFile = async () => {
-    if (!("showOpenFilePicker" in window)) {
-      const input = document.getElementById("file-input") as HTMLInputElement;
-      input?.click();
-      return;
-    }
-
-    try {
-      setIsSelecting(true);
-      setFileInfo(null);
-
-      const fileHandles = await (
-        window as { showOpenFilePicker?: (options: unknown) => Promise<FileSystemFileHandle[]> }
-      ).showOpenFilePicker?.({
-        types: [
-          {
-            description: "Beancount files",
-            accept: {
-              "text/plain": [".beancount", ".bean"],
-            },
-          },
-        ],
-        multiple: false,
-      });
-
-      if (fileHandles && fileHandles.length > 0) {
-        const fileHandle = fileHandles[0];
-        const file = await fileHandle.getFile();
-        const fileName = file.name;
-
-        let actualPath = "";
-
-        try {
-          if ("getParent" in fileHandle) {
-            const handleWithParent = fileHandle as FileSystemFileHandle & {
-              getParent?: () => Promise<FileSystemDirectoryHandle>;
-            };
-
-            if (handleWithParent.getParent && typeof handleWithParent.getParent === "function") {
-              const dirHandle = await handleWithParent.getParent();
-              const dirName = dirHandle.name;
-
-              const pathParts: string[] = [dirName];
-              let currentHandle: FileSystemDirectoryHandle | null = dirHandle;
-
-              let depth = 0;
-              const maxDepth = 10;
-
-              while (currentHandle && depth < maxDepth) {
-                try {
-                  const parentHandle = currentHandle as FileSystemDirectoryHandle & {
-                    getParent?: () => Promise<FileSystemDirectoryHandle>;
-                  };
-                  if (parentHandle.getParent) {
-                    const parent = await parentHandle.getParent();
-                    if (parent && parent.name) {
-                      pathParts.unshift(parent.name);
-                      currentHandle = parent;
-                      depth++;
-                    } else {
-                      break;
-                    }
-                  } else {
-                    break;
-                  }
-                } catch {
-                  break;
-                }
-              }
-
-              if (pathParts.length > 0) {
-                const isWindows = navigator.platform.toLowerCase().includes("win");
-                const separator = isWindows ? "\\" : "/";
-                const fullPath = pathParts.join(separator) + separator + fileName;
-                actualPath = isWindows ? fullPath : `~/${fullPath}`;
-              }
-            }
-          }
-        } catch (pathError) {
-          console.warn("Could not determine full file path:", pathError);
-        }
-
-        if (actualPath) {
-          setFilePath(actualPath);
-        } else {
-          const isWindows = navigator.platform.toLowerCase().includes("win");
-          const homeDir = isWindows ? "C:\\Users\\YourName" : "~";
-          const suggestedPath = `${homeDir}/${fileName}`;
-          setFilePath(suggestedPath);
-        }
-
-        setFileInfo({
-          name: fileName,
-          show: true,
-        });
-      }
-    } catch (error: unknown) {
-      const err = error as { name?: string; message?: string };
-      if (err.name !== "AbortError") {
-        console.error("Error selecting file:", err);
-      }
-    } finally {
-      setIsSelecting(false);
     }
   };
 
@@ -288,7 +193,7 @@ export default function Settings() {
                   onClick={handleSelectFile}
                   disabled={isSelecting}
                 >
-                  {isSelecting ? "Selecting..." : "Select File"}
+                  {isSelecting ? "Processing..." : "Select File"}
                 </Button>
               </SpaceBetween>
             }
