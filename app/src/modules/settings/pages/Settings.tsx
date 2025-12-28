@@ -299,8 +299,12 @@ export default function Settings() {
             <Box variant="small" color="text-body-secondary" margin={{ top: "xs" }}>
               <Box fontWeight="bold">Examples:</Box>
               <Box padding={{ left: "l" }} margin={{ top: "xs" }}>
-                <Box>• <code>/Users/username/Documents/ledger.beancount</code> (absolute path)</Box>
-                <Box>• <code>~/Documents/ledger.beancount</code> (home directory shortcut)</Box>
+                <Box>
+                  • <code>/Users/username/Documents/ledger.beancount</code> (absolute path)
+                </Box>
+                <Box>
+                  • <code>~/Documents/ledger.beancount</code> (home directory shortcut)
+                </Box>
               </Box>
             </Box>
           )}
